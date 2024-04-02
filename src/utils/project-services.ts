@@ -15,9 +15,9 @@ export async function connectToDatabase() {
      }
 
      // Connect to cluster
-     let client: any = new MongoClient(process.env.MONGODB_URI!!);
+     let client: any = new MongoClient(process.env.MONGODB_URI_DEV!!);
      await client.connect();
-     let db = client.db('DAR_DB');
+     let db = client.db('LDA_DB');
 
      // set cache
      cachedClient = client;
@@ -45,11 +45,12 @@ export const ProjectsServices = () => {
           try {
 
                const skip = page * parsedLimit;
-               const data = (await dbConnection).db.collection('Projects')
+               const data = await (await dbConnection).db.collection('ProjectSummaries')
                     .find({})
                     .skip(skip)
                     .limit(parsedLimit)
                     .toArray();
+
                return data;
           } catch (error: any) {
                return { message: error.message };
@@ -57,7 +58,7 @@ export const ProjectsServices = () => {
      };
 
      async function getProjectsCount() {
-          const client = new MongoClient(process.env.MONGODB_URI!);
+          const client = new MongoClient(process.env.MONGODB_URI_DEV!);
 
           try {
                await client.connect();
@@ -78,7 +79,7 @@ export const ProjectsServices = () => {
 
      const getProjectsForHomePage = async () => {
 
-          const client = await MongoClient.connect(process.env.MONGODB_URI!)
+          const client = await MongoClient.connect(process.env.MONGODB_URI_DEV!)
 
           try {
                const db = client.db('DAR_DB')
@@ -94,7 +95,7 @@ export const ProjectsServices = () => {
 
      const getAllLogos = async () => {
 
-          const client = await MongoClient.connect(process.env.MONGODB_URI!)
+          const client = await MongoClient.connect(process.env.MONGODB_URI_DEV!)
 
           try {
                const db = client.db('DAR_DB')
@@ -109,7 +110,7 @@ export const ProjectsServices = () => {
      }
 
      const getProductById = async (_id: any) => {
-          const client = await MongoClient.connect(process.env.MONGODB_URI!)
+          const client = await MongoClient.connect(process.env.MONGODB_URI_DEV!)
           try {
                const db = client.db('DAR_DB')
                let project = await db.collection('Projects').findOne({ _id: new ObjectId(_id) })
@@ -126,7 +127,7 @@ export const ProjectsServices = () => {
 
           const searchTermArray = searchTerm.split(" ")
 
-          const client = await MongoClient.connect(process.env.MONGODB_URI!)
+          const client = await MongoClient.connect(process.env.MONGODB_URI_DEV!)
           try {
                const db = client.db('DAR_DB')
                let projects = await db.collection('Projects')
@@ -150,7 +151,7 @@ export const ProjectsServices = () => {
      }
 
      const getProjectsByDiscount = async () => {
-          const client = await MongoClient.connect(process.env.MONGODB_URI!)
+          const client = await MongoClient.connect(process.env.MONGODB_URI_DEV!)
           try {
                const db = client.db('DAR_DB')
                let projects = await db.collection('Projects').find({ discount: true }).toArray()

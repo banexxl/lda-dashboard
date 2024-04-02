@@ -4,7 +4,7 @@ import { UTApi } from 'uploadthing/server';
 
 export default async function handler(request: NextApiRequest, response: NextApiResponse) {
 
-     const mongoClient = await MongoClient.connect(process.env.MONGODB_URI!, {})
+     const mongoClient = await MongoClient.connect(process.env.MONGODB_URI_DEV!, {})
      const dbProjects = mongoClient.db('DAR_DB').collection('Projects')
 
      try {

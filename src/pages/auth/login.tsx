@@ -11,6 +11,8 @@ import { Layout as AuthLayout } from 'src/layouts/auth/layout';
 const Page = () => {
      const router = useRouter();
      const auth: any = useAuth();
+     console.log(router)
+
      const [method, setMethod] = useState('email');
      const mdDown = useMediaQuery((theme: any) => theme.breakpoints.down('md'));
      const formik = useFormik({

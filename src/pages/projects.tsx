@@ -18,6 +18,7 @@ import { TablePagination } from '@mui/material'
 
 
 const Page = (props: any) => {
+
      // const projects = useMemo(() => {
      //      return applyPagination(props.projects, props.page, props.limit);
      // }, [props.projects, props.page, props.limit]);
@@ -64,7 +65,7 @@ const Page = (props: any) => {
                     Swal.fire({
                          icon: 'success',
                          title: 'Success',
-                         text: 'Proizvodi uspešno poslati! Sačekajte par minuta i osvežite stranicu!',
+                         text: 'Projekti uspešno poslati! Sačekajte par minuta i osvežite stranicu!',
                     })
                     router.push('/projects/?page=0&limit=10')
                } else {
@@ -89,7 +90,7 @@ const Page = (props: any) => {
           <Box>
                <Head>
                     <title>
-                         Proizvodi
+                         Projekti
                     </title>
                </Head>
                <Box
@@ -108,7 +109,7 @@ const Page = (props: any) => {
                               >
                                    <Stack spacing={1}>
                                         <Typography variant="h4">
-                                             Proizvodi
+                                             Projekti
                                         </Typography>
                                    </Stack>
 
