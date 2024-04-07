@@ -8,6 +8,8 @@ import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import InsertPhotoIcon from '@mui/icons-material/InsertPhoto';
 import Image from 'next/image';
 import numeral from 'numeral';
+import DeleteIcon from '@mui/icons-material/Delete';
+import AddBoxIcon from '@mui/icons-material/AddBox';
 import { Fragment, useCallback, useEffect, useState } from 'react';
 import { Scrollbar } from 'src/components/scrollbar';
 import { SeverityPill } from '@/components/severity-pill';
@@ -16,7 +18,7 @@ import { useRouter } from 'next/navigation';
 import "@uploadthing/react/styles.css";
 import { UploadButton } from "../../utils/image-upload-components";
 
-export interface Project {
+export interface ProjectSummary {
      _id: string;
      projectSummaryURL: string;
      projectSummaryCoverURL: string;
@@ -37,6 +39,28 @@ export interface Project {
      title: string;
      locale: string;
 }
+const initialProjectSummary: ProjectSummary = {
+     _id: "unique_id_here",
+     projectSummaryURL: "https://example.com/project-summary",
+     projectSummaryCoverURL: "https://example.com/project-cover",
+     status: "ongoing",
+     gallery: ["https://example.com/image1.jpg", "https://example.com/image2.jpg"],
+     projectEndDateTime: new Date("2024-12-31T23:59:59"),
+     projectStartDateTime: new Date("2024-01-01T00:00:00"),
+     organizers: ["Organizer 1", "Organizer 2"],
+     locations: ["Location 1", "Location 2"],
+     applicants: ["Applicant 1", "Applicant 2"],
+     donators: ["Donator 1", "Donator 2"],
+     publications: ["Publication 1", "Publication 2"],
+     projectSummaryDescriptions: ["Description 1", "Description 2"],
+     projectSummarySubtitleURLs: ["https://example.com/subtitle1", "https://example.com/subtitle2"],
+     projectSummaryDateTime: ["Date 1", "Date 2"],
+     projectSummarySubtitles: ["Subtitle 1", "Subtitle 2"],
+     links: ["https://example.com/link1", "https://example.com/link2"],
+     title: "Project Title",
+     locale: "en-US"
+};
+
 
 type ProjectStatus = {
      value: string;
@@ -47,7 +71,7 @@ const projectStatus: ProjectStatus[] = [
      { value: 'completed', name: 'Zavrsen' },
 ];
 
-type ArrayKeys = keyof Pick<Project,
+type ArrayKeys = keyof Pick<ProjectSummary,
      'gallery' | 'organizers' | 'locations' | 'applicants' | 'donators' |
      'publications' | 'projectSummaryDescriptions' | 'projectSummarySubtitleURLs' |
      'projectSummaryDateTime' | 'projectSummarySubtitles' | 'links'
@@ -63,7 +87,7 @@ const locales = [{ value: 'en', name: 'Engleski' }, { value: 'sr', name: 'Srpski
 export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
 
      const [currentProjectID, setCurrentProjectID] = useState(null);
-     const [currentProjectObject, setCurrentProjectObject] = useState<Project | null>();
+     const [currentProjectObject, setCurrentProjectObject] = useState<ProjectSummary | null | undefined>(initialProjectSummary);
      const router = useRouter();
      const theme = useTheme()
      const [fileURL, setFileURL] = useState("")
@@ -106,7 +130,7 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
 
           Swal.fire({
                title: 'Da li ste sigurni?',
-               text: "Možete izmeniti artikl u svakom momentu...",
+               text: "Možete izmeniti pojekat u svakom momentu...",
                icon: 'warning',
                showCancelButton: true,
                confirmButtonColor: '#3085d6',
@@ -116,6 +140,8 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
           }).then((result) => {
                if (result.isConfirmed) {
                     handleUpdateProject(currentProjectObject)
+               } else {
+                    handleProjectClose()
                }
           })
      }
@@ -127,8 +153,8 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                     method: 'PUT',
                     headers: {
                          'Content-Type': 'application/json',
-                         'Access-Control-Allow-Origin': 'https://dar-pharmacy-dashboard.vercel.app/api/project-api, http://localhost:3000/api/project-api',
-                         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS' // Set the content type to JSON
+                         'Access-Control-Allow-Origin': 'https://lda-dashboard.vercel.app/api/project-api, http://localhost:3000/api/project-api',
+                         'Access-Control-Allow-Methods': 'PUT' // Set the content type to JSON
                     },
                     body: JSON.stringify(currentProjectObject)
                });
@@ -139,11 +165,12 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                     Swal.fire({
                          icon: 'success',
                          title: 'Sve OK!',
-                         text: 'Artikl izmenjen :)',
+                         text: 'Projekat izmenjen :)',
                     })
                     router.refresh()
                } else {
-                    const errorData = await response.json(); // Parse the error response
+                    const errorData = await response.json()
+                    console.log(errorData);
                }
 
           } catch (err) {
@@ -206,9 +233,95 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                     return null;
                }
 
-               const updatedProject: Project = { ...prevProject };
+               const updatedProject: ProjectSummary = { ...prevProject };
                updatedProject[arrayName] = newArray;
                return updatedProject;
+          });
+     };
+
+     const onAddNewSubtitle = (index: number) => {
+          setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
+               if (prevProject) {
+                    const newSubtitles = [...prevProject.projectSummarySubtitles];
+                    newSubtitles.splice(index + 1, 0, ''); // Insert a new empty string after the clicked index
+                    return {
+                         ...prevProject,
+                         projectSummarySubtitles: newSubtitles,
+                    };
+               }
+               return prevProject;
+          });
+     };
+
+     const onDeleteSubtitle = (index: number) => {
+          setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
+               if (prevProject) {
+                    const newSubtitles = [...prevProject.projectSummarySubtitles];
+                    newSubtitles.splice(index, 1); // Remove the subtitle at the specified index
+                    return {
+                         ...prevProject,
+                         projectSummarySubtitles: newSubtitles,
+                    };
+               }
+               return prevProject;
+          });
+     };
+
+     const onAddNewSubtitleURL = (index: number) => {
+          setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
+               if (prevProject) {
+                    const newSubtitlesURLs = [...prevProject.projectSummarySubtitleURLs];
+                    newSubtitlesURLs.splice(index + 1, 0, ''); // Insert a new empty string after the clicked index
+                    return {
+                         ...prevProject,
+                         projectSummarySubtitleURLs: newSubtitlesURLs,
+                    };
+               }
+               return prevProject;
+          });
+     };
+
+     const onDeleteSubtitleURL = (index: number) => {
+          setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
+               if (prevProject) {
+                    const newSubtitlesURLs = [...prevProject.projectSummarySubtitleURLs];
+                    newSubtitlesURLs.splice(index, 1); // Remove the subtitle at the specified index
+                    return {
+                         ...prevProject,
+                         projectSummarySubtitleURLs: newSubtitlesURLs,
+                    };
+               }
+               return prevProject;
+          });
+     };
+
+     const onAddNewDescription = (index: number) => {
+
+          setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
+
+               if (prevProject) {
+                    const newDescriptions = [...prevProject.projectSummaryDescriptions];
+                    newDescriptions.splice(index + 1, 0, ''); // Insert a new empty string after the clicked index
+                    return {
+                         ...prevProject,
+                         projectSummaryDescriptions: newDescriptions,
+                    };
+               }
+               return prevProject;
+          });
+     };
+
+     const onDeleteDescription = (index: number) => {
+          setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
+               if (prevProject) {
+                    const newDescription = [...prevProject.projectSummaryDescriptions];
+                    newDescription.splice(index, 1); // Remove the subtitle at the specified index
+                    return {
+                         ...prevProject,
+                         projectSummaryDescriptions: newDescription,
+                    };
+               }
+               return prevProject;
           });
      };
 
@@ -231,7 +344,7 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                               <TableBody>
                                    {
                                         items.length > 0 ?
-                                             items.map((project: Project) => {
+                                             items.map((project: ProjectSummary) => {
                                                   //const isSelected = selected.includes(project._id);
                                                   const isCurrent = project._id === currentProjectID;
                                                   const statusColor = project.status === 'in-progress' ? 'success' : 'info';
@@ -252,7 +365,6 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                                                                                      content: '" "',
                                                                                      top: 0,
                                                                                      left: 0,
-                                                                                     backgroundColor: 'primary.main',
                                                                                      width: 3,
                                                                                      height: 'calc(100% + 1px)',
                                                                                 },
@@ -273,9 +385,9 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                                                                  isCurrent && (
                                                                       <TableRow >
                                                                            <TableCell
-
                                                                                 colSpan={7}
                                                                                 sx={{
+                                                                                     margin: '20px',
                                                                                      p: 0,
                                                                                      position: 'relative',
                                                                                      '&:after': {
@@ -283,369 +395,274 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                                                                                           content: '" "',
                                                                                           top: 0,
                                                                                           left: 0,
-                                                                                          backgroundColor: 'primary.main',
                                                                                           width: 3,
                                                                                           height: 'calc(100% + 1px)',
+
                                                                                      },
                                                                                 }}
                                                                            >
-                                                                                <CardContent >
-                                                                                     <Grid
-                                                                                          container
-                                                                                          spacing={3}
+
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <TextField
+                                                                                          defaultValue={project.title}
+                                                                                          fullWidth
+                                                                                          label="Naziv projekta"
+                                                                                          name="name"
+                                                                                          disabled={loading}
+                                                                                          onBlur={(e: any) =>
+                                                                                               setCurrentProjectObject((previousObject: any) => ({
+                                                                                                    ...previousObject,
+                                                                                                    name: e.target.value
+
+                                                                                               }))
+                                                                                          }
+                                                                                     />
+                                                                                </Grid>
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <TextField
+                                                                                          defaultValue={project.projectStartDateTime}
+                                                                                          fullWidth
+                                                                                          label="Datum pocetka projekta"
+                                                                                          name="name"
+                                                                                          disabled={loading}
+                                                                                          onBlur={(e: any) =>
+                                                                                               setCurrentProjectObject((previousObject: any) => ({
+                                                                                                    ...previousObject,
+                                                                                                    projectStartDateTime: e.target.value
+
+                                                                                               }))
+                                                                                          }
+                                                                                     />
+                                                                                </Grid>
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <TextField
+                                                                                          defaultValue={project.projectEndDateTime}
+                                                                                          fullWidth
+                                                                                          label="Datum kraja projekta"
+                                                                                          name="name"
+                                                                                          disabled={loading}
+                                                                                          onBlur={(e: any) =>
+                                                                                               setCurrentProjectObject((previousObject: any) => ({
+                                                                                                    ...previousObject,
+                                                                                                    projectEndDateTime: e.target.value
+
+                                                                                               }))
+                                                                                          }
+                                                                                     />
+                                                                                </Grid>
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <TextField
+                                                                                          defaultValue={project.locale}
+                                                                                          fullWidth
+                                                                                          label="Jezik projekta"
+                                                                                          select
+                                                                                          disabled={loading}
+                                                                                          onBlur={(e: any) =>
+                                                                                               setCurrentProjectObject((previousObject: any) => ({
+                                                                                                    ...previousObject,
+                                                                                                    locale: e.target.value
+                                                                                               }))
+                                                                                          }
                                                                                      >
-                                                                                          <Grid
-                                                                                               item
-                                                                                               md={6}
-                                                                                               xs={12}
-                                                                                          >
-                                                                                               <Typography variant="h6">Detalji projekta</Typography>
-                                                                                               <Divider sx={{ my: 2 }} />
-                                                                                               <Grid
-                                                                                                    container
-                                                                                                    spacing={3}
+                                                                                          {locales.map((option: ProjectLocale) => (
+                                                                                               <MenuItem
+
+                                                                                                    value={option.value}
                                                                                                >
-                                                                                                    <Grid
-                                                                                                         item
-                                                                                                         md={6}
-                                                                                                         xs={12}
-                                                                                                    >
-                                                                                                         <TextField
-                                                                                                              defaultValue={project.title}
-                                                                                                              fullWidth
-                                                                                                              label="Naziv projekta"
-                                                                                                              name="name"
-                                                                                                              disabled={loading}
-                                                                                                              onBlur={(e: any) =>
-                                                                                                                   setCurrentProjectObject((previousObject: any) => ({
-                                                                                                                        ...previousObject,
-                                                                                                                        name: e.target.value
+                                                                                                    {option.name}
+                                                                                               </MenuItem>
+                                                                                          ))}
+                                                                                     </TextField>
+                                                                                </Grid>
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <TextField
+                                                                                          defaultValue={project.projectSummaryURL}
+                                                                                          fullWidth
+                                                                                          label="URL projekta"
+                                                                                          name="name"
+                                                                                          disabled={loading}
+                                                                                          onBlur={(e: any) =>
+                                                                                               setCurrentProjectObject((previousObject: any) => ({
+                                                                                                    ...previousObject,
+                                                                                                    projectSummaryURL: e.target.value
 
-                                                                                                                   }))
-                                                                                                              }
-                                                                                                         />
-                                                                                                    </Grid>
-                                                                                                    <Grid
-                                                                                                         item
-                                                                                                         md={6}
-                                                                                                         xs={12}
-                                                                                                    >
-                                                                                                         <TextField
-                                                                                                              defaultValue={project.projectStartDateTime}
-                                                                                                              fullWidth
-                                                                                                              label="Datum pocetka projekta"
-                                                                                                              name="name"
-                                                                                                              disabled={loading}
-                                                                                                              onBlur={(e: any) =>
-                                                                                                                   setCurrentProjectObject((previousObject: any) => ({
-                                                                                                                        ...previousObject,
-                                                                                                                        projectStartDateTime: e.target.value
+                                                                                               }))
+                                                                                          }
+                                                                                     />
+                                                                                </Grid>
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <TextField
+                                                                                          defaultValue={project.projectSummaryCoverURL}
+                                                                                          fullWidth
+                                                                                          label="Glavna slika projekta"
+                                                                                          name="name"
+                                                                                          disabled={loading}
+                                                                                          onBlur={(e: any) =>
+                                                                                               setCurrentProjectObject((previousObject: any) => ({
+                                                                                                    ...previousObject,
+                                                                                                    projectSummaryCoverURL: e.target.value
 
-                                                                                                                   }))
-                                                                                                              }
-                                                                                                         />
-                                                                                                    </Grid>
-                                                                                                    <Grid
-                                                                                                         item
-                                                                                                         md={6}
-                                                                                                         xs={12}
-                                                                                                    >
-                                                                                                         <TextField
-                                                                                                              defaultValue={project.projectEndDateTime}
-                                                                                                              fullWidth
-                                                                                                              label="Datum kraja projekta"
-                                                                                                              name="name"
-                                                                                                              disabled={loading}
-                                                                                                              onBlur={(e: any) =>
-                                                                                                                   setCurrentProjectObject((previousObject: any) => ({
-                                                                                                                        ...previousObject,
-                                                                                                                        projectEndDateTime: e.target.value
+                                                                                               }))
+                                                                                          }
+                                                                                     />
+                                                                                </Grid>
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <TextField
+                                                                                          defaultValue={project.status}
+                                                                                          fullWidth
+                                                                                          label="Status projekta"
+                                                                                          select
+                                                                                          disabled={loading}
+                                                                                          onBlur={(e: any) =>
+                                                                                               setCurrentProjectObject((previousObject: any) => ({
+                                                                                                    ...previousObject,
+                                                                                                    status: e.target.value
+                                                                                               }))
+                                                                                          }
+                                                                                     >
+                                                                                          {projectStatus.map((option: ProjectStatus) => (
+                                                                                               <MenuItem
 
-                                                                                                                   }))
-                                                                                                              }
-                                                                                                         />
-                                                                                                    </Grid>
-                                                                                                    <Grid
-                                                                                                         item
-                                                                                                         md={6}
-                                                                                                         xs={12}
-                                                                                                    >
-                                                                                                         <TextField
-                                                                                                              defaultValue={project.locale}
-                                                                                                              fullWidth
-                                                                                                              label="Jezik projekta"
-                                                                                                              select
-                                                                                                              disabled={loading}
-                                                                                                              onBlur={(e: any) =>
-                                                                                                                   setCurrentProjectObject((previousObject: any) => ({
-                                                                                                                        ...previousObject,
-                                                                                                                        locale: e.target.value
-                                                                                                                   }))
-                                                                                                              }
-                                                                                                         >
-                                                                                                              {locales.map((option: ProjectLocale) => (
-                                                                                                                   <MenuItem
-
-                                                                                                                        value={option.value}
-                                                                                                                   >
-                                                                                                                        {option.name}
-                                                                                                                   </MenuItem>
-                                                                                                              ))}
-                                                                                                         </TextField>
-                                                                                                    </Grid>
-                                                                                                    <Grid
-                                                                                                         item
-                                                                                                         md={6}
-                                                                                                         xs={12}
-                                                                                                    >
-                                                                                                         <TextField
-                                                                                                              defaultValue={project.projectSummaryURL}
-                                                                                                              fullWidth
-                                                                                                              label="URL projekta"
-                                                                                                              name="name"
-                                                                                                              disabled={loading}
-                                                                                                              onBlur={(e: any) =>
-                                                                                                                   setCurrentProjectObject((previousObject: any) => ({
-                                                                                                                        ...previousObject,
-                                                                                                                        projectSummaryURL: e.target.value
-
-                                                                                                                   }))
-                                                                                                              }
-                                                                                                         />
-                                                                                                    </Grid>
-                                                                                                    <Grid
-                                                                                                         item
-                                                                                                         md={6}
-                                                                                                         xs={12}
-                                                                                                    >
-                                                                                                         <TextField
-                                                                                                              defaultValue={project.projectSummaryCoverURL}
-                                                                                                              fullWidth
-                                                                                                              label="Glavna slika projekta"
-                                                                                                              name="name"
-                                                                                                              disabled={loading}
-                                                                                                              onBlur={(e: any) =>
-                                                                                                                   setCurrentProjectObject((previousObject: any) => ({
-                                                                                                                        ...previousObject,
-                                                                                                                        projectSummaryCoverURL: e.target.value
-
-                                                                                                                   }))
-                                                                                                              }
-                                                                                                         />
-                                                                                                    </Grid>
-                                                                                                    <Grid
-                                                                                                         item
-                                                                                                         md={6}
-                                                                                                         xs={12}
-                                                                                                    >
-                                                                                                         <TextField
-                                                                                                              defaultValue={project.status}
-                                                                                                              fullWidth
-                                                                                                              label="Status projekta"
-                                                                                                              select
-                                                                                                              disabled={loading}
-                                                                                                              onBlur={(e: any) =>
-                                                                                                                   setCurrentProjectObject((previousObject: any) => ({
-                                                                                                                        ...previousObject,
-                                                                                                                        status: e.target.value
-                                                                                                                   }))
-                                                                                                              }
-                                                                                                         >
-                                                                                                              {projectStatus.map((option: ProjectStatus) => (
-                                                                                                                   <MenuItem
-
-                                                                                                                        value={option.value}
-                                                                                                                   >
-                                                                                                                        {option.name}
-                                                                                                                   </MenuItem>
-                                                                                                              ))}
-                                                                                                         </TextField>
-                                                                                                    </Grid>
-                                                                                                    <Grid
-                                                                                                         item
-                                                                                                         md={6}
-                                                                                                         xs={12}
-                                                                                                    >
-                                                                                                         <TextField
-                                                                                                              defaultValue={project.organizers.join(',')}
-                                                                                                              fullWidth
-                                                                                                              label={`Organizatori projekta`}
-                                                                                                              name="name"
-                                                                                                              disabled={loading}
-                                                                                                              onBlur={(e: any) => {
-                                                                                                                   const newArray = e.target.value.split(',').map((value: string) => value.trim());
-                                                                                                                   handleAddToProjectObjectArray('organizers', newArray)
-                                                                                                              }}
-                                                                                                         />
-                                                                                                    </Grid>
-                                                                                                    <Grid
-                                                                                                         item
-                                                                                                         md={6}
-                                                                                                         xs={12}
-                                                                                                    >
-                                                                                                         <TextField
-                                                                                                              defaultValue={project.locations}
-                                                                                                              fullWidth
-                                                                                                              label={`Lokacije projekta`}
-                                                                                                              name="name"
-                                                                                                              disabled={loading}
-                                                                                                              onBlur={(e: any) => {
-                                                                                                                   const newArray = e.target.value.split(',').map((value: string) => value.trim());
-                                                                                                                   handleAddToProjectObjectArray('locations', newArray)
-                                                                                                              }}
-                                                                                                         />
-                                                                                                    </Grid>
-                                                                                                    <Grid
-                                                                                                         item
-                                                                                                         md={6}
-                                                                                                         xs={12}
-                                                                                                    >
-                                                                                                         <TextField
-                                                                                                              defaultValue={project.applicants}
-                                                                                                              fullWidth
-                                                                                                              label={`Aplikanti projekta`}
-                                                                                                              name="name"
-                                                                                                              disabled={loading}
-                                                                                                              onBlur={(e: any) => {
-                                                                                                                   const newArray = e.target.value.split(',').map((value: string) => value.trim());
-                                                                                                                   handleAddToProjectObjectArray('applicants', newArray)
-                                                                                                              }}
-                                                                                                         />
-                                                                                                    </Grid>
-                                                                                                    <Grid
-                                                                                                         item
-                                                                                                         md={6}
-                                                                                                         xs={12}
-                                                                                                    >
-                                                                                                         <TextField
-                                                                                                              defaultValue={project.donators}
-                                                                                                              fullWidth
-                                                                                                              label={`Donatori projekta`}
-                                                                                                              name="name"
-                                                                                                              disabled={loading}
-                                                                                                              onBlur={(e: any) => {
-                                                                                                                   const newArray = e.target.value.split(',').map((value: string) => value.trim());
-                                                                                                                   handleAddToProjectObjectArray('donators', newArray)
-                                                                                                              }}
-                                                                                                         />
-                                                                                                    </Grid>
-                                                                                                    <Grid
-                                                                                                         item
-                                                                                                         md={6}
-                                                                                                         xs={12}
-                                                                                                    >
-                                                                                                         <TextField
-                                                                                                              defaultValue={project.publications}
-                                                                                                              fullWidth
-                                                                                                              label={`Publikacije projekta`}
-                                                                                                              name="name"
-                                                                                                              disabled={loading}
-                                                                                                              onBlur={(e: any) => {
-                                                                                                                   const newArray = e.target.value.split(',').map((value: string) => value.trim());
-                                                                                                                   handleAddToProjectObjectArray('publications', newArray)
-                                                                                                              }}
-                                                                                                         />
-                                                                                                    </Grid>
-                                                                                                    <Grid
-                                                                                                         item
-                                                                                                         md={6}
-                                                                                                         xs={12}
-                                                                                                    >
-                                                                                                         <TextField
-                                                                                                              defaultValue={project.links}
-                                                                                                              fullWidth
-                                                                                                              label={`Linkovi`}
-                                                                                                              name="name"
-                                                                                                              disabled={loading}
-                                                                                                              onBlur={(e: any) => {
-                                                                                                                   const newArray = e.target.value.split(',').map((value: string) => value.trim());
-                                                                                                                   handleAddToProjectObjectArray('links', newArray)
-                                                                                                              }}
-                                                                                                         />
-                                                                                                    </Grid>
-                                                                                                    <Grid
-                                                                                                         item
-                                                                                                         md={6}
-                                                                                                         xs={12}
-                                                                                                    >
-                                                                                                         <TextField
-                                                                                                              defaultValue={project.projectSummarySubtitleURLs}
-                                                                                                              fullWidth
-                                                                                                              label={`URL titlova`}
-                                                                                                              name="name"
-                                                                                                              disabled={loading}
-                                                                                                              onBlur={(e: any) => {
-                                                                                                                   const newArray = e.target.value.split(',').map((value: string) => value.trim());
-                                                                                                                   handleAddToProjectObjectArray('projectSummarySubtitleURLs', newArray)
-                                                                                                              }}
-                                                                                                         />
-                                                                                                    </Grid>
-
-                                                                                                    {
-                                                                                                         project.projectSummarySubtitles.map((description: any, index: any) =>
-                                                                                                              <Grid
-                                                                                                                   item
-                                                                                                                   md={6}
-                                                                                                                   xs={12}
-                                                                                                              >
-                                                                                                                   <TextField
-                                                                                                                        defaultValue={description}
-                                                                                                                        fullWidth
-                                                                                                                        label={`Subtitle ${index + 1}`}
-                                                                                                                        disabled={loading}
-                                                                                                                        // name={project.description}
-                                                                                                                        onBlur={(e: any) =>
-                                                                                                                             setCurrentProjectObject((previousObject: any) => ({
-                                                                                                                                  ...previousObject,
-                                                                                                                                  projectSummarySubtitles: e.target.value
-
-                                                                                                                             }))
-                                                                                                                        }
-                                                                                                                   />
-                                                                                                              </Grid>
-                                                                                                         )
-                                                                                                    }
-
-                                                                                                    {
-                                                                                                         project.projectSummaryDescriptions.map((description: any, index: any) =>
-                                                                                                              <Grid
-                                                                                                                   item
-                                                                                                                   md={6}
-                                                                                                                   xs={12}
-                                                                                                              >
-                                                                                                                   <TextField
-                                                                                                                        defaultValue={description}
-                                                                                                                        fullWidth
-                                                                                                                        label={`Opis ${index + 1}`}
-                                                                                                                        disabled={loading}
-                                                                                                                        // name={project.description}
-                                                                                                                        onBlur={(e: any) =>
-                                                                                                                             setCurrentProjectObject((previousObject: any) => ({
-                                                                                                                                  ...previousObject,
-                                                                                                                                  description: e.target.value
-
-                                                                                                                             }))
-                                                                                                                        }
-                                                                                                                   />
-                                                                                                              </Grid>
-                                                                                                         )
-                                                                                                    }
-
-                                                                                               </Grid>
-                                                                                          </Grid>
-
-                                                                                     </Grid>
-                                                                                     <Card sx={{ width: '50%', marginTop: '20px' }}>
-                                                                                          <CardContent>
-                                                                                               <Box
-                                                                                                    sx={{
-                                                                                                         display: 'flex',
-                                                                                                         flexDirection: 'column',
-                                                                                                         alignItems: 'center',
-                                                                                                         gap: '10px'
-                                                                                                    }}
+                                                                                                    value={option.value}
                                                                                                >
-                                                                                                    {/* {
+                                                                                                    {option.name}
+                                                                                               </MenuItem>
+                                                                                          ))}
+                                                                                     </TextField>
+                                                                                </Grid>
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <TextField
+                                                                                          defaultValue={project.organizers.join(',')}
+                                                                                          fullWidth
+                                                                                          label={`Organizatori projekta`}
+                                                                                          name="name"
+                                                                                          disabled={loading}
+                                                                                          onBlur={(e: any) => {
+                                                                                               const newArray = e.target.value.split(',').map((value: string) => value.trim());
+                                                                                               handleAddToProjectObjectArray('organizers', newArray)
+                                                                                          }}
+                                                                                     />
+                                                                                </Grid>
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <TextField
+                                                                                          defaultValue={project.locations}
+                                                                                          fullWidth
+                                                                                          label={`Lokacije projekta`}
+                                                                                          name="name"
+                                                                                          disabled={loading}
+                                                                                          onBlur={(e: any) => {
+                                                                                               const newArray = e.target.value.split(',').map((value: string) => value.trim());
+                                                                                               handleAddToProjectObjectArray('locations', newArray)
+                                                                                          }}
+                                                                                     />
+                                                                                </Grid>
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <TextField
+                                                                                          defaultValue={project.applicants}
+                                                                                          fullWidth
+                                                                                          label={`Aplikanti projekta`}
+                                                                                          name="name"
+                                                                                          disabled={loading}
+                                                                                          onBlur={(e: any) => {
+                                                                                               const newArray = e.target.value.split(',').map((value: string) => value.trim());
+                                                                                               handleAddToProjectObjectArray('applicants', newArray)
+                                                                                          }}
+                                                                                     />
+                                                                                </Grid>
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <TextField
+                                                                                          defaultValue={project.donators}
+                                                                                          fullWidth
+                                                                                          label={`Donatori projekta`}
+                                                                                          name="name"
+                                                                                          disabled={loading}
+                                                                                          onBlur={(e: any) => {
+                                                                                               const newArray = e.target.value.split(',').map((value: string) => value.trim());
+                                                                                               handleAddToProjectObjectArray('donators', newArray)
+                                                                                          }}
+                                                                                     />
+                                                                                </Grid>
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <TextField
+                                                                                          defaultValue={project.publications}
+                                                                                          fullWidth
+                                                                                          label={`Publikacije projekta`}
+                                                                                          name="name"
+                                                                                          disabled={loading}
+                                                                                          onBlur={(e: any) => {
+                                                                                               const newArray = e.target.value.split(',').map((value: string) => value.trim());
+                                                                                               handleAddToProjectObjectArray('publications', newArray)
+                                                                                          }}
+                                                                                     />
+                                                                                </Grid>
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <TextField
+                                                                                          defaultValue={project.links}
+                                                                                          fullWidth
+                                                                                          label={`Linkovi`}
+                                                                                          name="name"
+                                                                                          disabled={loading}
+                                                                                          onBlur={(e: any) => {
+                                                                                               const newArray = e.target.value.split(',').map((value: string) => value.trim());
+                                                                                               handleAddToProjectObjectArray('links', newArray)
+                                                                                          }}
+                                                                                     />
+                                                                                </Grid>
+
+
+                                                                                {/* {
                                                                                                     currentProjectObject?.imageURL ?
                                                                                                          <Image src={currentProjectObject.imageURL}
                                                                                                               alt='sds'
@@ -707,7 +724,7 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                                                                                                     />
                                                                                                </Button> */}
 
-                                                                                                    {/* <UploadButton
+                                                                                {/* <UploadButton
                                                                                                          endpoint="imageUploader"
                                                                                                          onUploadProgress={() => setLoading(true)}
                                                                                                          onClientUploadComplete={(res) => {
@@ -779,10 +796,134 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                                                                                                          />
                                                                                                     )} */}
 
+
+
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+
+                                                                                     <Typography sx={{ margin: '10px' }}>Podnaslovi:</Typography>
+                                                                                     <IconButton onClick={() => onAddNewSubtitle(0)}>
+                                                                                          <AddBoxIcon />
+                                                                                     </IconButton>
+                                                                                     <IconButton onClick={() => onDeleteSubtitle(0)}>
+                                                                                          <DeleteIcon />
+                                                                                     </IconButton>
+                                                                                     {
+                                                                                          currentProjectObject?.projectSummarySubtitles?.map((subtitle: any, index: any) =>
+                                                                                               <Box sx={{ display: 'flex', width: '80%' }}>
+                                                                                                    <TextField
+                                                                                                         defaultValue={subtitle}
+                                                                                                         fullWidth
+                                                                                                         label={`Podnaslov ${index + 1}`}
+                                                                                                         disabled={loading}
+                                                                                                         // name={project.description}
+                                                                                                         onBlur={(e: any) => {
+                                                                                                              console.log(currentProjectObject)
+                                                                                                              setCurrentProjectObject((previousObject: any) => ({
+                                                                                                                   ...previousObject,
+                                                                                                                   projectSummarySubtitles: e.target.value
+
+                                                                                                              }))
+                                                                                                         }
+                                                                                                         }
+                                                                                                    />
+                                                                                                    <IconButton onClick={() => onAddNewSubtitle(index)}>
+                                                                                                         <AddBoxIcon />
+                                                                                                    </IconButton>
+                                                                                                    <IconButton onClick={() => onDeleteSubtitle(index)}>
+                                                                                                         <DeleteIcon />
+                                                                                                    </IconButton>
                                                                                                </Box>
-                                                                                          </CardContent>
-                                                                                     </Card>
-                                                                                </CardContent>
+                                                                                          )
+                                                                                     }
+
+                                                                                </Grid>
+
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <Typography sx={{ margin: '10px' }}>Opisi:</Typography>
+                                                                                     <IconButton onClick={() => onAddNewDescription(0)}>
+                                                                                          <AddBoxIcon />
+                                                                                     </IconButton>
+                                                                                     <IconButton onClick={() => onDeleteDescription(0)}>
+                                                                                          <DeleteIcon />
+                                                                                     </IconButton>
+                                                                                     {
+                                                                                          currentProjectObject?.projectSummaryDescriptions.map((description: any, index: any) =>
+                                                                                               <Box sx={{ display: 'flex', width: '80%' }}>
+                                                                                                    <TextField
+                                                                                                         defaultValue={description}
+                                                                                                         fullWidth
+                                                                                                         label={`Opis ${index + 1}`}
+                                                                                                         disabled={loading}
+                                                                                                         // name={project.description}
+                                                                                                         onBlur={(e: any) =>
+                                                                                                              setCurrentProjectObject((previousObject: any) => ({
+                                                                                                                   ...previousObject,
+                                                                                                                   description: e.target.value
+
+                                                                                                              }))
+                                                                                                         }
+                                                                                                    />
+                                                                                                    <IconButton onClick={() => onAddNewDescription(index)}>
+                                                                                                         <AddBoxIcon />
+                                                                                                    </IconButton>
+                                                                                                    <IconButton onClick={() => onDeleteDescription(index)}>
+                                                                                                         <DeleteIcon />
+                                                                                                    </IconButton>
+
+                                                                                               </Box>
+                                                                                          )
+                                                                                     }
+                                                                                </Grid>
+
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <Typography sx={{ margin: '10px' }}>URL-ovi podnaslova:</Typography>
+                                                                                     <IconButton onClick={() => onAddNewSubtitleURL(0)}>
+                                                                                          <AddBoxIcon />
+                                                                                     </IconButton>
+                                                                                     <IconButton onClick={() => onDeleteSubtitleURL(0)}>
+                                                                                          <DeleteIcon />
+                                                                                     </IconButton>
+                                                                                     {
+                                                                                          currentProjectObject?.projectSummarySubtitleURLs.map((url: any, index: any) =>
+                                                                                               <Box sx={{ display: 'flex', width: '80%' }}>
+                                                                                                    <TextField
+                                                                                                         defaultValue={url}
+                                                                                                         fullWidth
+                                                                                                         label={`URL ${index + 1}`}
+                                                                                                         disabled={loading}
+                                                                                                         // name={project.description}
+                                                                                                         onBlur={(e: any) =>
+                                                                                                              setCurrentProjectObject((previousObject: any) => ({
+                                                                                                                   ...previousObject,
+                                                                                                                   projectSummarySubtitleURLs: e.target.value
+
+                                                                                                              }))
+                                                                                                         }
+                                                                                                    />
+                                                                                                    <IconButton onClick={() => onAddNewSubtitleURL(index)}>
+                                                                                                         <AddBoxIcon />
+                                                                                                    </IconButton>
+                                                                                                    <IconButton onClick={() => onDeleteSubtitleURL(index)}>
+                                                                                                         <DeleteIcon />
+                                                                                                    </IconButton>
+                                                                                               </Box>
+                                                                                          )
+                                                                                     }
+                                                                                </Grid>
+
+
                                                                                 <Divider />
                                                                                 <Stack
                                                                                      alignItems="center"

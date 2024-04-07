@@ -1,6 +1,7 @@
 import { MongoClient, ObjectId } from 'mongodb'
 import type { NextApiRequest, NextApiResponse } from 'next/types'
 import { UTApi } from 'uploadthing/server';
+import moment from 'moment';
 
 export default async function handler(request: NextApiRequest, response: NextApiResponse) {
 
@@ -34,29 +35,31 @@ export default async function handler(request: NextApiRequest, response: NextApi
                }
           }
           else if (request.method === 'PUT') {
-               //const idsToDelete = request.body.selected.map((_id: any) => new ObjectId(_id))
+               console.log('usao u api', request.body);
+
 
                try {
                     await dbProjects.findOneAndUpdate({ _id: new ObjectId(request.body._id) },
                          {
                               $set: {
-                                   bestSeller: request.body.bestSeller,
-                                   description: request.body.description,
-                                   discount: request.body.discount,
-                                   discountAmount: request.body.discountAmount,
-                                   availableStock: request.body.availableStock,
-                                   imageURL: request.body.imageURL,
-                                   ingredients: request.body.ingredients,
-                                   instructions: request.body.instructions,
-                                   mainCategory: request.body.mainCategory,
-                                   manufacturer: request.body.manufacturer,
-                                   midCategory: request.body.midCategory,
-                                   name: request.body.name,
-                                   newArrival: request.body.newArrival,
-                                   price: request.body.price,
-                                   quantity: request.body.quantity,
-                                   subCategory: request.body.subCategory,
-                                   warning: request.body.warning
+                                   projectSummaryURL: request.body.projectSummaryURL,
+                                   projectSummaryCoverURL: request.body.projectSummaryCoverURL,
+                                   status: request.body.status,
+                                   gallery: request.body.gallery,
+                                   projectEndDateTime: request.body.projectEndDateTime,
+                                   projectStartDateTime: request.body.projectStartDateTime,
+                                   organizers: request.body.organizers,
+                                   locations: request.body.locations,
+                                   applicants: request.body.applicants,
+                                   donators: request.body.donators,
+                                   publications: request.body.publications,
+                                   projectSummaryDescriptions: request.body.projectSummaryDescriptions,
+                                   projectSummarySubtitleURLs: request.body.projectSummarySubtitleURLs,
+                                   projectSummaryDateTime: moment().format('YYYY-MM-DDTHH:mm:ss'),
+                                   projectSummarySubtitles: request.body.projectSummarySubtitles,
+                                   links: request.body.links,
+                                   title: request.body.title,
+                                   locale: request.body.locale,
                               }
                          })
                     return response.status(200).json({ message: 'Product successfully updated!' });
