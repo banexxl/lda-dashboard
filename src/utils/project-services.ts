@@ -62,7 +62,7 @@ export const ProjectsServices = () => {
 
           try {
                await client.connect();
-               const database = client.db('DAR_DB');
+               const database = client.db('LDA_DB');
                const collection = database.collection('Projects');
 
                // Use countDocuments to get the count of all documents in the collection
@@ -82,7 +82,7 @@ export const ProjectsServices = () => {
           const client = await MongoClient.connect(process.env.MONGODB_URI_DEV!)
 
           try {
-               const db = client.db('DAR_DB')
+               const db = client.db('LDA_DB')
                let data = await db.collection('Projects').find().toArray()
                return data
           } catch (error: any) {
@@ -98,7 +98,7 @@ export const ProjectsServices = () => {
           const client = await MongoClient.connect(process.env.MONGODB_URI_DEV!)
 
           try {
-               const db = client.db('DAR_DB')
+               const db = client.db('LDA_DB')
                let data = await db.collection('LogoURLs').find().toArray()
                return data
           } catch (error: any) {
@@ -112,7 +112,7 @@ export const ProjectsServices = () => {
      const getProductById = async (_id: any) => {
           const client = await MongoClient.connect(process.env.MONGODB_URI_DEV!)
           try {
-               const db = client.db('DAR_DB')
+               const db = client.db('LDA_DB')
                let project = await db.collection('Projects').findOne({ _id: new ObjectId(_id) })
                return project
           } catch (error: any) {
@@ -129,7 +129,7 @@ export const ProjectsServices = () => {
 
           const client = await MongoClient.connect(process.env.MONGODB_URI_DEV!)
           try {
-               const db = client.db('DAR_DB')
+               const db = client.db('LDA_DB')
                let projects = await db.collection('Projects')
                     .find({
                          $or: [
@@ -153,7 +153,7 @@ export const ProjectsServices = () => {
      const getProjectsByDiscount = async () => {
           const client = await MongoClient.connect(process.env.MONGODB_URI_DEV!)
           try {
-               const db = client.db('DAR_DB')
+               const db = client.db('LDA_DB')
                let projects = await db.collection('Projects').find({ discount: true }).toArray()
 
                return projects

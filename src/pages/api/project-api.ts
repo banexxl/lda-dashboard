@@ -5,18 +5,18 @@ import moment from 'moment';
 
 export default async function handler(request: NextApiRequest, response: NextApiResponse) {
 
-     const mongoClient = await MongoClient.connect(process.env.MONGODB_URI_DEV!, {})
-     const dbProjects = mongoClient.db('DAR_DB').collection('Projects')
+     const mongoClient = await MongoClient.connect(process.env.MONGODB_URI_DEV!)
+     const dbProjectSummaries = mongoClient.db('LDA_DB').collection('ProjectSummaries')
 
      try {
           if (request.method === 'GET') {
 
-               const allProjects = await dbProjects.find({}).toArray()
+               const allProjects = await dbProjectSummaries.find({}).toArray()
                return response.status(200).json({ message: 'Projects found!', data: allProjects });
 
           } else if (request.method === 'POST') {
                const newProduct = request.body
-               await dbProjects.insertOne(newProduct)
+               await dbProjectSummaries.insertOne(newProduct)
                return response.status(200).json({ message: 'Product successfully added!' });
           }
           else if (request.method === 'DELETE') {
@@ -28,7 +28,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                     const utapi = new UTApi()
                     await utapi.deleteFiles(newUrl);
 
-                    await dbProjects.deleteOne({ _id: new ObjectId(request.body.currentProductID) })
+                    await dbProjectSummaries.deleteOne({ _id: new ObjectId(request.body.currentProductID) })
                     return response.status(200).json({ message: 'Product successfully deleted!' });
                } catch (error) {
                     alert(error);
@@ -37,9 +37,8 @@ export default async function handler(request: NextApiRequest, response: NextApi
           else if (request.method === 'PUT') {
                console.log('usao u api', request.body);
 
-
                try {
-                    await dbProjects.findOneAndUpdate({ _id: new ObjectId(request.body._id) },
+                    const mdbResponse = await dbProjectSummaries.updateOne({ '_id': request.body._id },
                          {
                               $set: {
                                    projectSummaryURL: request.body.projectSummaryURL,
@@ -61,8 +60,13 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                    title: request.body.title,
                                    locale: request.body.locale,
                               }
-                         })
-                    return response.status(200).json({ message: 'Product successfully updated!' });
+                         }
+                    )
+                    console.log(mdbResponse);
+                    return mdbResponse.modifiedCount > 0 ?
+                         response.status(200).json({ message: 'Project successfully updated!', status: 'OK' })
+                         :
+                         response.status(400).json({ message: 'Project not updated!', status: 'Bad Request' });
                } catch (error) {
                     alert(error);
                }
