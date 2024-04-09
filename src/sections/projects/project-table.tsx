@@ -239,11 +239,13 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
           });
      };
 
-     const onAddNewSubtitle = (index: number) => {
+     const onAddNewSubtitle = (index: number, text: string) => {
+          console.log(index, text);
+
           setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
                if (prevProject) {
                     const newSubtitles = [...prevProject.projectSummarySubtitles];
-                    newSubtitles.splice(index + 1, 0, ''); // Insert a new empty string after the clicked index
+                    newSubtitles[index] = text; // Update the subtitle at the clicked index
                     return {
                          ...prevProject,
                          projectSummarySubtitles: newSubtitles,
@@ -803,15 +805,21 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                                                                                      md={6}
                                                                                      xs={12}
                                                                                 >
-
                                                                                      <Typography sx={{ margin: '10px' }}>Podnaslovi:</Typography>
-                                                                                     <IconButton onClick={() => onAddNewSubtitle(0)}>
-                                                                                          <AddBoxIcon />
-                                                                                     </IconButton>
-                                                                                     <IconButton onClick={() => onDeleteSubtitle(0)}>
-                                                                                          <DeleteIcon />
-                                                                                     </IconButton>
                                                                                      {
+                                                                                          currentProjectObject?.projectSummarySubtitles.length == 0 &&
+                                                                                          <Box>
+                                                                                               <IconButton onClick={() => onAddNewSubtitle(0, '')}>
+                                                                                                    <AddBoxIcon />
+                                                                                               </IconButton>
+                                                                                               <IconButton onClick={() => onDeleteSubtitle(0)}>
+                                                                                                    <DeleteIcon />
+                                                                                               </IconButton>
+                                                                                          </Box>
+                                                                                     }
+
+                                                                                     {
+                                                                                          currentProjectObject?.projectSummarySubtitles.length != 0 &&
                                                                                           currentProjectObject?.projectSummarySubtitles?.map((subtitle: any, index: any) =>
                                                                                                <Box sx={{ display: 'flex', width: '80%' }}>
                                                                                                     <TextField
@@ -821,16 +829,23 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                                                                                                          disabled={loading}
                                                                                                          // name={project.description}
                                                                                                          onBlur={(e: any) => {
-                                                                                                              console.log(currentProjectObject)
-                                                                                                              setCurrentProjectObject((previousObject: any) => ({
-                                                                                                                   ...previousObject,
-                                                                                                                   projectSummarySubtitles: e.target.value
+                                                                                                              // onAddNewSubtitle(index, e.target.value)
+                                                                                                              setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
+                                                                                                                   if (prevProject) {
+                                                                                                                        const newSubtitles = [...prevProject.projectSummarySubtitles];
+                                                                                                                        newSubtitles[index] = e.target.value; // Update the subtitle at the clicked index
+                                                                                                                        return {
+                                                                                                                             ...prevProject,
+                                                                                                                             projectSummarySubtitles: newSubtitles,
+                                                                                                                        };
+                                                                                                                   }
+                                                                                                                   return prevProject;
+                                                                                                              });
+                                                                                                              console.log(currentProjectObject?.projectSummarySubtitles);
 
-                                                                                                              }))
-                                                                                                         }
-                                                                                                         }
+                                                                                                         }}
                                                                                                     />
-                                                                                                    <IconButton onClick={() => onAddNewSubtitle(index)}>
+                                                                                                    <IconButton onClick={() => onAddNewSubtitle(index + 1, '')}>
                                                                                                          <AddBoxIcon />
                                                                                                     </IconButton>
                                                                                                     <IconButton onClick={() => onDeleteSubtitle(index)}>
