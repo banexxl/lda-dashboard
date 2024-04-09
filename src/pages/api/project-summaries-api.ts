@@ -7,6 +7,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
 
      const mongoClient = await MongoClient.connect(process.env.MONGODB_URI_DEV!)
      const dbProjectSummaries = mongoClient.db('LDA_DB').collection('ProjectSummaries')
+     console.log(dbProjectSummaries.namespace);
 
      try {
           if (request.method === 'GET') {
@@ -38,7 +39,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                console.log('usao u api', request.body);
 
                try {
-                    const mdbResponse = await dbProjectSummaries.updateOne({ '_id': request.body._id },
+                    const mdbResponse = await dbProjectSummaries.updateOne({ '_id': new ObjectId(request.body._id) },
                          {
                               $set: {
                                    projectSummaryURL: request.body.projectSummaryURL,

@@ -149,7 +149,7 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
      const handleUpdateProject = async (currentProjectObject: any) => {
           try {
                //API CALL
-               const response = await fetch('/api/project-api', {
+               const response = await fetch('/api/project-summaries-api', {
                     method: 'PUT',
                     headers: {
                          'Content-Type': 'application/json',
