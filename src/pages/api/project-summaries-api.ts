@@ -36,7 +36,6 @@ export default async function handler(request: NextApiRequest, response: NextApi
                }
           }
           else if (request.method === 'PUT') {
-               console.log('usao u api', request.body);
 
                try {
                     const mdbResponse = await dbProjectSummaries.updateOne({ '_id': new ObjectId(request.body._id) },
@@ -55,7 +54,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                    publications: request.body.publications,
                                    projectSummaryDescriptions: request.body.projectSummaryDescriptions,
                                    projectSummarySubtitleURLs: request.body.projectSummarySubtitleURLs,
-                                   projectSummaryDateTime: moment().format('YYYY-MM-DDTHH:mm:ss'),
+                                   projectSummaryDateTime: request.body.projectSummaryDateTime,
                                    projectSummarySubtitles: request.body.projectSummarySubtitles,
                                    links: request.body.links,
                                    title: request.body.title,

@@ -2,7 +2,7 @@ import ChevronRightIcon from '@untitled-ui/icons-react/build/esm/ChevronRight';
 import ChevronDownIcon from '@untitled-ui/icons-react/build/esm/ChevronDown';
 import {
      Avatar, Box, Button, Card, CardContent, Checkbox, Divider, Grid, IconButton, Input, InputAdornment, LinearProgress, MenuItem,
-     Stack, SvgIcon, Switch, Table, TableBody, TableCell, TableHead, TablePagination, TableRow, TextField, Typography, useTheme
+     Stack, SvgIcon, Switch, Table, TableBody, TableCell, TableHead, TablePagination, TableRow, TextField, TextFieldProps, Typography, useTheme
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import InsertPhotoIcon from '@mui/icons-material/InsertPhoto';
@@ -10,13 +10,16 @@ import Image from 'next/image';
 import numeral from 'numeral';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddBoxIcon from '@mui/icons-material/AddBox';
-import { Fragment, useCallback, useEffect, useState } from 'react';
+import { Fragment, JSXElementConstructor, ReactElement, useCallback, useEffect, useState } from 'react';
 import { Scrollbar } from 'src/components/scrollbar';
-import { SeverityPill } from '@/components/severity-pill';
+import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import Swal from 'sweetalert2';
 import { useRouter } from 'next/navigation';
 import "@uploadthing/react/styles.css";
 import { UploadButton } from "../../utils/image-upload-components";
+import dayjs from 'dayjs';
 
 export interface ProjectSummary {
      _id: string;
@@ -273,6 +276,7 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
      };
 
      const onAddNewSubtitleURL = (index: number, text: string) => {
+          console.log(text, index)
           setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
                if (prevProject) {
                     const newSubtitlesURLs = [...prevProject.projectSummarySubtitleURLs];
@@ -322,6 +326,34 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                     return {
                          ...prevProject,
                          projectSummaryDescriptions: newDescription,
+                    };
+               }
+               return prevProject;
+          });
+     };
+
+     const onAddNewSubtitleDateTime = (index: number, text: string) => {
+          setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
+               if (prevProject) {
+                    const newDateTimes = [...prevProject.projectSummaryDateTime];
+                    newDateTimes[index] = text; // Update the subtitle at the clicked index
+                    return {
+                         ...prevProject,
+                         projectSummaryDateTime: newDateTimes,
+                    };
+               }
+               return prevProject;
+          });
+     };
+
+     const onDeleteSubtitleDateTime = (index: number) => {
+          setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
+               if (prevProject) {
+                    const newDateTimes = [...prevProject.projectSummaryDateTime];
+                    newDateTimes.splice(index, 1); // Remove the subtitle at the specified index
+                    return {
+                         ...prevProject,
+                         projectSummaryDateTime: newDateTimes,
                     };
                }
                return prevProject;
@@ -896,7 +928,7 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                                                                                                               })
                                                                                                          }
                                                                                                     />
-                                                                                                    <IconButton onClick={() => onAddNewDescription(index, '')}>
+                                                                                                    <IconButton onClick={() => onAddNewDescription(index + 1, '')}>
                                                                                                          <AddBoxIcon />
                                                                                                     </IconButton>
                                                                                                     <IconButton onClick={() => onDeleteDescription(index)}>
@@ -949,7 +981,7 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                                                                                                               })
                                                                                                          }
                                                                                                     />
-                                                                                                    <IconButton onClick={() => onAddNewSubtitleURL(index, '')}>
+                                                                                                    <IconButton onClick={() => onAddNewSubtitleURL(index + 1, '')}>
                                                                                                          <AddBoxIcon />
                                                                                                     </IconButton>
                                                                                                     <IconButton onClick={() => onDeleteSubtitleURL(index)}>
@@ -960,6 +992,62 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                                                                                      }
                                                                                 </Grid>
 
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <Typography sx={{ margin: '10px' }}>Vremena odrzavanja projektnih aktivnosti (obavezno):</Typography>
+                                                                                     {
+                                                                                          currentProjectObject?.projectSummaryDateTime.length == 0 &&
+                                                                                          <Box>
+                                                                                               <IconButton onClick={() => onAddNewSubtitleDateTime(0, '')}>
+                                                                                                    <AddBoxIcon />
+                                                                                               </IconButton>
+                                                                                               <IconButton onClick={() => onDeleteSubtitleDateTime(0)}>
+                                                                                                    <DeleteIcon />
+                                                                                               </IconButton>
+                                                                                          </Box>
+                                                                                     }
+                                                                                     {/* setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
+                                                                                                                   if (prevProject) {
+                                                                                                                        const newSubtitlesURLs = [...prevProject.projectSummarySubtitleURLs];
+                                                                                     newSubtitlesURLs[index] = e.target.value; // Update the subtitle at the clicked index
+                                                                                     return {
+                                                                                          ...prevProject,
+                                                                                          projectSummarySubtitleURLs: newSubtitlesURLs,
+                                                                                                                        };
+                                                                                                                   }
+                                                                                     return prevProject;
+                                                                                                              }) */}
+                                                                                     {
+                                                                                          currentProjectObject?.projectSummaryDateTime.map((date: any, index: any) =>
+                                                                                               <Box sx={{ display: 'flex', width: '80%' }}>
+                                                                                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                                                                                         <DatePicker
+                                                                                                              inputFormat='DD/MM/YYYY'
+                                                                                                              disabled={loading}
+                                                                                                              label={`Datum ${index + 1}`}
+                                                                                                              value={date}
+                                                                                                              onChange={(newValue: any) => {
+                                                                                                                   const formattedDate = dayjs(newValue).format('YYYY-MM-DDTHH:mm:ss');
+                                                                                                                   onAddNewSubtitleDateTime(index, formattedDate)
+                                                                                                              }}
+                                                                                                              renderInput={(props: TextFieldProps) => <TextField {...props} />}
+                                                                                                         />
+                                                                                                    </LocalizationProvider>
+
+
+                                                                                                    <IconButton onClick={() => onAddNewSubtitleDateTime(index + 1, '')}>
+                                                                                                         <AddBoxIcon />
+                                                                                                    </IconButton>
+                                                                                                    <IconButton onClick={() => onDeleteSubtitleDateTime(index)}>
+                                                                                                         <DeleteIcon />
+                                                                                                    </IconButton>
+                                                                                               </Box>
+                                                                                          )
+                                                                                     }
+                                                                                </Grid>
 
                                                                                 <Divider />
                                                                                 <Stack
