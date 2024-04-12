@@ -1,7 +1,7 @@
 import ChevronRightIcon from '@untitled-ui/icons-react/build/esm/ChevronRight';
 import ChevronDownIcon from '@untitled-ui/icons-react/build/esm/ChevronDown';
 import {
-     Avatar, Box, Button, Card, CardContent, Checkbox, Divider, Grid, IconButton, Input, InputAdornment, LinearProgress, MenuItem,
+     Avatar, Box, Button, Card, CardContent, Checkbox, Divider, Grid, IconButton, ImageList, ImageListItem, Input, InputAdornment, LinearProgress, MenuItem,
      Stack, SvgIcon, Switch, Table, TableBody, TableCell, TableHead, TablePagination, TableRow, TextField, TextFieldProps, Typography, useTheme
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -20,6 +20,7 @@ import { useRouter } from 'next/navigation';
 import "@uploadthing/react/styles.css";
 import { UploadButton } from "../../utils/image-upload-components";
 import dayjs from 'dayjs';
+import AWS from 'aws-sdk';
 
 export interface ProjectSummary {
      _id: string;
@@ -96,6 +97,12 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
      const [fileURL, setFileURL] = useState("")
      const [loading, setLoading] = useState(false)
      const [selectedImage, setSelectedImage] = useState(null);
+
+     AWS.config.update({
+          accessKeyId: 'your-access-key-id',
+          secretAccessKey: 'your-secret-access-key',
+          region: 'your-region'
+     });
 
      const getObjectById = (_id: any, arrayToSearch: any) => {
           for (const obj of arrayToSearch) {
@@ -697,142 +704,6 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                                                                                 </Grid>
 
 
-                                                                                {/* {
-                                                                                                    currentProjectObject?.imageURL ?
-                                                                                                         <Image src={currentProjectObject.imageURL}
-                                                                                                              alt='sds'
-                                                                                                              width={300}
-                                                                                                              height={300}
-                                                                                                              style={{
-                                                                                                                   borderRadius: '10px',
-                                                                                                                   cursor: 'pointer'
-                                                                                                              }}
-                                                                                                              onClick={() => handleFileRemove()}
-                                                                                                         />
-                                                                                                         :
-                                                                                                         <InsertPhotoIcon
-                                                                                                              color='primary'
-                                                                                                              sx={{ width: '300px', height: '300px' }}
-                                                                                                         />
-                                                                                               }
-
-                                                                                               <Button component="label"
-                                                                                                    variant="contained"
-                                                                                                    startIcon={<CloudUploadIcon />}
-                                                                                                    sx={{
-                                                                                                         maxWidth: '150px'
-                                                                                                    }}
-
-                                                                                               >
-                                                                                                    Ucitaj sliku
-                                                                                                    <Input
-                                                                                                         type="file"
-                                                                                                         inputProps={{ accept: 'image/*' }}
-                                                                                                         sx={{
-                                                                                                              clip: 'rect(0 0 0 0)',
-                                                                                                              clipPath: 'inset(50%)',
-                                                                                                              height: 1,
-                                                                                                              overflow: 'hidden',
-                                                                                                              position: 'absolute',
-                                                                                                              bottom: 0,
-                                                                                                              left: 0,
-                                                                                                              whiteSpace: 'nowrap',
-                                                                                                              width: 1,
-                                                                                                         }}
-                                                                                                         onInput={(e: any) => {
-
-                                                                                                              const file = e.target.files[0]; // Get the first selected file
-                                                                                                              if (file) {
-                                                                                                                   const reader = new FileReader();
-                                                                                                                   reader.onload = (e: any) => {
-                                                                                                                        // setSelectedImage(e.target.result);
-                                                                                                                        setCurrentProjectObject((previousObject: any) => ({
-                                                                                                                             ...previousObject,
-                                                                                                                             imageURL: e.target.result
-
-                                                                                                                        }))
-                                                                                                                   }
-                                                                                                                   reader.readAsDataURL(file);
-                                                                                                              }
-                                                                                                         }
-                                                                                                         }
-                                                                                                    />
-                                                                                               </Button> */}
-
-                                                                                {/* <UploadButton
-                                                                                                         endpoint="imageUploader"
-                                                                                                         onUploadProgress={() => setLoading(true)}
-                                                                                                         onClientUploadComplete={(res) => {
-                                                                                                              setFileURL(res[0].url)
-                                                                                                              setLoading(false)
-                                                                                                              setCurrentProjectObject((previousObject: any) => ({
-                                                                                                                   ...previousObject,
-                                                                                                                   imageURL: res[0].url
-                                                                                                              }))
-                                                                                                              Swal.fire({
-                                                                                                                   icon: 'success',
-                                                                                                                   title: 'Jeeej',
-                                                                                                                   text: 'Slika je uspešno sačuvana! Nastavi sa izmenama i sačuvaj proizvod...',
-                                                                                                              })
-                                                                                                         }}
-                                                                                                         onUploadError={(error) => {
-                                                                                                              Swal.fire({
-                                                                                                                   icon: 'success',
-                                                                                                                   title: 'Noooo',
-                                                                                                                   text: 'Nešto je pošlo po zlu! Proveri format fajla koji upload-uješ!',
-                                                                                                              })
-                                                                                                              console.log(error);
-                                                                                                         }}
-                                                                                                         content={{
-                                                                                                              button({ ready }: any) {
-                                                                                                                   if (ready) return <Typography sx={{ color: theme.palette.divider }}>Pronadji sliku...</Typography>;
-                                                                                                                   return "Getting ready...";
-                                                                                                              },
-                                                                                                              allowedContent({ ready, fileTypes }) {
-                                                                                                                   if (!ready) return "Checking what you allow";
-                                                                                                                   if (loading) return "Upload slike u toku!";
-                                                                                                                   return `Tip datoteke: ${fileTypes.join(", ")}`;
-                                                                                                              },
-                                                                                                         }}
-                                                                                                         appearance={{
-                                                                                                              button({ ready }: any) {
-                                                                                                                   return {
-                                                                                                                        fontSize: "1.6rem",
-                                                                                                                        backgroundColor: theme.palette.primary.main,
-                                                                                                                        color: "black",
-                                                                                                                        ...(ready && { color: theme.palette.primary.main, }),
-                                                                                                                        ...(loading && { color: theme.palette.primary.main, }),
-                                                                                                                        borderRadius: "10px",
-                                                                                                                        cursor: 'pointer'
-                                                                                                                   };
-                                                                                                              },
-                                                                                                              allowedContent: {
-                                                                                                                   color: theme.palette.primary.main,
-                                                                                                              },
-                                                                                                         }}
-                                                                                                    />
-                                                                                                    {currentProjectObject?.imageURL.length ? (
-                                                                                                         <Image
-
-                                                                                                              src={currentProjectObject!.imageURL}
-                                                                                                              alt='Uploaded Image'
-                                                                                                              width={300}
-                                                                                                              height={300}
-                                                                                                              style={{
-                                                                                                                   borderRadius: '10px',
-                                                                                                                   cursor: 'pointer'
-                                                                                                              }}
-                                                                                                              onClick={handleFileRemove}
-                                                                                                         />
-                                                                                                    ) : (
-                                                                                                         <InsertPhotoIcon
-                                                                                                              color='primary'
-                                                                                                              sx={{ width: '300px', height: '300px' }}
-                                                                                                         />
-                                                                                                    )} */}
-
-
-
                                                                                 <Grid
                                                                                      item
                                                                                      md={6}
@@ -1009,17 +880,7 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                                                                                                </IconButton>
                                                                                           </Box>
                                                                                      }
-                                                                                     {/* setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
-                                                                                                                   if (prevProject) {
-                                                                                                                        const newSubtitlesURLs = [...prevProject.projectSummarySubtitleURLs];
-                                                                                     newSubtitlesURLs[index] = e.target.value; // Update the subtitle at the clicked index
-                                                                                     return {
-                                                                                          ...prevProject,
-                                                                                          projectSummarySubtitleURLs: newSubtitlesURLs,
-                                                                                                                        };
-                                                                                                                   }
-                                                                                     return prevProject;
-                                                                                                              }) */}
+
                                                                                      {
                                                                                           currentProjectObject?.projectSummaryDateTime.map((date: any, index: any) =>
                                                                                                <Box sx={{ display: 'flex', width: '80%' }}>
@@ -1046,9 +907,81 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                                                                                                     </IconButton>
                                                                                                </Box>
                                                                                           )
-                                                                                     }
+                                                                                     },
                                                                                 </Grid>
 
+                                                                                <Typography sx={{ margin: '10px' }}>Slike:</Typography>
+                                                                                <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', marginBottom: '30px' }}>
+                                                                                     {/* -------------------------slike------------------------------------------ */}
+                                                                                     {
+                                                                                          currentProjectObject?.gallery && currentProjectObject.gallery.length > 0 && (
+                                                                                               <ImageList sx={{ width: 500, height: 450 }} cols={3} rowHeight={164}>
+                                                                                                    {currentProjectObject.gallery.map((item: any) => (
+                                                                                                         <ImageListItem key={item}>
+                                                                                                              <img
+                                                                                                                   // srcSet={`${item.img}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
+                                                                                                                   src={`${item}?w=164&h=164&fit=crop&auto=format`}
+                                                                                                                   alt={'image'}
+                                                                                                                   loading="lazy"
+                                                                                                              />
+                                                                                                         </ImageListItem>
+                                                                                                    ))}
+                                                                                               </ImageList>
+                                                                                          )
+                                                                                     }
+
+                                                                                     <Button component="label"
+                                                                                          variant="contained"
+                                                                                          startIcon={<CloudUploadIcon />}
+                                                                                          sx={{ maxWidth: '150px' }}
+                                                                                     >
+                                                                                          Ucitaj sliku
+                                                                                          <Input
+                                                                                               type="file"
+                                                                                               inputProps={{ accept: 'image/*' }}
+                                                                                               sx={{
+                                                                                                    clip: 'rect(0 0 0 0)',
+                                                                                                    clipPath: 'inset(50%)',
+                                                                                                    height: 1,
+                                                                                                    overflow: 'hidden',
+                                                                                                    position: 'absolute',
+                                                                                                    bottom: 0,
+                                                                                                    left: 0,
+                                                                                                    whiteSpace: 'nowrap',
+                                                                                                    width: 1,
+                                                                                               }}
+                                                                                               onInput={(e: any) => {
+                                                                                                    const file = e.target.files[0]; // Get the first selected file
+                                                                                                    if (file) {
+                                                                                                         const reader = new FileReader();
+                                                                                                         reader.onload = (e: any) => {
+                                                                                                              const s3 = new AWS.S3();
+                                                                                                              const params = {
+                                                                                                                   Bucket: 'LDA-SU',
+                                                                                                                   Key: file.name,
+                                                                                                                   Body: e.target.result,
+                                                                                                                   ContentType: file.type,
+                                                                                                                   ACL: 'public-read' // If you want the image to be publicly accessible
+                                                                                                              };
+
+                                                                                                              s3.upload(params, function (err: any, data: any) {
+                                                                                                                   if (err) {
+                                                                                                                        console.log(err);
+                                                                                                                   } else {
+                                                                                                                        setCurrentProjectObject((previousObject: any) => ({
+                                                                                                                             ...previousObject,
+                                                                                                                             imageURL: data.Location
+                                                                                                                        }));
+                                                                                                                   }
+                                                                                                              });
+                                                                                                         }
+                                                                                                         reader.readAsArrayBuffer(file);
+                                                                                                    }
+                                                                                               }}
+                                                                                          />
+                                                                                     </Button>
+
+                                                                                </Box>
                                                                                 <Divider />
                                                                                 <Stack
                                                                                      alignItems="center"
