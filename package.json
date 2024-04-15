@@ -29,7 +29,7 @@
     "@untitled-ui/icons-react": "^0.1.1",
     "@uploadthing/react": "^6.0.2",
     "apexcharts": "3.37.0",
-    "aws-sdk": "^2.1598.0",
+    "aws-sdk": "^2.1599.0",
     "date-fns": "2.29.3",
     "dayjs": "^1.11.10",
     "formidable": "^3.5.1",

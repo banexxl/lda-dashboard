@@ -12,7 +12,7 @@ import { SvgIcon } from '@mui/material';
 export const items = [
      {
           title: 'Projects',
-          path: '/projects?page=1&limit=5',
+          path: '/projects',
           icon: (
                <SvgIcon fontSize="small">
                     <DocIcon />
@@ -21,7 +21,7 @@ export const items = [
      },
      {
           title: 'Project Activities',
-          path: '/projects?page=1&limit=5',
+          path: '/projects',
           icon: (
                <SvgIcon fontSize="small">
                     <DocIcon />
@@ -30,7 +30,7 @@ export const items = [
      },
      {
           title: 'Activities',
-          path: '/projects?page=1&limit=5',
+          path: '/projects',
           icon: (
                <SvgIcon fontSize="small">
                     <DocIcon />
@@ -39,7 +39,7 @@ export const items = [
      },
      {
           title: 'Projects english',
-          path: '/projects?page=1&limit=5',
+          path: '/projects',
           icon: (
                <SvgIcon fontSize="small">
                     <DocIcon />
@@ -48,7 +48,7 @@ export const items = [
      },
      {
           title: 'Project Activities english',
-          path: '/projects?page=1&limit=5',
+          path: '/projects',
           icon: (
                <SvgIcon fontSize="small">
                     <DocIcon />
@@ -57,7 +57,7 @@ export const items = [
      },
      {
           title: 'Activities english',
-          path: '/projects?page=1&limit=5',
+          path: '/projects',
           icon: (
                <SvgIcon fontSize="small">
                     <DocIcon />

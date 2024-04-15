@@ -94,15 +94,8 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
      const [currentProjectObject, setCurrentProjectObject] = useState<ProjectSummary | null | undefined>(initialProjectSummary);
      const router = useRouter();
      const theme = useTheme()
-     const [fileURL, setFileURL] = useState("")
      const [loading, setLoading] = useState(false)
      const [selectedImage, setSelectedImage] = useState(null);
-
-     AWS.config.update({
-          accessKeyId: 'your-access-key-id',
-          secretAccessKey: 'your-secret-access-key',
-          region: 'your-region'
-     });
 
      const getObjectById = (_id: any, arrayToSearch: any) => {
           for (const obj of arrayToSearch) {
@@ -367,6 +360,40 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
           });
      };
 
+     const handleFileChange = async (event: any) => {
+          const selectedFile = event.target.files[0];
+
+          if (!selectedFile) {
+               return;
+          }
+
+          setLoading(true);
+          setSelectedImage(selectedFile);
+
+          const apiUrl = 'http://localhost:3000/api/aws-s3';
+
+          try {
+               const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: {
+                         'Content-Type': 'image/*', // Set appropriate content type
+                    },
+                    body: selectedFile,
+               });
+
+               if (!response.ok) {
+                    throw new Error('Failed to upload image');
+               } else {
+                    setLoading(false);
+               }
+               console.log('Image uploaded successfully!');
+          } catch (error) {
+               console.error('Error uploading image:', error);
+          } finally {
+               setLoading(false);
+          }
+     };
+
      return (
           <Card>
                <Scrollbar>
@@ -392,7 +419,7 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                                                   const statusColor = project.status === 'in-progress' ? 'success' : 'info';
 
                                                   return (
-                                                       <Fragment >
+                                                       <Fragment key={Math.floor(Math.random() * 1000000)}>
                                                             <TableRow
                                                                  hover
                                                             >
@@ -425,7 +452,7 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                                                             </TableRow>
                                                             {
                                                                  isCurrent && (
-                                                                      <TableRow >
+                                                                      <TableRow key={Math.floor(Math.random() * 1000000)}>
                                                                            <TableCell
                                                                                 colSpan={7}
                                                                                 sx={{
@@ -950,34 +977,7 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                                                                                                     whiteSpace: 'nowrap',
                                                                                                     width: 1,
                                                                                                }}
-                                                                                               onInput={(e: any) => {
-                                                                                                    const file = e.target.files[0]; // Get the first selected file
-                                                                                                    if (file) {
-                                                                                                         const reader = new FileReader();
-                                                                                                         reader.onload = (e: any) => {
-                                                                                                              const s3 = new AWS.S3();
-                                                                                                              const params = {
-                                                                                                                   Bucket: 'LDA-SU',
-                                                                                                                   Key: file.name,
-                                                                                                                   Body: e.target.result,
-                                                                                                                   ContentType: file.type,
-                                                                                                                   ACL: 'public-read' // If you want the image to be publicly accessible
-                                                                                                              };
-
-                                                                                                              s3.upload(params, function (err: any, data: any) {
-                                                                                                                   if (err) {
-                                                                                                                        console.log(err);
-                                                                                                                   } else {
-                                                                                                                        setCurrentProjectObject((previousObject: any) => ({
-                                                                                                                             ...previousObject,
-                                                                                                                             imageURL: data.Location
-                                                                                                                        }));
-                                                                                                                   }
-                                                                                                              });
-                                                                                                         }
-                                                                                                         reader.readAsArrayBuffer(file);
-                                                                                                    }
-                                                                                               }}
+                                                                                               onInput={(e: any) => handleFileChange(e)}
                                                                                           />
                                                                                      </Button>
 
