@@ -16,7 +16,6 @@ export const config = {
 }
 
 export default async (req: any, res: any) => {
-
      const month = (moment().month() + 1).toString().padStart(2, '0');
      const year = moment().year().toString();
 
@@ -28,20 +27,21 @@ export default async (req: any, res: any) => {
                     return res.status(400).json({ error: 'Missing file, title, or extension' });
                }
 
+               // Decode base64 data
+               const decodedFile = Buffer.from(file.replace(/^data:image\/\w+;base64,/, ""), 'base64');
 
                // Adjust key to desired structure
-               const key = `${year}/${month}/${title}/${fileName}.${extension}`;
-
+               const key = `${year}/${month}/${title}/${fileName.split('.')[0]}.${extension}`;
 
                const params: aws.S3.PutObjectRequest = {
                     Bucket: process.env.AWS_S3_BUCKET_NAME!,
                     Key: key,
-                    Body: file,
+                    Body: decodedFile, // Use decoded file
                     ACL: 'public-read', // Make uploaded file publicly accessible
+                    ContentType: 'image/png'
                };
 
                const uploadedImage = await s3.upload(params).promise();
-               console.log('Image uploaded successfully:', uploadedImage.Location);
                return res.status(200).json({ imageUrl: uploadedImage.Location });
           } catch (error) {
                console.error('Error uploading image:', error);

@@ -385,7 +385,7 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                     const data = {
                          file: base64Data,
                          title: title,
-                         extension: fileExtension.toLowerCase(),
+                         extension: fileExtension,
                          fileName: selectedFile.name
                     };
 
