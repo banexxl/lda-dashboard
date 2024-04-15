@@ -359,7 +359,22 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
           });
      };
 
+     const onAddNewImage = (imageURL: string) => {
+          setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
+               if (prevProject) {
+                    const newGallery = [...prevProject.gallery, imageURL]; // Adding imageURL to the end of the array
+                    return {
+                         ...prevProject,
+                         gallery: newGallery,
+                    };
+               }
+               return prevProject;
+          });
+     };
+
      const handleFileChange = async (event: any) => {
+          console.log(currentProjectObject);
+
           const selectedFile = event.target.files[0];
 
           if (!selectedFile) {
@@ -399,6 +414,10 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
 
                     if (!response.ok) {
                          throw new Error('Failed to upload image');
+                    } else {
+                         const result = await response.json();
+                         const imageUrl = result.imageUrl;
+                         onAddNewImage(imageUrl);
                     }
                }
           } catch (error) {
