@@ -22,14 +22,15 @@ export default async (req: any, res: any) => {
 
      if (req.method === 'POST') {
           try {
-               const { file, title, extension } = req.body;
+               const { file, title, extension, fileName } = req.body;
+
                if (!file || !title || !extension) {
                     return res.status(400).json({ error: 'Missing file, title, or extension' });
                }
 
 
                // Adjust key to desired structure
-               const key = `${year}/${month}/${title}/${file.name}.${extension}`;
+               const key = `${year}/${month}/${title}/${fileName}.${extension}`;
 
 
                const params: aws.S3.PutObjectRequest = {

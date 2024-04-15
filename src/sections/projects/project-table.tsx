@@ -385,7 +385,8 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                     const data = {
                          file: base64Data,
                          title: title,
-                         extension: fileExtension.toLowerCase()
+                         extension: fileExtension.toLowerCase(),
+                         fileName: selectedFile.name
                     };
 
                     const response = await fetch(apiUrl, {
@@ -990,7 +991,7 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
                                                                                                     whiteSpace: 'nowrap',
                                                                                                     width: 1,
                                                                                                }}
-                                                                                               onInput={(e: any) => handleFileChange(e)}
+                                                                                               onChange={async (e: any) => await handleFileChange(e)}
                                                                                           />
                                                                                      </Button>
 
