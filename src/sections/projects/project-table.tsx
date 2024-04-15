@@ -276,7 +276,6 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
      };
 
      const onAddNewSubtitleURL = (index: number, text: string) => {
-          console.log(text, index)
           setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
                if (prevProject) {
                     const newSubtitlesURLs = [...prevProject.projectSummarySubtitleURLs];
@@ -370,23 +369,37 @@ export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
           setLoading(true);
           setSelectedImage(selectedFile);
 
+          // Extract file extension
+          const fileExtension = selectedFile.name.split('.')[1]
+
+          // Assuming you have a title for the image
+          const title = currentProjectObject?.title!
+
           const apiUrl = 'http://localhost:3000/api/aws-s3';
 
           try {
-               const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: {
-                         'Content-Type': 'image/*', // Set appropriate content type
-                    },
-                    body: selectedFile,
-               });
+               const reader = new FileReader();
+               reader.readAsDataURL(selectedFile);
+               reader.onloadend = async () => {
+                    const base64Data = reader.result;
+                    const data = {
+                         file: base64Data,
+                         title: title,
+                         extension: fileExtension.toLowerCase()
+                    };
 
-               if (!response.ok) {
-                    throw new Error('Failed to upload image');
-               } else {
-                    setLoading(false);
+                    const response = await fetch(apiUrl, {
+                         method: 'POST',
+                         headers: {
+                              'Content-Type': 'application/json'
+                         },
+                         body: JSON.stringify(data),
+                    });
+
+                    if (!response.ok) {
+                         throw new Error('Failed to upload image');
+                    }
                }
-               console.log('Image uploaded successfully!');
           } catch (error) {
                console.error('Error uploading image:', error);
           } finally {

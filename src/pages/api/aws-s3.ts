@@ -1,6 +1,5 @@
-// pages/api/upload.js
 import aws from 'aws-sdk';
-import { log } from 'console';
+import moment from 'moment';
 
 const s3 = new aws.S3({
      accessKeyId: process.env.AWS_S3_ACCESS_KEY_ID,
@@ -18,26 +17,29 @@ export const config = {
 
 export default async (req: any, res: any) => {
 
+     const month = (moment().month() + 1).toString().padStart(2, '0');
+     const year = moment().year().toString();
+
      if (req.method === 'POST') {
-
           try {
-               const imageFile = req.body;
-
-               if (!imageFile) {
-                    return res.status(400).json({ error: 'No file uploaded' });
+               const { file, title, extension } = req.body;
+               if (!file || !title || !extension) {
+                    return res.status(400).json({ error: 'Missing file, title, or extension' });
                }
+
+
+               // Adjust key to desired structure
+               const key = `${year}/${month}/${title}/${file.name}.${extension}`;
+
 
                const params: aws.S3.PutObjectRequest = {
                     Bucket: process.env.AWS_S3_BUCKET_NAME!,
-                    Key: `${Date.now()}-${Math.floor(Math.random() * 10000000)}.png`, // Unique filename
-
-                    Body: imageFile,
+                    Key: key,
+                    Body: file,
                     ACL: 'public-read', // Make uploaded file publicly accessible
                };
 
                const uploadedImage = await s3.upload(params).promise();
-               console.log('uploadedImage', uploadedImage);
-
                console.log('Image uploaded successfully:', uploadedImage.Location);
                return res.status(200).json({ imageUrl: uploadedImage.Location });
           } catch (error) {
