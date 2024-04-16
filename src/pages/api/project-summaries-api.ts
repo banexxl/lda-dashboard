@@ -7,7 +7,6 @@ export default async function handler(request: NextApiRequest, response: NextApi
 
      const mongoClient = await MongoClient.connect(process.env.MONGODB_URI_DEV!)
      const dbProjectSummaries = mongoClient.db('LDA_DB').collection('ProjectSummaries')
-     console.log(dbProjectSummaries.namespace);
 
      try {
           if (request.method === 'GET') {
@@ -16,9 +15,14 @@ export default async function handler(request: NextApiRequest, response: NextApi
                return response.status(200).json({ message: 'Projects found!', data: allProjects });
 
           } else if (request.method === 'POST') {
-               const newProduct = request.body
-               await dbProjectSummaries.insertOne(newProduct)
-               return response.status(200).json({ message: 'Product successfully added!' });
+               try {
+                    const newProduct = request.body
+                    await dbProjectSummaries.insertOne(newProduct)
+                    return response.status(200).json({ message: 'Product successfully added!' });
+               } catch (error) {
+                    alert(error);
+               }
+
           }
           else if (request.method === 'DELETE') {
                //const idsToDelete = request.body.selected.map((_id: any) => new ObjectId(_id))

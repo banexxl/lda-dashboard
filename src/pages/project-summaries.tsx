@@ -8,21 +8,16 @@ import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
 import { Box, Button, Container, Stack, SvgIcon, Typography } from '@mui/material';
 import { useSelection } from 'src/hooks/use-selection';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
-import { ProjectsTable } from '@/sections/projects/project-summary-table';
+import { ProjectSummaryTable } from '@/sections/projects/project-summary-table';
 import { ProjectsSearch } from 'src/sections/projects/project-search';
 import { applyPagination } from 'src/utils/apply-pagination';
-import { ProjectsServices } from '../utils/project-services'
-import { AddProductForm } from '../sections/projects/new-project-form'
+import { ProjectSummariesServices } from '../utils/project-summaries-services'
+import { AddProjectSummaryForm } from '../sections/projects/project-summary-form'
 import { useRouter } from 'next/navigation';
 import { TablePagination } from '@mui/material'
 
 
 const Page = (props: any) => {
-
-     // const projects = useMemo(() => {
-     //      return applyPagination(props.projects, props.page, props.limit);
-     // }, [props.projects, props.page, props.limit]);
-
 
      const ProjectsIds = useMemo(() => {
           if (!Array.isArray(props.projects)) {
@@ -45,12 +40,12 @@ const Page = (props: any) => {
      }
 
      const handleRowsPerPageChange = (event: any) => {
-          router.push(`projects/?page=${props.page}&limit=${event.target.value}`);
+          router.push(`project-summaries/?page=${props.page}&limit=${event.target.value || 5}`);
           return (event.target.value)
      }
 
      const handlePageChange = (event: any, newPage: any) => {
-          router.push(`/projects?page=${newPage}&limit=${props.limit}`);
+          router.push(`/project-summaries?page=${newPage}&limit=${props.limit || 5}`);
      }
 
      const handleRebuild = async () => {
@@ -113,8 +108,9 @@ const Page = (props: any) => {
                                         </Typography>
                                    </Stack>
 
-                                   <Box sx={{ display: 'flex', justifyContent: 'space-between', height: '40px', width: '40%' }}>
+                                   <Box sx={{ display: 'flex', justifyContent: 'space-between', height: '40px', width: '40%', gap: '10px' }}>
                                         <Button
+                                             sx={{ padding: '10px', height: '50px' }}
                                              startIcon={(
                                                   <SvgIcon fontSize="small">
                                                        <PlusIcon />
@@ -125,9 +121,12 @@ const Page = (props: any) => {
                                                   setOpen(true)
                                              }}
                                         >
-                                             Dodaj proizvod
+                                             <Typography>
+                                                  Dodaj projekat
+                                             </Typography>
                                         </Button>
                                         <Button
+                                             sx={{ padding: '10px', height: '50px' }}
                                              startIcon={(
                                                   <SvgIcon fontSize="small">
                                                        <PlusIcon />
@@ -137,26 +136,34 @@ const Page = (props: any) => {
                                              onClick={handleRebuild}
                                              disabled={loading}
                                         >
-                                             {loading ? 'Šaljem' : 'Pošalji proizvode na sajt'}
+                                             {loading ?
+                                                  <Typography>
+                                                       Šaljem
+                                                  </Typography>
+                                                  :
+                                                  <Typography>
+                                                       Pošalji projekat na sajt
+                                                  </Typography>
+                                             }
                                         </Button>
                                    </Box>
                               </Stack>
                               <ProjectsSearch />
-                              <ProjectsTable
+                              <ProjectSummaryTable
                                    count={props.projects.length || 0}
                                    items={props.projects}
                                    page={props.page}
                                    rowsPerPage={props.limit}
                                    selected={ProjectsSelection.selected}
-                                   ProjectsCount={props.ProjectsCount}
+                                   ProjectsCount={props.projectSummariesCount}
                               />
                               <TablePagination
                                    component="div"
-                                   count={props.ProjectsCount}
+                                   count={props.projectSummariesCount}
                                    onPageChange={handlePageChange}
                                    onRowsPerPageChange={handleRowsPerPageChange}
                                    page={props.page}
-                                   rowsPerPage={props.limit}
+                                   rowsPerPage={props.limit || 5}
                                    rowsPerPageOptions={[5, 10, 25]}
                                    showFirstButton
                                    showLastButton
@@ -173,9 +180,9 @@ const Page = (props: any) => {
                          }
                     }}
                >
-                    <DialogTitle>Dodaj proizvod</DialogTitle>
+                    <DialogTitle>Dodaj projekat</DialogTitle>
                     <DialogContent dividers >
-                         <AddProductForm
+                         <AddProjectSummaryForm
                               onSubmitSuccess={handleSubmitSuccess}
                               onSubmitFail={handleSubmitFail} />
                     </DialogContent>
@@ -190,13 +197,13 @@ export async function getServerSideProps(context: any) {
           const page = context.query.page || 1
           const limit = context.query.limit || 5
 
-          const projects = await ProjectsServices().getProjectsByPage(page, limit);
-          const ProjectsCount = await ProjectsServices().getProjectsCount();
+          const projects = await ProjectSummariesServices().getProjectsByPage(page, limit);
+          const projectSummariesCount = await ProjectSummariesServices().getProjectSummariesCount();
 
           return {
                props: {
                     projects: JSON.parse(JSON.stringify(projects)),
-                    ProjectsCount: JSON.parse(JSON.stringify(ProjectsCount)),
+                    projectSummariesCount: JSON.parse(JSON.stringify(projectSummariesCount)),
                     page: parseInt(context.query.page),
                     limit: parseInt(context.query.limit)
                },
@@ -206,7 +213,7 @@ export async function getServerSideProps(context: any) {
           return {
                props: {
                     projects: [],
-                    ProjectsCount: 0,
+                    projectSummariesCount: 0,
                     page: 1,
                     limit: 5,
                     error: "Failed to fetch projects. Please try again later.",

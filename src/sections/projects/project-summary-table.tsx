@@ -2,7 +2,7 @@ import ChevronRightIcon from '@untitled-ui/icons-react/build/esm/ChevronRight';
 import ChevronDownIcon from '@untitled-ui/icons-react/build/esm/ChevronDown';
 import {
      Avatar, Box, Button, Card, CardContent, Checkbox, Divider, Grid, IconButton, ImageList, ImageListItem, Input, InputAdornment, LinearProgress, MenuItem,
-     Stack, SvgIcon, Switch, Table, TableBody, TableCell, TableHead, TablePagination, TableRow, TextField, TextFieldProps, Typography, useTheme
+     Stack, SvgIcon, Switch, Table, TableBody, TableCell, TableHead, TableRow, TextField, TextFieldProps, Typography, useTheme
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import InsertPhotoIcon from '@mui/icons-material/InsertPhoto';
@@ -21,50 +21,7 @@ import "@uploadthing/react/styles.css";
 import { UploadButton } from "../../utils/image-upload-components";
 import dayjs from 'dayjs';
 import AWS from 'aws-sdk';
-
-export interface ProjectSummary {
-     _id: string;
-     projectSummaryURL: string;
-     projectSummaryCoverURL: string;
-     status: string;
-     gallery: string[];
-     projectEndDateTime: Date
-     projectStartDateTime: Date;
-     organizers: string[];
-     locations: string[];
-     applicants: string[];
-     donators: string[];
-     publications: string[];
-     projectSummaryDescriptions: string[];
-     projectSummarySubtitleURLs: string[];
-     projectSummaryDateTime: string[];
-     projectSummarySubtitles: string[];
-     links: string[];
-     title: string;
-     locale: string;
-}
-const initialProjectSummary: ProjectSummary = {
-     _id: "unique_id_here",
-     projectSummaryURL: "https://example.com/project-summary",
-     projectSummaryCoverURL: "https://example.com/project-cover",
-     status: "ongoing",
-     gallery: ["https://example.com/image1.jpg", "https://example.com/image2.jpg"],
-     projectEndDateTime: new Date("2024-12-31T23:59:59"),
-     projectStartDateTime: new Date("2024-01-01T00:00:00"),
-     organizers: ["Organizer 1", "Organizer 2"],
-     locations: ["Location 1", "Location 2"],
-     applicants: ["Applicant 1", "Applicant 2"],
-     donators: ["Donator 1", "Donator 2"],
-     publications: ["Publication 1", "Publication 2"],
-     projectSummaryDescriptions: ["Description 1", "Description 2"],
-     projectSummarySubtitleURLs: ["https://example.com/subtitle1", "https://example.com/subtitle2"],
-     projectSummaryDateTime: ["Date 1", "Date 2"],
-     projectSummarySubtitles: ["Subtitle 1", "Subtitle 2"],
-     links: ["https://example.com/link1", "https://example.com/link2"],
-     title: "Project Title",
-     locale: "en-US"
-};
-
+import { ProjectSummary, initialProjectSummary } from './project-summary-type';
 
 type ProjectStatus = {
      value: string;
@@ -88,7 +45,7 @@ type ProjectLocale = {
 
 const locales = [{ value: 'en', name: 'Engleski' }, { value: 'sr', name: 'Srpski' }]
 
-export const ProjectsTable = ({ items, page, rowsPerPage, }: any) => {
+export const ProjectSummaryTable = ({ items, page, rowsPerPage, }: any) => {
 
      const [currentProjectID, setCurrentProjectID] = useState(null);
      const [currentProjectObject, setCurrentProjectObject] = useState<ProjectSummary | null | undefined>(initialProjectSummary);
