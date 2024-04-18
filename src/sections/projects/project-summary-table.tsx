@@ -18,9 +18,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import Swal from 'sweetalert2';
 import { useRouter } from 'next/navigation';
 import "@uploadthing/react/styles.css";
-import { UploadButton } from "../../utils/image-upload-components";
 import dayjs from 'dayjs';
-import AWS from 'aws-sdk';
 import { ProjectSummary, initialProjectSummary } from './project-summary-type';
 
 type ProjectStatus = {
@@ -32,7 +30,7 @@ const projectStatus: ProjectStatus[] = [
      { value: 'completed', name: 'Zavrsen' },
 ];
 
-type ArrayKeys = keyof Pick<ProjectSummary,
+export type ArrayKeys = keyof Pick<ProjectSummary,
      'gallery' | 'organizers' | 'locations' | 'applicants' | 'donators' |
      'publications' | 'projectSummaryDescriptions' | 'projectSummarySubtitleURLs' |
      'projectSummaryDateTime' | 'projectSummarySubtitles' | 'links'
@@ -74,15 +72,15 @@ export const ProjectSummaryTable = ({ items, page, rowsPerPage, }: any) => {
           });
      }
 
+     const handleProjectClose = () => {
+          setCurrentProjectID(null);
+     }
+
      const handleFileRemove = () => {
           setCurrentProjectObject((previousObject: any) => ({
                ...previousObject,
                imageURL: ""
           }))
-     }
-
-     const handleProjectClose = () => {
-          setCurrentProjectID(null);
      }
 
      const handleProjectUpdateClick = () => {
@@ -720,7 +718,7 @@ export const ProjectSummaryTable = ({ items, page, rowsPerPage, }: any) => {
                                                                                      />
                                                                                 </Grid>
 
-
+/////////////////////////////////////////////////////////////////////////
                                                                                 <Grid
                                                                                      item
                                                                                      md={6}

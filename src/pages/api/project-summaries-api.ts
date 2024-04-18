@@ -15,12 +15,14 @@ export default async function handler(request: NextApiRequest, response: NextApi
                return response.status(200).json({ message: 'Projects found!', data: allProjects });
 
           } else if (request.method === 'POST') {
+               console.log('POST', request.body);
+
                try {
                     const newProduct = request.body
                     await dbProjectSummaries.insertOne(newProduct)
                     return response.status(200).json({ message: 'Product successfully added!' });
                } catch (error) {
-                    alert(error);
+                    console.log(error);
                }
 
           }

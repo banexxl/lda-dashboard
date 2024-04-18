@@ -193,9 +193,11 @@ const Page = (props: any) => {
 
 
 export async function getServerSideProps(context: any) {
+
      try {
           const page = context.query.page || 1
           const limit = context.query.limit || 5
+          console.log('page', page, 'limit', limit);
 
           const projects = await ProjectSummariesServices().getProjectsByPage(page, limit);
           const projectSummariesCount = await ProjectSummariesServices().getProjectSummariesCount();

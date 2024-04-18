@@ -49,7 +49,7 @@ export const ProjectSummariesServices = () => {
                     .skip(skip)
                     .limit(parsedLimit)
                     .toArray();
-               cachedClient.close();
+
                return data;
           } catch (error: any) {
                return { message: error.message };
