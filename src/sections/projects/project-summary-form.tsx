@@ -1,48 +1,23 @@
-"use client"
 import React, { useState } from 'react';
-import { Field, FieldArray, useFormik } from 'formik';
-import { TextField, Typography, Button, Checkbox, FormControlLabel, Box, Input, Card, CardContent, Grid, MenuItem, Stack, Container, IconButton, CardActionArea, FormControl, InputLabel, Select, Divider, ImageList, ImageListItem } from '@mui/material'
-import { Form, Formik, FormikErrors, FormikTouched } from 'formik';
-import PhotoCamera from "@mui/icons-material/PhotoCamera";
+import { Field, FieldArray } from 'formik';
+import { TextField, Typography, Button, Box, Grid, MenuItem, IconButton, FormControl, InputLabel, Select, Divider } from '@mui/material'
+import { Form, Formik } from 'formik';
 import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2'
-import AttachFileIcon from '@mui/icons-material/AttachFile';
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import InsertPhotoIcon from '@mui/icons-material/InsertPhoto';
-import Image from 'next/image';
-import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import "@uploadthing/react/styles.css";
-import { useTheme } from '@mui/material/styles';
-import ProjectSummarySchema, { ProjectSummary, initialProjectSummary } from './project-summary-type';
-import { ArrayKeys } from './project-summary-table';
+import ProjectSummarySchema, { initialProjectSummary } from './project-summary-type';
 import { DateField } from '@mui/x-date-pickers/DateField';
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
-import dayjs from 'dayjs';
 import { stringWithHyphens } from '@/utils/url-creator';
-import zIndex from '@mui/material/styles/zIndex';
-import { tr } from 'date-fns/locale';
-import { log } from 'console';
 import moment from 'moment';
 
 export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
 
-     const theme = useTheme()
      const router = useRouter();
-     //const [selectedFile, setSelectedFile] = useState(null);
-     const [fileURL, setFileURL] = useState("")
      const [loading, setLoading] = useState<any>(false)
-     const [initialProjectSummaryObject, setInitialProjectSummary] = useState<ProjectSummary | null>(initialProjectSummary)
-     const [selectedImage, setSelectedImage] = useState(null);
-     const [showForm, setShowForm] = useState(true);
-
-     const handleFileRemove = () => {
-          setFileURL(""); // Remove the selected file
-     };
 
      const handleSubmit = async (values: any) => {
-          console.log(values);
 
           try {
                const responseValues: any = await fetch('/api/project-summaries-api', {
@@ -67,7 +42,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                     router.refresh()
                } else {
 
-                    setShowForm(true)
+                    onSubmitFail()
 
                     Swal.fire({
                          icon: 'error',
@@ -77,7 +52,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                }
 
           } catch (err) {
-               setShowForm(true)
+               onSubmitFail()
                Swal.fire({
                     icon: 'error',
                     title: 'Oops...',
@@ -86,187 +61,6 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
           }
 
      }
-
-     const onAddNewSubtitle = (index: number, text: string) => {
-          setInitialProjectSummary((prevProject: ProjectSummary | null) => {
-               if (prevProject) {
-                    const newSubtitles = [...prevProject.projectSummarySubtitles];
-                    newSubtitles[index] = text; // Update the subtitle at the clicked index
-                    return {
-                         ...prevProject,
-                         projectSummarySubtitles: newSubtitles,
-                    };
-               }
-               return prevProject;
-          });
-     };
-
-     const onDeleteSubtitle = (index: number) => {
-          setInitialProjectSummary((prevProject: ProjectSummary | null) => {
-               if (prevProject) {
-                    const newSubtitles = [...prevProject.projectSummarySubtitles];
-                    newSubtitles.splice(index, 1); // Remove the subtitle at the specified index
-                    return {
-                         ...prevProject,
-                         projectSummarySubtitles: newSubtitles,
-                    };
-               }
-               return prevProject;
-          });
-     };
-
-     const onAddNewSubtitleURL = (index: number, text: string) => {
-          setInitialProjectSummary((prevProject: ProjectSummary | null) => {
-               if (prevProject) {
-                    const newSubtitlesURLs = [...prevProject.projectSummarySubtitleURLs];
-                    newSubtitlesURLs[index] = text; // Update the subtitle at the clicked index
-                    return {
-                         ...prevProject,
-                         projectSummarySubtitleURLs: newSubtitlesURLs,
-                    };
-               }
-               return prevProject;
-          });
-     };
-
-     const onDeleteSubtitleURL = (index: number) => {
-          setInitialProjectSummary((prevProject: ProjectSummary | null) => {
-               if (prevProject) {
-                    const newSubtitlesURLs = [...prevProject.projectSummarySubtitleURLs];
-                    newSubtitlesURLs.splice(index, 1); // Remove the subtitle at the specified index
-                    return {
-                         ...prevProject,
-                         projectSummarySubtitleURLs: newSubtitlesURLs,
-                    };
-               }
-               return prevProject;
-          });
-     };
-
-     const onAddNewDescription = (index: number, text: string) => {
-          setInitialProjectSummary((prevProject: ProjectSummary | null) => {
-               if (prevProject) {
-                    const newDescriptions = [...prevProject.projectSummaryDescriptions];
-                    newDescriptions[index] = text; // Update the subtitle at the clicked index
-                    return {
-                         ...prevProject,
-                         projectSummaryDescriptions: newDescriptions,
-                    };
-               }
-               return prevProject;
-          });
-     };
-
-     const onDeleteDescription = (index: number) => {
-          setInitialProjectSummary((prevProject: ProjectSummary | null) => {
-               if (prevProject) {
-                    const newDescription = [...prevProject.projectSummaryDescriptions];
-                    newDescription.splice(index, 1); // Remove the subtitle at the specified index
-                    return {
-                         ...prevProject,
-                         projectSummaryDescriptions: newDescription,
-                    };
-               }
-               return prevProject;
-          });
-     };
-
-     const onAddNewSubtitleDateTime = (index: number, date: string) => {
-
-          setInitialProjectSummary((prevProject: ProjectSummary | null) => {
-               if (prevProject) {
-                    const newDateTimes = [...prevProject.projectSummaryDateTime];
-                    newDateTimes[index] = date; // Update the subtitle at the clicked index
-                    return {
-                         ...prevProject,
-                         projectSummaryDateTime: newDateTimes,
-                    };
-               }
-               return prevProject;
-          });
-     };
-
-     const onDeleteSubtitleDateTime = (index: number) => {
-          setInitialProjectSummary((prevProject: ProjectSummary | null) => {
-               if (prevProject) {
-                    const newDateTimes = [...prevProject.projectSummaryDateTime];
-                    newDateTimes.splice(index, 1); // Remove the subtitle at the specified index
-                    return {
-                         ...prevProject,
-                         projectSummaryDateTime: newDateTimes,
-                    };
-               }
-               return prevProject;
-          });
-     };
-
-     const onAddNewImage = (imageURL: string) => {
-          setInitialProjectSummary((prevProject: ProjectSummary | null) => {
-               if (prevProject) {
-                    const newGallery = [...prevProject.gallery, imageURL]; // Adding imageURL to the end of the array
-                    return {
-                         ...prevProject,
-                         gallery: newGallery,
-                    };
-               }
-               return prevProject;
-          });
-     };
-
-     const handleFileChange = async (event: any) => {
-          console.log(initialProjectSummaryObject);
-
-          const selectedFile = event.target.files[0];
-
-          if (!selectedFile) {
-               return;
-          }
-
-          setLoading(true);
-          setSelectedImage(selectedFile);
-
-          // Extract file extension
-          const fileExtension = selectedFile.name.split('.')[1]
-
-          // Assuming you have a title for the image
-          const title = initialProjectSummaryObject?.title!
-
-          const apiUrl = 'http://localhost:3000/api/aws-s3';
-
-          try {
-               const reader = new FileReader();
-               reader.readAsDataURL(selectedFile);
-               reader.onloadend = async () => {
-                    const base64Data = reader.result;
-                    const data = {
-                         file: base64Data,
-                         title: title,
-                         extension: fileExtension,
-                         fileName: selectedFile.name
-                    };
-
-                    const response = await fetch(apiUrl, {
-                         method: 'POST',
-                         headers: {
-                              'Content-Type': 'application/json'
-                         },
-                         body: JSON.stringify(data),
-                    });
-
-                    if (!response.ok) {
-                         throw new Error('Failed to upload image');
-                    } else {
-                         const result = await response.json();
-                         const imageUrl = result.imageUrl;
-                         onAddNewImage(imageUrl);
-                    }
-               }
-          } catch (error) {
-               console.error('Error uploading image:', error);
-          } finally {
-               setLoading(false);
-          }
-     };
 
      return (
           <Box >
@@ -281,9 +75,11 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                          (formik) => (
                               <Form style={{ display: 'flex', flexDirection: 'column', gap: '15px', opacity: loading ? .5 : 1 }}>
 
-                                   <Typography>
-                                        {`${JSON.stringify(formik.errors)}`}
-                                   </Typography>
+                                   {/* 
+<Typography>
+    {`${JSON.stringify(formik.errors)}`}
+</Typography> 
+*/}
 
                                    <TextField
                                         InputLabelProps={{ shrink: true }}
@@ -309,15 +105,18 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                         value={formik.values.projectSummaryURL}
                                    />
 
-                                   <TextField
+                                   <DateField
                                         InputLabelProps={{ shrink: true }}
-                                        label="Thumbnail URL slike"
-                                        name="projectSummaryCoverURL"
-                                        value={formik.values.projectSummaryCoverURL}
-                                        disabled={loading}
-                                        onChange={formik.handleChange}
-                                        error={formik.touched.projectSummaryCoverURL && !!formik.errors.projectSummaryCoverURL}
-                                        helperText={formik.touched.projectSummaryCoverURL && formik.errors.projectSummaryCoverURL}
+                                        label="Pocetak projekta"
+                                        name="projectSummaryStartDateTime"
+                                        onBlur={(e) => formik.setFieldValue('projectStartDateTime', e.target.value)}
+                                   />
+
+                                   <DateField
+                                        InputLabelProps={{ shrink: true }}
+                                        label="Kraj projekta"
+                                        name="projectSummaryEndDateTime"
+                                        onBlur={(e) => formik.setFieldValue('projectEndDateTime', e.target.value)}
                                    />
 
                                    <FormControl fullWidth>
@@ -407,7 +206,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                         onBlur={(e) => {
                                              const { value } = e.target;
                                              const donators = value.split(',').map((donator) => donator.trim());
-                                             formik.setFieldValue('applicants', donators);
+                                             formik.setFieldValue('donators', donators);
                                              formik.handleBlur(e);
                                         }}
                                         error={formik.touched.donators && !!formik.errors.donators}
@@ -422,7 +221,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                         onBlur={(e) => {
                                              const { value } = e.target;
                                              const publications = value.split(',').map((publication) => publication.trim());
-                                             formik.setFieldValue('applicants', publications);
+                                             formik.setFieldValue('publications', publications);
                                              formik.handleBlur(e);
                                         }}
                                         error={formik.touched.publications && !!formik.errors.publications}
@@ -444,7 +243,6 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                         helperText={formik.touched.links && formik.errors.links}
                                    />
 
-                                   /////////////////////////////////////////////////////////////////////////////
                                    <Divider />
                                    <Grid
                                         item
@@ -564,13 +362,14 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                              name={'projectSummaryDateTime'}
                                              render={arrayHelpers => (
                                                   formik.values?.projectSummaryDateTime.length > 0 ?
-                                                       formik.values?.projectSummaryDateTime.map((description: any, index: any) => (
-                                                            <Box sx={{ display: 'flex', width: '80%' }}>
-                                                                 <Field
-                                                                      as={DateField}
+                                                       formik.values?.projectSummaryDateTime.map((date: any, index: any) => (
+                                                            <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
+                                                                 <DateField
+                                                                      format='dd/MM/yyyy'
                                                                       InputLabelProps={{ shrink: true }}
-                                                                      defaultValue={description}
+                                                                      defaultValue={new Date(date)} // Convert string to Date object
                                                                       fullWidth
+                                                                      onBlur={(e: any) => formik.setFieldValue(`projectSummaryDateTime.${index}`, e.target.value)}
                                                                       name={`projectSummaryDateTime.${index}`}
                                                                       label={`Opis ${index + 1}`}
                                                                       disabled={loading}
@@ -584,58 +383,13 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                                             </Box>
                                                        ))
                                                        :
-                                                       <IconButton onClick={() => arrayHelpers.push('')}>
+                                                       <IconButton onClick={() => arrayHelpers.push(moment().format('dd/MM/yyyy'))}>
                                                             <AddBoxIcon />
                                                        </IconButton>
                                              )}
                                         />
                                    </Grid>
 
-                                   <Typography sx={{ margin: '10px' }}>Slike:</Typography>
-                                   <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', marginBottom: '30px' }}>
-                                        {/* -------------------------slike------------------------------------------ */}
-                                        {
-                                             formik.values?.gallery && formik.values.gallery.length > 0 && (
-                                                  <ImageList sx={{ width: 500, height: 450 }} cols={3} rowHeight={164}>
-                                                       {formik.values.gallery.map((item: any) => (
-                                                            <ImageListItem key={item}>
-                                                                 <img
-                                                                      // srcSet={`${item.img}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
-                                                                      src={`${item}?w=164&h=164&fit=crop&auto=format`}
-                                                                      alt={'image'}
-                                                                      loading="lazy"
-                                                                 />
-                                                            </ImageListItem>
-                                                       ))}
-                                                  </ImageList>
-                                             )
-                                        }
-
-                                        <Button component="label"
-                                             variant="contained"
-                                             startIcon={<CloudUploadIcon />}
-                                             sx={{ maxWidth: '150px' }}
-                                        >
-                                             Ucitaj sliku
-                                             <Input
-                                                  type="file"
-                                                  inputProps={{ accept: 'image/*' }}
-                                                  sx={{
-                                                       clip: 'rect(0 0 0 0)',
-                                                       clipPath: 'inset(50%)',
-                                                       height: 1,
-                                                       overflow: 'hidden',
-                                                       position: 'absolute',
-                                                       bottom: 0,
-                                                       left: 0,
-                                                       whiteSpace: 'nowrap',
-                                                       width: 1,
-                                                  }}
-                                                  onChange={async (e: any) => await handleFileChange(e)}
-                                             />
-                                        </Button>
-
-                                   </Box>
                                    <Divider />
                                    <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
                                         <Button

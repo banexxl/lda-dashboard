@@ -17,10 +17,20 @@ export default async function handler(request: NextApiRequest, response: NextApi
           } else if (request.method === 'POST') {
                console.log('POST', request.body);
 
+               const projectStart = new Date(request.body.projectStartDateTime).toISOString()
+               const projectEnd = new Date(request.body.projectEndDateTime).toISOString()
+               const projectSummarySubtitlesDate = request.body.projectSummaryDateTime.map((date: string) => new Date(date).toISOString())
+
+               const newProjectObject = {
+                    ...request.body,
+                    projectStartDateTime: projectStart,
+                    projectEndDateTime: projectEnd,
+                    projectSummaryDateTime: projectSummarySubtitlesDate
+               }
+
                try {
-                    const newProduct = request.body
-                    await dbProjectSummaries.insertOne(newProduct)
-                    return response.status(200).json({ message: 'Product successfully added!' });
+                    await dbProjectSummaries.insertOne(newProjectObject)
+                    return response.status(200).json({ message: 'Project successfully added!' });
                } catch (error) {
                     console.log(error);
                }

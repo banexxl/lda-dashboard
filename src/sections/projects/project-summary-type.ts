@@ -14,7 +14,7 @@ export const ProjectSummarySchema = yup.object().shape({
      publications: yup.array().of(yup.string()),
      projectSummaryDescriptions: yup.array().of(yup.string()),
      projectSummarySubtitleURLs: yup.array().of(yup.string()),
-     projectSummaryDateTime: yup.array().of(yup.string()),
+     projectSummaryDateTime: yup.array().of(yup.date()),
      projectSummarySubtitles: yup.array().of(yup.string()),
      links: yup.array().of(yup.string()),
      title: yup.string().required(),
@@ -46,8 +46,8 @@ export interface ProjectSummary {
      projectSummarySubtitles: string[];
 
      gallery: string[];
-     projectEndDateTime: Date
-     projectStartDateTime: Date;
+     projectEndDateTime: string;
+     projectStartDateTime: string;
 }
 
 export const initialProjectSummary: ProjectSummary = {
@@ -55,8 +55,8 @@ export const initialProjectSummary: ProjectSummary = {
      projectSummaryCoverURL: "",
      status: 'in-progress',
      gallery: [],
-     projectEndDateTime: new Date("2024-12-31T01:00:00"),
-     projectStartDateTime: new Date("2024-01-01T00:00:00"),
+     projectEndDateTime: "",
+     projectStartDateTime: "",
      organizers: [],
      locations: [],
      applicants: [],
