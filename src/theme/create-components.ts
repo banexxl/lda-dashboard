@@ -6,6 +6,7 @@ import {
      paperClasses,
      tableCellClasses
 } from '@mui/material';
+import Swal from 'sweetalert2';
 
 // Used only to create transitions
 const muiTheme = createTheme();

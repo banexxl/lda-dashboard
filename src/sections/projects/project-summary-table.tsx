@@ -43,7 +43,7 @@ type ProjectLocale = {
 
 const locales = [{ value: 'en', name: 'Engleski' }, { value: 'sr', name: 'Srpski' }]
 
-export const ProjectSummaryTable = ({ items, page, rowsPerPage, }: any) => {
+export const ProjectSummaryTable = ({ items }: any) => {
 
      const [currentProjectID, setCurrentProjectID] = useState(null);
      const [currentProjectObject, setCurrentProjectObject] = useState<ProjectSummary | null | undefined>(initialProjectSummary);
@@ -901,7 +901,6 @@ export const ProjectSummaryTable = ({ items, page, rowsPerPage, }: any) => {
                                                                                                <Box sx={{ display: 'flex', width: '80%' }}>
                                                                                                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                                                                                                          <DatePicker
-                                                                                                              inputFormat='DD/MM/YYYY'
                                                                                                               disabled={loading}
                                                                                                               label={`Datum ${index + 1}`}
                                                                                                               value={date}
@@ -909,7 +908,7 @@ export const ProjectSummaryTable = ({ items, page, rowsPerPage, }: any) => {
                                                                                                                    const formattedDate = dayjs(newValue).format('YYYY-MM-DDTHH:mm:ss');
                                                                                                                    onAddNewSubtitleDateTime(index, formattedDate)
                                                                                                               }}
-                                                                                                              renderInput={(props: TextFieldProps) => <TextField {...props} />}
+
                                                                                                          />
                                                                                                     </LocalizationProvider>
 

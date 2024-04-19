@@ -51,7 +51,7 @@ const Page = (props: any) => {
      const handleRebuild = async () => {
 
           try {
-               const response = await fetch('https://api.vercel.com/v1/integrations/deploy/prj_8oTQMbXR6nd6jPsw1OWW2Ku6vXIi/bag2X5T5DK', {
+               const response = await fetch('https://api.vercel.com/v1/integrations/deploy/prj_XLF2AEk8T1bjTg8qzyJm5wX8wBVT/gLAMvz7E56', {
                     method: 'POST'
                })
 
@@ -197,7 +197,6 @@ export async function getServerSideProps(context: any) {
      try {
           const page = context.query.page || 1
           const limit = context.query.limit || 5
-          console.log('page', page, 'limit', limit);
 
           const projects = await ProjectSummariesServices().getProjectsByPage(page, limit);
           const projectSummariesCount = await ProjectSummariesServices().getProjectSummariesCount();

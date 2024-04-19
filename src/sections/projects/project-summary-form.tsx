@@ -1,25 +1,30 @@
 "use client"
 import React, { useState } from 'react';
-import { useFormik } from 'formik';
-import { TextField, Typography, Button, Checkbox, FormControlLabel, Box, Input, Card, CardContent, Grid, MenuItem, Stack, Container, IconButton, CardActionArea, FormControl, InputLabel, Select, Divider, ImageList, ImageListItem } from '@mui/material';
+import { Field, FieldArray, useFormik } from 'formik';
+import { TextField, Typography, Button, Checkbox, FormControlLabel, Box, Input, Card, CardContent, Grid, MenuItem, Stack, Container, IconButton, CardActionArea, FormControl, InputLabel, Select, Divider, ImageList, ImageListItem } from '@mui/material'
 import { Form, Formik, FormikErrors, FormikTouched } from 'formik';
 import PhotoCamera from "@mui/icons-material/PhotoCamera";
 import { useRouter } from 'next/navigation';
-import CircularProgress from '@mui/material/CircularProgress';
 import Swal from 'sweetalert2'
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import InsertPhotoIcon from '@mui/icons-material/InsertPhoto';
 import Image from 'next/image';
-import { DatePicker, LoadingButton, LocalizationProvider } from '@mui/lab';
+import { DatePicker, LocalizationProvider } from '@mui/x-date-pickers';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import "@uploadthing/react/styles.css";
 import { useTheme } from '@mui/material/styles';
 import ProjectSummarySchema, { ProjectSummary, initialProjectSummary } from './project-summary-type';
 import { ArrayKeys } from './project-summary-table';
+import { DateField } from '@mui/x-date-pickers/DateField';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
+import { stringWithHyphens } from '@/utils/url-creator';
+import zIndex from '@mui/material/styles/zIndex';
+import { tr } from 'date-fns/locale';
+import { log } from 'console';
+import moment from 'moment';
 
 export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
 
@@ -30,6 +35,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
      const [loading, setLoading] = useState<any>(false)
      const [initialProjectSummaryObject, setInitialProjectSummary] = useState<ProjectSummary | null>(initialProjectSummary)
      const [selectedImage, setSelectedImage] = useState(null);
+     const [showForm, setShowForm] = useState(true);
 
      const handleFileRemove = () => {
           setFileURL(""); // Remove the selected file
@@ -60,7 +66,8 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                     })
                     router.refresh()
                } else {
-                    onSubmitFail()
+
+                    setShowForm(true)
 
                     Swal.fire({
                          icon: 'error',
@@ -70,64 +77,15 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                }
 
           } catch (err) {
-               console.error(err);
+               setShowForm(true)
                Swal.fire({
                     icon: 'error',
                     title: 'Oops...',
                     text: 'Nešto ne valja :(',
                })
           }
+
      }
-
-
-     const handleSubmitProjectSummary = async (initialProjectSummaryObject: any) => {
-          try {
-               //API CALL
-               const response = await fetch('/api/project-summaries-api', {
-                    method: 'PUT',
-                    headers: {
-                         'Content-Type': 'application/json',
-                         'Access-Control-Allow-Origin': 'https://lda-dashboard.vercel.app/api/project-api, http://localhost:3000/api/project-api',
-                         'Access-Control-Allow-Methods': 'PUT' // Set the content type to JSON
-                    },
-                    body: JSON.stringify(initialProjectSummaryObject)
-               });
-
-               if (response.ok) {
-                    setInitialProjectSummary(null)
-                    Swal.fire({
-                         icon: 'success',
-                         title: 'Sve OK!',
-                         text: 'Projekat izmenjen :)',
-                    })
-                    router.refresh()
-               } else {
-                    Swal.fire({
-                         icon: 'error',
-                         title: 'Update nije prosao!',
-                         text: 'Projekat nije izmenjen :(',
-                    })
-                    const errorData = await response.json()
-                    console.log(errorData);
-               }
-
-          } catch (err) {
-               alert(err);
-          }
-     }
-
-     const handleAddToProjectObjectArray = (arrayName: ArrayKeys, newArray: string[]) => {
-          setInitialProjectSummary(prevProject => {
-               if (!prevProject) {
-                    console.error('Project object is null.');
-                    return null;
-               }
-
-               const updatedProject: ProjectSummary = { ...prevProject };
-               updatedProject[arrayName] = newArray;
-               return updatedProject;
-          });
-     };
 
      const onAddNewSubtitle = (index: number, text: string) => {
           setInitialProjectSummary((prevProject: ProjectSummary | null) => {
@@ -213,11 +171,12 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
           });
      };
 
-     const onAddNewSubtitleDateTime = (index: number, text: string) => {
+     const onAddNewSubtitleDateTime = (index: number, date: string) => {
+
           setInitialProjectSummary((prevProject: ProjectSummary | null) => {
                if (prevProject) {
                     const newDateTimes = [...prevProject.projectSummaryDateTime];
-                    newDateTimes[index] = text; // Update the subtitle at the clicked index
+                    newDateTimes[index] = date; // Update the subtitle at the clicked index
                     return {
                          ...prevProject,
                          projectSummaryDateTime: newDateTimes,
@@ -253,7 +212,6 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                return prevProject;
           });
      };
-
 
      const handleFileChange = async (event: any) => {
           console.log(initialProjectSummaryObject);
@@ -310,11 +268,10 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
           }
      };
 
-
-
      return (
-          <Box>
+          <Box >
                <Formik
+
                     initialValues={initialProjectSummary}
                     onSubmit={(values) => {
                          handleSubmit(values)
@@ -322,35 +279,38 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                     validationSchema={ProjectSummarySchema}>
                     {
                          (formik) => (
-                              <Form style={{ display: 'flex', flexDirection: 'column', gap: '15px', opacity: loading ? .5 : 1, }}>
+                              <Form style={{ display: 'flex', flexDirection: 'column', gap: '15px', opacity: loading ? .5 : 1 }}>
 
                                    <Typography>
                                         {`${JSON.stringify(formik.errors)}`}
                                    </Typography>
 
                                    <TextField
+                                        InputLabelProps={{ shrink: true }}
                                         label="Naslov projekta"
                                         name="title"
-                                        value={formik.values.title}
+                                        // value={formik.values.title}
                                         disabled={loading}
-                                        onChange={formik.handleChange}
+                                        onBlur={(e: any) => {
+                                             formik.setFieldValue('title', e.target.value)
+                                             formik.setFieldValue('projectSummaryURL', stringWithHyphens(e.target.value))
+                                        }}
                                         error={formik.touched.title && !!formik.errors.title}
                                         helperText={formik.touched.title && formik.errors.title}
                                    />
 
                                    <TextField
+                                        InputLabelProps={{ shrink: true }}
+                                        disabled
                                         label="URL projekta"
                                         name="projectSummaryURL"
                                         multiline
-                                        disabled={loading}
                                         rows={4}
                                         value={formik.values.projectSummaryURL}
-                                        onChange={formik.handleChange}
-                                        error={formik.touched.projectSummaryURL && !!formik.errors.projectSummaryURL}
-                                        helperText={formik.touched.projectSummaryURL && formik.errors.projectSummaryURL}
                                    />
 
                                    <TextField
+                                        InputLabelProps={{ shrink: true }}
                                         label="Thumbnail URL slike"
                                         name="projectSummaryCoverURL"
                                         value={formik.values.projectSummaryCoverURL}
@@ -363,13 +323,13 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                    <FormControl fullWidth>
                                         <InputLabel id="demo-simple-select-label">Status</InputLabel>
                                         <Select
-                                             labelId="demo-simple-select-label"
                                              name='status'
                                              id="demo-simple-select"
                                              value={formik.values.status}
-                                             label="Status"
                                              onChange={formik.handleChange}
                                              error={formik.touched.status && !!formik.errors.status}
+                                             variant='outlined'
+                                             sx={{ borderColor: 'white' }}
                                         >
                                              <MenuItem value={''}>Ponisti</MenuItem>
                                              <MenuItem value={'in-progress'}>U toku</MenuItem>
@@ -395,6 +355,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                    </FormControl>
 
                                    <TextField
+                                        InputLabelProps={{ shrink: true }}
                                         fullWidth
                                         label="Organizatori"
                                         name="organizers"
@@ -409,6 +370,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                    />
 
                                    <TextField
+                                        InputLabelProps={{ shrink: true }}
                                         fullWidth
                                         label="Lokacije"
                                         name="locations"
@@ -423,6 +385,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                    />
 
                                    <TextField
+                                        InputLabelProps={{ shrink: true }}
                                         fullWidth
                                         label="Aplikanti"
                                         name="applicants"
@@ -437,6 +400,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                    />
 
                                    <TextField
+                                        InputLabelProps={{ shrink: true }}
                                         fullWidth
                                         label="Donatori"
                                         name="donators"
@@ -451,6 +415,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                    />
 
                                    <TextField
+                                        InputLabelProps={{ shrink: true }}
                                         fullWidth
                                         label="Publikacije"
                                         name="publications"
@@ -465,6 +430,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                    />
 
                                    <TextField
+                                        InputLabelProps={{ shrink: true }}
                                         fullWidth
                                         label="Linkovi"
                                         name="links"
@@ -486,52 +452,34 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                         xs={12}
                                    >
                                         <Typography sx={{ margin: '10px' }}>Podnaslovi:</Typography>
-                                        {
-                                             initialProjectSummaryObject?.projectSummarySubtitles.length == 0 &&
-                                             <Box>
-                                                  <IconButton onClick={() => onAddNewSubtitle(0, '')}>
-                                                       <AddBoxIcon />
-                                                  </IconButton>
-                                                  <IconButton onClick={() => onDeleteSubtitle(0)}>
-                                                       <DeleteIcon />
-                                                  </IconButton>
-                                             </Box>
-                                        }
-
-                                        {
-                                             initialProjectSummaryObject?.projectSummarySubtitles.length != 0 &&
-                                             initialProjectSummaryObject?.projectSummarySubtitles?.map((subtitle: any, index: any) =>
-                                                  <Box sx={{ display: 'flex', width: '80%' }}>
-                                                       <TextField
-                                                            defaultValue={subtitle}
-                                                            fullWidth
-                                                            label={`Podnaslov ${index + 1}`}
-                                                            disabled={loading}
-                                                            // name={project.description}
-                                                            onBlur={(e: any) => {
-                                                                 setInitialProjectSummary((prevProject: ProjectSummary | null) => {
-                                                                      if (prevProject) {
-                                                                           const newSubtitles = [...prevProject.projectSummarySubtitles];
-                                                                           newSubtitles[index] = e.target.value; // Update the subtitle at the clicked index
-                                                                           return {
-                                                                                ...prevProject,
-                                                                                projectSummarySubtitles: newSubtitles,
-                                                                           };
-                                                                      }
-                                                                      return prevProject;
-                                                                 });
-                                                            }}
-                                                       />
-                                                       <IconButton onClick={() => onAddNewSubtitle(index + 1, '')}>
+                                        <FieldArray
+                                             name={'projectSummarySubtitles'}
+                                             render={arrayHelpers => (
+                                                  formik.values?.projectSummarySubtitles.length > 0 ?
+                                                       formik.values?.projectSummarySubtitles.map((description: any, index: any) => (
+                                                            <Box sx={{ display: 'flex', width: '80%' }}>
+                                                                 <Field
+                                                                      InputLabelProps={{ shrink: true }}
+                                                                      defaultValue={description}
+                                                                      fullWidth
+                                                                      name={`projectSummarySubtitles.${index}`}
+                                                                      label={`Opis ${index + 1}`}
+                                                                      disabled={loading}
+                                                                 />
+                                                                 <IconButton onClick={() => arrayHelpers.insert(index + 1, '')}>
+                                                                      <AddBoxIcon />
+                                                                 </IconButton>
+                                                                 <IconButton onClick={() => arrayHelpers.remove(index)}>
+                                                                      <DeleteIcon />
+                                                                 </IconButton>
+                                                            </Box>
+                                                       ))
+                                                       :
+                                                       <IconButton onClick={() => arrayHelpers.push('')}>
                                                             <AddBoxIcon />
                                                        </IconButton>
-                                                       <IconButton onClick={() => onDeleteSubtitle(index)}>
-                                                            <DeleteIcon />
-                                                       </IconButton>
-                                                  </Box>
-                                             )
-                                        }
-
+                                             )}
+                                        />
                                    </Grid>
 
                                    <Grid
@@ -540,51 +488,34 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                         xs={12}
                                    >
                                         <Typography sx={{ margin: '10px' }}>Opisi:</Typography>
-                                        {
-                                             initialProjectSummaryObject?.projectSummaryDescriptions.length == 0 &&
-                                             <Box>
-                                                  <IconButton onClick={() => onAddNewDescription(0, '')}>
-                                                       <AddBoxIcon />
-                                                  </IconButton>
-                                                  <IconButton onClick={() => onDeleteDescription(0)}>
-                                                       <DeleteIcon />
-                                                  </IconButton>
-                                             </Box>
-                                        }
-
-                                        {
-                                             initialProjectSummaryObject?.projectSummaryDescriptions.map((description: any, index: any) =>
-                                                  <Box sx={{ display: 'flex', width: '80%' }}>
-                                                       <TextField
-                                                            defaultValue={description}
-                                                            fullWidth
-                                                            label={`Opis ${index + 1}`}
-                                                            disabled={loading}
-                                                            // name={project.description}
-                                                            onBlur={(e: any) =>
-                                                                 setInitialProjectSummary((prevProject: ProjectSummary | null) => {
-                                                                      if (prevProject) {
-                                                                           const newDescriptions = [...prevProject.projectSummaryDescriptions];
-                                                                           newDescriptions[index] = e.target.value; // Update the subtitle at the clicked index
-                                                                           return {
-                                                                                ...prevProject,
-                                                                                projectSummaryDescriptions: newDescriptions,
-                                                                           };
-                                                                      }
-                                                                      return prevProject;
-                                                                 })
-                                                            }
-                                                       />
-                                                       <IconButton onClick={() => onAddNewDescription(index + 1, '')}>
+                                        <FieldArray
+                                             name={'projectSummaryDescriptions'}
+                                             render={arrayHelpers => (
+                                                  formik.values?.projectSummaryDescriptions.length > 0 ?
+                                                       formik.values?.projectSummaryDescriptions.map((description: any, index: any) => (
+                                                            <Box sx={{ display: 'flex', width: '80%' }}>
+                                                                 <Field
+                                                                      InputLabelProps={{ shrink: true }}
+                                                                      defaultValue={description}
+                                                                      fullWidth
+                                                                      name={`projectSummaryDescriptions.${index}`}
+                                                                      label={`Opis ${index + 1}`}
+                                                                      disabled={loading}
+                                                                 />
+                                                                 <IconButton onClick={() => arrayHelpers.insert(index + 1, '')}>
+                                                                      <AddBoxIcon />
+                                                                 </IconButton>
+                                                                 <IconButton onClick={() => arrayHelpers.remove(index)}>
+                                                                      <DeleteIcon />
+                                                                 </IconButton>
+                                                            </Box>
+                                                       ))
+                                                       :
+                                                       <IconButton onClick={() => arrayHelpers.push('')}>
                                                             <AddBoxIcon />
                                                        </IconButton>
-                                                       <IconButton onClick={() => onDeleteDescription(index)}>
-                                                            <DeleteIcon />
-                                                       </IconButton>
-
-                                                  </Box>
-                                             )
-                                        }
+                                             )}
+                                        />
                                    </Grid>
 
                                    <Grid
@@ -593,50 +524,34 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                         xs={12}
                                    >
                                         <Typography sx={{ margin: '10px' }}>URL-ovi podnaslova:</Typography>
-                                        {
-                                             initialProjectSummaryObject?.projectSummarySubtitleURLs.length == 0 &&
-                                             <Box>
-                                                  <IconButton onClick={() => onAddNewSubtitleURL(0, '')}>
-                                                       <AddBoxIcon />
-                                                  </IconButton>
-                                                  <IconButton onClick={() => onDeleteSubtitleURL(0)}>
-                                                       <DeleteIcon />
-                                                  </IconButton>
-                                             </Box>
-                                        }
-
-                                        {
-                                             initialProjectSummaryObject?.projectSummarySubtitleURLs.map((url: any, index: any) =>
-                                                  <Box sx={{ display: 'flex', width: '80%' }}>
-                                                       <TextField
-                                                            defaultValue={url}
-                                                            fullWidth
-                                                            label={`URL ${index + 1}`}
-                                                            disabled={loading}
-                                                            // name={project.description}
-                                                            onBlur={(e: any) =>
-                                                                 setInitialProjectSummary((prevProject: ProjectSummary | null) => {
-                                                                      if (prevProject) {
-                                                                           const newSubtitlesURLs = [...prevProject.projectSummarySubtitleURLs];
-                                                                           newSubtitlesURLs[index] = e.target.value; // Update the subtitle at the clicked index
-                                                                           return {
-                                                                                ...prevProject,
-                                                                                projectSummarySubtitleURLs: newSubtitlesURLs,
-                                                                           };
-                                                                      }
-                                                                      return prevProject;
-                                                                 })
-                                                            }
-                                                       />
-                                                       <IconButton onClick={() => onAddNewSubtitleURL(index + 1, '')}>
+                                        <FieldArray
+                                             name={'projectSummarySubtitleURLs'}
+                                             render={arrayHelpers => (
+                                                  formik.values?.projectSummarySubtitleURLs.length > 0 ?
+                                                       formik.values?.projectSummarySubtitleURLs.map((description: any, index: any) => (
+                                                            <Box sx={{ display: 'flex', width: '80%' }}>
+                                                                 <Field
+                                                                      InputLabelProps={{ shrink: true }}
+                                                                      defaultValue={description}
+                                                                      fullWidth
+                                                                      name={`projectSummarySubtitleURLs.${index}`}
+                                                                      label={`Opis ${index + 1}`}
+                                                                      disabled={loading}
+                                                                 />
+                                                                 <IconButton onClick={() => arrayHelpers.insert(index + 1, '')}>
+                                                                      <AddBoxIcon />
+                                                                 </IconButton>
+                                                                 <IconButton onClick={() => arrayHelpers.remove(index)}>
+                                                                      <DeleteIcon />
+                                                                 </IconButton>
+                                                            </Box>
+                                                       ))
+                                                       :
+                                                       <IconButton onClick={() => arrayHelpers.push('')}>
                                                             <AddBoxIcon />
                                                        </IconButton>
-                                                       <IconButton onClick={() => onDeleteSubtitleURL(index)}>
-                                                            <DeleteIcon />
-                                                       </IconButton>
-                                                  </Box>
-                                             )
-                                        }
+                                             )}
+                                        />
                                    </Grid>
 
                                    <Grid
@@ -645,54 +560,44 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                         xs={12}
                                    >
                                         <Typography sx={{ margin: '10px' }}>Vremena odrzavanja projektnih aktivnosti (obavezno):</Typography>
-                                        {
-                                             initialProjectSummaryObject?.projectSummaryDateTime.length == 0 &&
-                                             <Box>
-                                                  <IconButton onClick={() => onAddNewSubtitleDateTime(0, '')}>
-                                                       <AddBoxIcon />
-                                                  </IconButton>
-                                                  <IconButton onClick={() => onDeleteSubtitleDateTime(0)}>
-                                                       <DeleteIcon />
-                                                  </IconButton>
-                                             </Box>
-                                        }
-
-                                        {
-                                             initialProjectSummaryObject?.projectSummaryDateTime.map((date: any, index: any) =>
-                                                  <Box sx={{ display: 'flex', width: '80%' }}>
-                                                       <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                                            <DatePicker
-                                                                 inputFormat='DD/MM/YYYY'
-                                                                 disabled={loading}
-                                                                 label={`Datum ${index + 1}`}
-                                                                 value={date}
-                                                                 onChange={(newValue: any) => {
-                                                                      const formattedDate = dayjs(newValue).format('YYYY-MM-DDTHH:mm:ss');
-                                                                      onAddNewSubtitleDateTime(index, formattedDate)
-                                                                 }}
-                                                                 renderInput={(props: any) => <TextField {...props} />}
-                                                            />
-                                                       </LocalizationProvider>
-
-
-                                                       <IconButton onClick={() => onAddNewSubtitleDateTime(index + 1, '')}>
+                                        <FieldArray
+                                             name={'projectSummaryDateTime'}
+                                             render={arrayHelpers => (
+                                                  formik.values?.projectSummaryDateTime.length > 0 ?
+                                                       formik.values?.projectSummaryDateTime.map((description: any, index: any) => (
+                                                            <Box sx={{ display: 'flex', width: '80%' }}>
+                                                                 <Field
+                                                                      as={DateField}
+                                                                      InputLabelProps={{ shrink: true }}
+                                                                      defaultValue={description}
+                                                                      fullWidth
+                                                                      name={`projectSummaryDateTime.${index}`}
+                                                                      label={`Opis ${index + 1}`}
+                                                                      disabled={loading}
+                                                                 />
+                                                                 <IconButton onClick={() => arrayHelpers.insert(index + 1, '')}>
+                                                                      <AddBoxIcon />
+                                                                 </IconButton>
+                                                                 <IconButton onClick={() => arrayHelpers.remove(index)}>
+                                                                      <DeleteIcon />
+                                                                 </IconButton>
+                                                            </Box>
+                                                       ))
+                                                       :
+                                                       <IconButton onClick={() => arrayHelpers.push('')}>
                                                             <AddBoxIcon />
                                                        </IconButton>
-                                                       <IconButton onClick={() => onDeleteSubtitleDateTime(index)}>
-                                                            <DeleteIcon />
-                                                       </IconButton>
-                                                  </Box>
-                                             )
-                                        },
+                                             )}
+                                        />
                                    </Grid>
 
                                    <Typography sx={{ margin: '10px' }}>Slike:</Typography>
                                    <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', marginBottom: '30px' }}>
                                         {/* -------------------------slike------------------------------------------ */}
                                         {
-                                             initialProjectSummaryObject?.gallery && initialProjectSummaryObject.gallery.length > 0 && (
+                                             formik.values?.gallery && formik.values.gallery.length > 0 && (
                                                   <ImageList sx={{ width: 500, height: 450 }} cols={3} rowHeight={164}>
-                                                       {initialProjectSummaryObject.gallery.map((item: any) => (
+                                                       {formik.values.gallery.map((item: any) => (
                                                             <ImageListItem key={item}>
                                                                  <img
                                                                       // srcSet={`${item.img}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
