@@ -372,7 +372,13 @@ export const ProjectSummaryTable = ({ items }: any) => {
                     });
 
                     if (!response.ok) {
-                         throw new Error('Failed to upload image');
+                         Swal.fire({
+                              title: 'Greška',
+                              text: "Neuspešan upload slike!",
+                              icon: 'error',
+                              confirmButtonColor: '#3085d6',
+                              confirmButtonText: 'OK',
+                         })
                     } else {
                          const result = await response.json();
                          const imageUrl = result.imageUrl;
