@@ -75,11 +75,11 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                          (formik) => (
                               <Form style={{ display: 'flex', flexDirection: 'column', gap: '15px', opacity: loading ? .5 : 1 }}>
 
-                                   {/* 
-<Typography>
-    {`${JSON.stringify(formik.errors)}`}
-</Typography> 
-*/}
+
+                                   {/*<Typography>
+                                        {`${JSON.stringify(formik.errors)}`}
+                         </Typography>*/}
+
 
                                    <TextField
                                         InputLabelProps={{ shrink: true }}

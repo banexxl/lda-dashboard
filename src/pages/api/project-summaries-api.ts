@@ -17,9 +17,10 @@ export default async function handler(request: NextApiRequest, response: NextApi
           } else if (request.method === 'POST') {
                console.log('POST', request.body);
 
-               const projectStart = new Date(request.body.projectStartDateTime).toISOString()
-               const projectEnd = new Date(request.body.projectEndDateTime).toISOString()
-               const projectSummarySubtitlesDate = request.body.projectSummaryDateTime.map((date: string) => new Date(date).toISOString())
+               const projectStart = moment(request.body.projectStartDateTime).toISOString()
+               const projectEnd = moment(request.body.projectEndDateTime).toISOString()
+               const projectSummarySubtitlesDate = request.body.projectSummaryDateTime.map((date: string) => moment(date).toISOString())
+               console.log(projectStart, projectEnd, projectSummarySubtitlesDate);
 
                const newProjectObject = {
                     ...request.body,
@@ -53,6 +54,11 @@ export default async function handler(request: NextApiRequest, response: NextApi
           }
           else if (request.method === 'PUT') {
 
+               const projectStart = moment(request.body.projectStartDateTime).toISOString()
+               const projectEnd = moment(request.body.projectEndDateTime).toISOString()
+               const projectSummarySubtitlesDates = request.body.projectSummaryDateTime.map((date: string) => moment(date).toISOString())
+               console.log(projectStart, projectEnd, projectSummarySubtitlesDates);
+
                try {
                     const mdbResponse = await dbProjectSummaries.updateOne({ '_id': new ObjectId(request.body._id) },
                          {
@@ -61,8 +67,8 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                    projectSummaryCoverURL: request.body.projectSummaryCoverURL,
                                    status: request.body.status,
                                    gallery: request.body.gallery,
-                                   projectEndDateTime: request.body.projectEndDateTime,
-                                   projectStartDateTime: request.body.projectStartDateTime,
+                                   projectEndDateTime: projectEnd,
+                                   projectStartDateTime: projectStart,
                                    organizers: request.body.organizers,
                                    locations: request.body.locations,
                                    applicants: request.body.applicants,
@@ -70,7 +76,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                    publications: request.body.publications,
                                    projectSummaryDescriptions: request.body.projectSummaryDescriptions,
                                    projectSummarySubtitleURLs: request.body.projectSummarySubtitleURLs,
-                                   projectSummaryDateTime: request.body.projectSummaryDateTime,
+                                   projectSummaryDateTime: projectSummarySubtitlesDates,
                                    projectSummarySubtitles: request.body.projectSummarySubtitles,
                                    links: request.body.links,
                                    title: request.body.title,

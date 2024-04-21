@@ -20,6 +20,10 @@ import { useRouter } from 'next/navigation';
 import "@uploadthing/react/styles.css";
 import dayjs from 'dayjs';
 import { ProjectSummary, initialProjectSummary } from './project-summary-type';
+import { DateField } from '@mui/x-date-pickers/DateField';
+import moment from 'moment';
+import { get } from 'http';
+import { da } from 'date-fns/locale';
 
 type ProjectStatus = {
      value: string;
@@ -484,40 +488,47 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      md={6}
                                                                                      xs={12}
                                                                                 >
-                                                                                     <TextField
-                                                                                          defaultValue={project.projectStartDateTime}
-                                                                                          fullWidth
-                                                                                          label="Datum pocetka projekta"
-                                                                                          name="name"
-                                                                                          disabled={loading}
-                                                                                          onBlur={(e: any) =>
-                                                                                               setCurrentProjectObject((previousObject: any) => ({
-                                                                                                    ...previousObject,
-                                                                                                    projectStartDateTime: e.target.value
+                                                                                     <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                                                                          <DateField
 
-                                                                                               }))
-                                                                                          }
-                                                                                     />
+                                                                                               format='MM/DD/YYYY'
+                                                                                               InputLabelProps={{ shrink: true }}
+                                                                                               fullWidth
+                                                                                               disabled={loading}
+                                                                                               label={`Datum pocetka projekta`}
+                                                                                               defaultValue={dayjs(currentProjectObject?.projectStartDateTime)}
+                                                                                               onBlur={(newValue: any) => {
+                                                                                                    const date = moment(newValue.target.value).format('MM/DD/YYYY');
+                                                                                                    setCurrentProjectObject((previousObject: any) => ({
+                                                                                                         ...previousObject,
+                                                                                                         projectStartDateTime: date
+                                                                                                    }))
+                                                                                               }}
+                                                                                          />
+                                                                                     </LocalizationProvider>
                                                                                 </Grid>
                                                                                 <Grid
                                                                                      item
                                                                                      md={6}
                                                                                      xs={12}
                                                                                 >
-                                                                                     <TextField
-                                                                                          defaultValue={project.projectEndDateTime}
-                                                                                          fullWidth
-                                                                                          label="Datum kraja projekta"
-                                                                                          name="name"
-                                                                                          disabled={loading}
-                                                                                          onBlur={(e: any) =>
-                                                                                               setCurrentProjectObject((previousObject: any) => ({
-                                                                                                    ...previousObject,
-                                                                                                    projectEndDateTime: e.target.value
-
-                                                                                               }))
-                                                                                          }
-                                                                                     />
+                                                                                     <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                                                                          <DateField
+                                                                                               format='MM/DD/YYYY'
+                                                                                               InputLabelProps={{ shrink: true }}
+                                                                                               fullWidth
+                                                                                               disabled={loading}
+                                                                                               label={`Datum pocetka projekta`}
+                                                                                               defaultValue={dayjs(currentProjectObject?.projectEndDateTime)}
+                                                                                               onBlur={(newValue: any) => {
+                                                                                                    const date = moment(newValue.target.value).format('MM/DD/YYYY');
+                                                                                                    setCurrentProjectObject((previousObject: any) => ({
+                                                                                                         ...previousObject,
+                                                                                                         projectEndDateTime: date
+                                                                                                    }))
+                                                                                               }}
+                                                                                          />
+                                                                                     </LocalizationProvider>
                                                                                 </Grid>
                                                                                 <Grid
                                                                                      item
@@ -539,7 +550,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      >
                                                                                           {locales.map((option: ProjectLocale) => (
                                                                                                <MenuItem
-
+                                                                                                    key={Math.floor(Math.random() * 1000000)}
                                                                                                     value={option.value}
                                                                                                >
                                                                                                     {option.name}
@@ -607,7 +618,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      >
                                                                                           {projectStatus.map((option: ProjectStatus) => (
                                                                                                <MenuItem
-
+                                                                                                    key={Math.floor(Math.random() * 1000000)}
                                                                                                     value={option.value}
                                                                                                >
                                                                                                     {option.name}
@@ -718,7 +729,6 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      />
                                                                                 </Grid>
 
-/////////////////////////////////////////////////////////////////////////
                                                                                 <Grid
                                                                                      item
                                                                                      md={6}
@@ -740,7 +750,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      {
                                                                                           currentProjectObject?.projectSummarySubtitles.length != 0 &&
                                                                                           currentProjectObject?.projectSummarySubtitles?.map((subtitle: any, index: any) =>
-                                                                                               <Box sx={{ display: 'flex', width: '80%' }}>
+                                                                                               <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
                                                                                                     <TextField
                                                                                                          defaultValue={subtitle}
                                                                                                          fullWidth
@@ -793,7 +803,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
 
                                                                                      {
                                                                                           currentProjectObject?.projectSummaryDescriptions.map((description: any, index: any) =>
-                                                                                               <Box sx={{ display: 'flex', width: '80%' }}>
+                                                                                               <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
                                                                                                     <TextField
                                                                                                          defaultValue={description}
                                                                                                          fullWidth
@@ -846,7 +856,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
 
                                                                                      {
                                                                                           currentProjectObject?.projectSummarySubtitleURLs.map((url: any, index: any) =>
-                                                                                               <Box sx={{ display: 'flex', width: '80%' }}>
+                                                                                               <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
                                                                                                     <TextField
                                                                                                          defaultValue={url}
                                                                                                          fullWidth
@@ -883,7 +893,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      md={6}
                                                                                      xs={12}
                                                                                 >
-                                                                                     <Typography sx={{ margin: '10px' }}>Vremena odrzavanja projektnih aktivnosti (obavezno):</Typography>
+                                                                                     <Typography sx={{ margin: '10px' }}>Vremena odrzavanja projektnih aktivnosti (MM/DD/YYYY):</Typography>
                                                                                      {
                                                                                           currentProjectObject?.projectSummaryDateTime.length == 0 &&
                                                                                           <Box>
@@ -898,17 +908,20 @@ export const ProjectSummaryTable = ({ items }: any) => {
 
                                                                                      {
                                                                                           currentProjectObject?.projectSummaryDateTime.map((date: any, index: any) =>
-                                                                                               <Box sx={{ display: 'flex', width: '80%' }}>
+                                                                                               <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
                                                                                                     <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                                                                                         <DatePicker
+                                                                                                         <DateField
+
+                                                                                                              format='MM/DD/YYYY'
+                                                                                                              InputLabelProps={{ shrink: true }}
+                                                                                                              fullWidth
                                                                                                               disabled={loading}
                                                                                                               label={`Datum ${index + 1}`}
-                                                                                                              value={date}
-                                                                                                              onChange={(newValue: any) => {
-                                                                                                                   const formattedDate = dayjs(newValue).format('YYYY-MM-DDTHH:mm:ss');
-                                                                                                                   onAddNewSubtitleDateTime(index, formattedDate)
+                                                                                                              defaultValue={dayjs(currentProjectObject.projectSummaryDateTime[index])}
+                                                                                                              onBlur={(newValue: any) => {
+                                                                                                                   const date = moment(newValue.target.value).format('MM/DD/YYYY');
+                                                                                                                   onAddNewSubtitleDateTime(index, date)
                                                                                                               }}
-
                                                                                                          />
                                                                                                     </LocalizationProvider>
 
@@ -921,7 +934,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                                     </IconButton>
                                                                                                </Box>
                                                                                           )
-                                                                                     },
+                                                                                     }
                                                                                 </Grid>
 
                                                                                 <Typography sx={{ margin: '10px' }}>Slike:</Typography>
@@ -931,7 +944,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                           currentProjectObject?.gallery && currentProjectObject.gallery.length > 0 && (
                                                                                                <ImageList sx={{ width: 500, height: 450 }} cols={3} rowHeight={164}>
                                                                                                     {currentProjectObject.gallery.map((item: any) => (
-                                                                                                         <ImageListItem key={item}>
+                                                                                                         <ImageListItem key={Math.floor(Math.random() * 1000000)} >
                                                                                                               <img
                                                                                                                    // srcSet={`${item.img}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
                                                                                                                    src={`${item}?w=164&h=164&fit=crop&auto=format`}

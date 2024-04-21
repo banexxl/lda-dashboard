@@ -2,7 +2,7 @@ import * as yup from 'yup';
 
 export const ProjectSummarySchema = yup.object().shape({
      projectSummaryURL: yup.string().required(),
-     projectSummaryCoverURL: yup.string().required(),
+     projectSummaryCoverURL: yup.string(),
      status: yup.string().required(),
      gallery: yup.array().of(yup.string()),
      projectEndDateTime: yup.date().required(),
