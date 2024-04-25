@@ -54,13 +54,14 @@ export default async function handler(request: NextApiRequest, response: NextApi
           }
           else if (request.method === 'PUT') {
 
+               console.log('PUUUUUT', request.body);
+
                const projectStart = moment(request.body.projectStartDateTime).toISOString()
                const projectEnd = moment(request.body.projectEndDateTime).toISOString()
                const projectSummarySubtitlesDates = request.body.projectSummaryDateTime.map((date: string) => moment(date).toISOString())
-               console.log(projectStart, projectEnd, projectSummarySubtitlesDates);
 
                try {
-                    const mdbResponse = await dbProjectSummaries.updateOne({ '_id': new ObjectId(request.body._id) },
+                    const mdbResponse = await dbProjectSummaries.updateOne({ _id: ObjectId.createFromHexString(request.body._id) },
                          {
                               $set: {
                                    projectSummaryURL: request.body.projectSummaryURL,

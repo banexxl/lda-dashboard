@@ -331,8 +331,70 @@ export const ProjectSummaryTable = ({ items }: any) => {
           });
      };
 
+     const onDeleteImage = async (imageURL: any) => {
+
+          setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
+               if (prevProject) {
+                    const newGallery = prevProject.gallery.filter((image: string) => image !== imageURL); // Remove the specified imageURL from the array
+                    return {
+                         ...prevProject,
+                         gallery: newGallery,
+                    };
+               }
+               return prevProject;
+          });
+          console.log('aaaaaaa', currentProjectObject?.gallery);
+
+          if (!imageURL) {
+               return;
+          }
+
+          setLoading(true);
+
+          const apiUrl = 'http://localhost:3000/api/aws-s3';
+
+          try {
+               const response = await fetch(apiUrl, {
+                    method: 'DELETE',
+                    headers: {
+                         'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(imageURL.target.src)
+               });
+
+               if (!response.ok) {
+                    Swal.fire({
+                         title: 'Greška, neuspešno brisanje slike!',
+                         text: "Ako niste uploadovali novu sliku, ne možete je ni obrisati!",
+                         icon: 'error',
+                         confirmButtonColor: '#3085d6',
+                         confirmButtonText: 'OK',
+                         didClose() {
+                              handleProjectClose()
+                         }
+                    })
+               } else {
+                    Swal.fire({
+                         title: 'OK',
+                         text: "Uspešno brisanje slike! Potrebno je sad da se uradi izmena projekta!",
+                         icon: 'success',
+                         confirmButtonColor: '#3085d6',
+                         confirmButtonText: 'OK',
+                         didClose() {
+                              handleProjectClose()
+                         },
+                    })
+
+               }
+
+          } catch (error) {
+               console.error('Error uploading image:', error);
+          } finally {
+               setLoading(false);
+          }
+     }
+
      const handleFileChange = async (event: any) => {
-          console.log(currentProjectObject);
 
           const selectedFile = event.target.files[0];
 
@@ -380,6 +442,13 @@ export const ProjectSummaryTable = ({ items }: any) => {
                               confirmButtonText: 'OK',
                          })
                     } else {
+                         Swal.fire({
+                              title: 'OK',
+                              text: "Uspešan upload slike!",
+                              icon: 'success',
+                              confirmButtonColor: '#3085d6',
+                              confirmButtonText: 'OK',
+                         })
                          const result = await response.json();
                          const imageUrl = result.imageUrl;
                          onAddNewImage(imageUrl);
@@ -391,6 +460,25 @@ export const ProjectSummaryTable = ({ items }: any) => {
                setLoading(false);
           }
      };
+
+     const onImageClick = async (imageURL: string) => {
+          Swal.fire({
+               title: 'Da li ste sigurni da želite da obrišete sliku?',
+               text: "Možete obrisati samo sliku koju ste uploadovali!",
+               icon: 'warning',
+               showCancelButton: true,
+               confirmButtonColor: '#3085d6',
+               cancelButtonColor: '#d33',
+               confirmButtonText: 'Da, obriši!',
+               cancelButtonText: 'Odustani!'
+          }).then((result) => {
+               if (result.isConfirmed) {
+                    onDeleteImage(imageURL)
+               } else {
+                    handleProjectClose()
+               }
+          })
+     }
 
      return (
           <Card>
@@ -950,12 +1038,13 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                           currentProjectObject?.gallery && currentProjectObject.gallery.length > 0 && (
                                                                                                <ImageList sx={{ width: 500, height: 450 }} cols={3} rowHeight={164}>
                                                                                                     {currentProjectObject.gallery.map((item: any) => (
-                                                                                                         <ImageListItem key={Math.floor(Math.random() * 1000000)} >
+                                                                                                         <ImageListItem key={Math.floor(Math.random() * 1000000)}>
                                                                                                               <img
                                                                                                                    // srcSet={`${item.img}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
                                                                                                                    src={`${item}?w=164&h=164&fit=crop&auto=format`}
                                                                                                                    alt={'image'}
                                                                                                                    loading="lazy"
+                                                                                                                   onClick={(e: any) => onImageClick(e)}
                                                                                                               />
                                                                                                          </ImageListItem>
                                                                                                     ))}

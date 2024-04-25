@@ -15,11 +15,21 @@ export const config = {
      }
 }
 
+function extractInfoFromUrl(url: string) {
+
+     let splitUrl = url.split('.com/')[1].split('?')[0]
+
+     let key = splitUrl.replace(/%20/g, " ")
+
+     return key;
+}
+
 export default async (req: any, res: any) => {
      const month = (moment().month() + 1).toString().padStart(2, '0');
      const year = moment().year().toString();
 
      if (req.method === 'POST') {
+
           try {
                const { file, title, extension, fileName } = req.body;
 
@@ -47,7 +57,32 @@ export default async (req: any, res: any) => {
                console.error('Error uploading image:', error);
                return res.status(500).json({ error: 'Failed to upload image to S3' });
           }
-     } else {
+     } else if (req.method === 'DELETE') {
+
+          let awsUrl = extractInfoFromUrl(req.body);
+          try {
+
+               if (!awsUrl) {
+                    return res.status(400).json({ error: 'Missing key' });
+               }
+
+               const params: aws.S3.DeleteObjectRequest = {
+                    Bucket: process.env.AWS_S3_BUCKET_NAME!,
+                    Key: awsUrl
+               };
+
+               await s3.deleteObject(params, function (err, data) {
+                    if (err) console.log(err, err.stack);
+                    else console.log(data);
+               }).promise();
+
+               return res.status(200).json({ message: 'Image deleted successfully' });
+          } catch (error) {
+               console.error('Error deleting image:', error);
+               return res.status(500).json({ error: 'Failed to delete image from S3' });
+          }
+     }
+     else {
           res.status(405).end(); // Method Not Allowed
      }
 };
