@@ -24,6 +24,7 @@ import { DateField } from '@mui/x-date-pickers/DateField';
 import moment from 'moment';
 import { get } from 'http';
 import { da } from 'date-fns/locale';
+import { extractInfoFromUrl } from '@/pages/api/aws-s3';
 
 type ProjectStatus = {
      value: string;
@@ -135,6 +136,9 @@ export const ProjectSummaryTable = ({ items }: any) => {
                          icon: 'error',
                          title: 'Update nije prosao!',
                          text: 'Projekat nije izmenjen :(',
+                         didClose() {
+                              handleProjectClose()
+                         }
                     })
                     const errorData = await response.json()
                     console.log(errorData);
@@ -333,17 +337,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
 
      const onDeleteImage = async (imageURL: any) => {
 
-          setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
-               if (prevProject) {
-                    const newGallery = prevProject.gallery.filter((image: string) => image !== imageURL); // Remove the specified imageURL from the array
-                    return {
-                         ...prevProject,
-                         gallery: newGallery,
-                    };
-               }
-               return prevProject;
-          });
-          console.log('aaaaaaa', currentProjectObject?.gallery);
+          const url = imageURL.target.currentSrc.split('?')[0]
 
           if (!imageURL) {
                return;
@@ -359,7 +353,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                     headers: {
                          'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(imageURL.target.src)
+                    body: JSON.stringify(imageURL.target.currentSrc)
                });
 
                if (!response.ok) {
@@ -374,15 +368,22 @@ export const ProjectSummaryTable = ({ items }: any) => {
                          }
                     })
                } else {
+                    setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
+                         if (prevProject) {
+                              const newGallery: string[] = prevProject.gallery.filter((image: string) => image !== url); // Remove the specified imageURL from the array
+                              return {
+                                   ...prevProject,
+                                   gallery: newGallery,
+                              };
+                         }
+                         return prevProject;
+                    })
                     Swal.fire({
                          title: 'OK',
                          text: "Uspešno brisanje slike! Potrebno je sad da se uradi izmena projekta!",
                          icon: 'success',
                          confirmButtonColor: '#3085d6',
                          confirmButtonText: 'OK',
-                         didClose() {
-                              handleProjectClose()
-                         },
                     })
 
                }
@@ -461,7 +462,8 @@ export const ProjectSummaryTable = ({ items }: any) => {
           }
      };
 
-     const onImageClick = async (imageURL: string) => {
+     const onImageClick = (imageURL: any) => {
+
           Swal.fire({
                title: 'Da li ste sigurni da želite da obrišete sliku?',
                text: "Možete obrisati samo sliku koju ste uploadovali!",
