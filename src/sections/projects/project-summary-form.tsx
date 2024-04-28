@@ -37,7 +37,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                     Swal.fire({
                          icon: 'success',
                          title: 'Jeeej',
-                         text: 'Artikl ubačen uspešno',
+                         text: 'Projekat ubačen uspešno',
                     })
                     router.refresh()
                } else {

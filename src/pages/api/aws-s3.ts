@@ -27,8 +27,11 @@ export const extractInfoFromUrl = (url: string) => {
 }
 
 export default async (req: any, res: any) => {
+
+     const day = moment().format('DD')
      const month = (moment().month() + 1).toString().padStart(2, '0');
      const year = moment().year().toString();
+
 
      if (req.method === 'POST') {
 
@@ -43,7 +46,7 @@ export default async (req: any, res: any) => {
                const decodedFile = Buffer.from(file.replace(/^data:image\/\w+;base64,/, ""), 'base64');
 
                // Adjust key to desired structure
-               const key = `${year}/${month}/${title}/${fileName.split('.')[0]}.${extension}`;
+               const key = `${year}/${month}/${day}/${title}/${fileName.split('.')[0]}.${extension}`;
 
                const params: aws.S3.PutObjectRequest = {
                     Bucket: process.env.AWS_S3_BUCKET_NAME!,
