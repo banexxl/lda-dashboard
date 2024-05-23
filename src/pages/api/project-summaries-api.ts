@@ -5,7 +5,7 @@ import moment from 'moment';
 
 export default async function handler(request: NextApiRequest, response: NextApiResponse) {
 
-     const mongoClient = await MongoClient.connect(process.env.MONGODB_URI_DEV!)
+     const mongoClient = await MongoClient.connect(process.env.MONGODB_URI!)
      const dbProjectSummaries = mongoClient.db('LDA_DB').collection('ProjectSummaries')
 
      try {
@@ -42,12 +42,9 @@ export default async function handler(request: NextApiRequest, response: NextApi
                console.log(request.body);
 
                try {
-                    const newUrl = request.body.imageID.substring(request.body.imageID.lastIndexOf("/") + 1);
-                    const utapi = new UTApi()
-                    await utapi.deleteFiles(newUrl);
-
-                    await dbProjectSummaries.deleteOne({ _id: new ObjectId(request.body.currentProductID) })
-                    return response.status(200).json({ message: 'Product successfully deleted!' });
+                    const deleteResponse = await dbProjectSummaries.deleteOne({ _id: ObjectId.createFromHexString(request.body) })
+                    console.log(deleteResponse);
+                    return deleteResponse.deletedCount > 0 ? response.status(200).json({ message: 'Projekat uspesno obrisan' }) : response.status(400).json({ message: 'Projekat nije obrisan' });
                } catch (error) {
                     alert(error);
                }

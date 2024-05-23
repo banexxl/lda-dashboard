@@ -405,7 +405,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                              color="primary"
                                              disabled={Object.keys(formik.errors).length != 0 && loading}
                                         >
-                                             Dodaj proizvod
+                                             Dodaj projekat
                                         </Button>
                                    </Box>
                               </Form>

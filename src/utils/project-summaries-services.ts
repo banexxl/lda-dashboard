@@ -4,7 +4,7 @@ import { ObjectId } from "mongodb"
 export const ProjectSummariesServices = () => {
 
      const getAllProjectSummaries = async () => {
-          const client = new MongoClient(process.env.MONGODB_URI_DEV!);
+          const client = new MongoClient(process.env.MONGODB_URI!);
 
           try {
                await client.connect();
@@ -19,7 +19,7 @@ export const ProjectSummariesServices = () => {
 
      const getProjectsByPage = async (page: any, limit: any) => {
 
-          const client = new MongoClient(process.env.MONGODB_URI_DEV!);
+          const client = new MongoClient(process.env.MONGODB_URI!);
           await client.connect();
           const database = client.db('LDA_DB');
           const parsedLimit = parseInt(limit, 10); // Parse limit as an integer
@@ -45,7 +45,7 @@ export const ProjectSummariesServices = () => {
 
      const getProjectSummariesCount = async () => {
 
-          const client = new MongoClient(process.env.MONGODB_URI_DEV!);
+          const client = new MongoClient(process.env.MONGODB_URI!);
           await client.connect();
           const database = client.db('LDA_DB');
 

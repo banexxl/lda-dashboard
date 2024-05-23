@@ -81,13 +81,6 @@ export const ProjectSummaryTable = ({ items }: any) => {
           setCurrentProjectID(null);
      }
 
-     const handleFileRemove = () => {
-          setCurrentProjectObject((previousObject: any) => ({
-               ...previousObject,
-               imageURL: ""
-          }))
-     }
-
      const handleProjectUpdateClick = () => {
           console.log(currentProjectObject);
 
@@ -151,45 +144,43 @@ export const ProjectSummaryTable = ({ items }: any) => {
 
      const handleDeleteButtonClick = () => {
           Swal.fire({
-               title: 'Are you sure?',
-               text: "You won't be able to revert this!",
+               title: 'Da li ste sigurni?',
+               text: "Ako želite da obrišete i slike iz baze, prvo ih obrišite iz projekta!",
                icon: 'warning',
                showCancelButton: true,
                confirmButtonColor: '#3085d6',
                cancelButtonColor: '#d33',
-               confirmButtonText: 'Yes, delete it!'
+               confirmButtonText: 'Da, obriši projekat, a ostavi slike u bazi!',
+               cancelButtonText: 'Ne!'
           }).then((result) => {
                if (result.isConfirmed) {
-                    handleDeleteProject(currentProjectID)
+                    handleDeleteProject()
                }
           })
      }
 
-     const handleDeleteProject = async (currentProjectID: any) => {
-
-          const currentProjectObject = getObjectById(currentProjectID, items)
+     const handleDeleteProject = async () => {
 
           try {
-
-               const response = await fetch('/api/project-api', {
+               const response = await fetch('/api/project-summaries-api', {
                     method: 'DELETE',
                     headers: {
                          'Content-Type': 'application/json',
                          'Access-Control-Allow-Origin': 'https://dar-pharmacy-dashboard.vercel.app/api/project-api, http://localhost:3000/api/project-api',
                          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS' // Set the content type to JSON
                     },
-                    body: JSON.stringify({ currentProjectID: currentProjectID, imageID: currentProjectObject.imageURL }), // Convert your data to JSON
+                    body: JSON.stringify(currentProjectID), // Convert your data to JSON
                })
 
                if (response.ok) {
                     Swal.fire({
                          icon: 'success',
                          title: 'Sve OK!',
-                         text: 'Artikl obrisan!',
+                         text: 'Projekat obrisan!',
                     })
                     router.refresh()
                } else {
-                    const errorData = await response.json(); // Parse the error response
+                    console.log(await response.json())
                }
 
           } catch (err) {
@@ -679,20 +670,52 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      md={6}
                                                                                      xs={12}
                                                                                 >
-                                                                                     <TextField
-                                                                                          defaultValue={project.projectSummaryCoverURL}
-                                                                                          fullWidth
-                                                                                          label="Glavna slika projekta"
-                                                                                          name="name"
-                                                                                          disabled={loading}
-                                                                                          onBlur={(e: any) =>
-                                                                                               setCurrentProjectObject((previousObject: any) => ({
-                                                                                                    ...previousObject,
-                                                                                                    projectSummaryCoverURL: e.target.value
-
-                                                                                               }))
+                                                                                     <Typography sx={{ margin: '10px' }}>Glavna slika projekta:</Typography>
+                                                                                     <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', marginBottom: '30px' }}>
+                                                                                          {/* -------------------------slike------------------------------------------ */}
+                                                                                          {
+                                                                                               currentProjectObject?.gallery && currentProjectObject.gallery.length > 0 && (
+                                                                                                    <ImageList sx={{ width: 500, height: 450 }} cols={3} rowHeight={164}>
+                                                                                                         {currentProjectObject.gallery.map((item: any) => (
+                                                                                                              <ImageListItem key={Math.floor(Math.random() * 1000000)}>
+                                                                                                                   <img
+                                                                                                                        // srcSet={`${item.img}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
+                                                                                                                        src={`${item}?w=164&h=164&fit=crop&auto=format`}
+                                                                                                                        alt={'image'}
+                                                                                                                        loading="lazy"
+                                                                                                                        onClick={(e: any) => onImageClick(e)}
+                                                                                                                   />
+                                                                                                              </ImageListItem>
+                                                                                                         ))}
+                                                                                                    </ImageList>
+                                                                                               )
                                                                                           }
-                                                                                     />
+
+                                                                                          <Button component="label"
+                                                                                               variant="contained"
+                                                                                               startIcon={<CloudUploadIcon />}
+                                                                                               sx={{ maxWidth: '150px' }}
+                                                                                          >
+                                                                                               Ucitaj sliku
+                                                                                               <Input
+                                                                                                    type="file"
+                                                                                                    inputProps={{ accept: 'image/*' }}
+                                                                                                    sx={{
+                                                                                                         clip: 'rect(0 0 0 0)',
+                                                                                                         clipPath: 'inset(50%)',
+                                                                                                         height: 1,
+                                                                                                         overflow: 'hidden',
+                                                                                                         position: 'absolute',
+                                                                                                         bottom: 0,
+                                                                                                         left: 0,
+                                                                                                         whiteSpace: 'nowrap',
+                                                                                                         width: 1,
+                                                                                                    }}
+                                                                                                    onChange={async (e: any) => await handleFileChange(e)}
+                                                                                               />
+                                                                                          </Button>
+
+                                                                                     </Box>
                                                                                 </Grid>
                                                                                 <Grid
                                                                                      item
