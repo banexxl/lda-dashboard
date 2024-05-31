@@ -1,4 +1,5 @@
 import * as yup from 'yup';
+import { ProjectStatus } from '../project-activities/project-activity-type';
 
 export const ProjectSummarySchema = yup.object().shape({
      projectSummaryURL: yup.string().required(),
@@ -23,15 +24,12 @@ export const ProjectSummarySchema = yup.object().shape({
 
 export default ProjectSummarySchema;
 
-
-export type Status = 'completed' | 'in-progress' | 'todo';
-
 export interface ProjectSummary {
      _id?: string;
      title: string;
      projectSummaryURL: string;
      projectSummaryCoverURL: string;
-     status: Status;
+     status: ProjectStatus;
      locale: string;
      organizers: string[];
      locations: string[];
@@ -53,7 +51,7 @@ export interface ProjectSummary {
 export const initialProjectSummary: ProjectSummary = {
      projectSummaryURL: "",
      projectSummaryCoverURL: "",
-     status: 'in-progress',
+     status: { key: 'to-do', value: 'To Do' },
      gallery: [],
      projectEndDateTime: "",
      projectStartDateTime: "",

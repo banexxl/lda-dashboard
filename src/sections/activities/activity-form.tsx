@@ -7,12 +7,12 @@ import Swal from 'sweetalert2'
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import "@uploadthing/react/styles.css";
-import ProjectSummarySchema, { initialProjectSummary } from './project-summary-type';
+import { ActivitySchema, initialActivity } from './activity-type';
 import { DateField } from '@mui/x-date-pickers/DateField';
 import { stringWithHyphens } from '@/utils/url-creator';
 import moment from 'moment';
 
-export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
+export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
 
      const router = useRouter();
      const [loading, setLoading] = useState<any>(false)
@@ -20,7 +20,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
      const handleSubmit = async (values: any) => {
 
           try {
-               const responseValues: any = await fetch('/api/project-summaries-api', {
+               const responseValues: any = await fetch('/api/activities-api', {
                     method: 'POST',
                     headers: {
                          'Content-Type': 'application/json',
@@ -37,7 +37,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                     Swal.fire({
                          icon: 'success',
                          title: 'Jeeej',
-                         text: 'Projekat ubačen uspešno',
+                         text: 'Aktivnost ubačena uspešno',
                     })
                     router.refresh()
                } else {
@@ -66,30 +66,29 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
           <Box >
                <Formik
 
-                    initialValues={initialProjectSummary}
+                    initialValues={initialActivity}
                     onSubmit={(values) => {
                          handleSubmit(values)
                     }}
-                    validationSchema={ProjectSummarySchema}>
+                    validationSchema={ActivitySchema}>
                     {
                          (formik) => (
                               <Form style={{ display: 'flex', flexDirection: 'column', gap: '15px', opacity: loading ? .5 : 1 }}>
 
 
-                                   {/*<Typography>
+                                   <Typography>
                                         {`${JSON.stringify(formik.errors)}`}
-                         </Typography>*/}
+                                   </Typography>
 
 
                                    <TextField
                                         InputLabelProps={{ shrink: true }}
-                                        label="Naslov projekta"
+                                        label="Naslov projektne aktivnosti"
                                         name="title"
-                                        // value={formik.values.title}
                                         disabled={loading}
                                         onBlur={(e: any) => {
                                              formik.setFieldValue('title', e.target.value)
-                                             formik.setFieldValue('projectSummaryURL', stringWithHyphens(e.target.value))
+                                             formik.setFieldValue('activityURL', stringWithHyphens(e.target.value))
                                         }}
                                         error={formik.touched.title && !!formik.errors.title}
                                         helperText={formik.touched.title && formik.errors.title}
@@ -99,31 +98,26 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                         InputLabelProps={{ shrink: true }}
                                         disabled
                                         label="URL projekta"
-                                        name="projectSummaryURL"
+                                        name="activityURL"
                                         multiline
                                         rows={4}
-                                        value={formik.values.projectSummaryURL}
+                                        value={formik.values.activityURL}
                                    />
 
                                    <DateField
                                         InputLabelProps={{ shrink: true }}
-                                        label="Pocetak projekta"
-                                        name="projectSummaryStartDateTime"
-                                        onBlur={(e) => formik.setFieldValue('projectStartDateTime', e.target.value)}
+                                        label="Objavljeno"
+                                        name="publishedDate"
+                                        disabled={loading}
+                                        onBlur={(e) => formik.setFieldValue('publishedDate', e.target.value)}
                                    />
 
-                                   <DateField
-                                        InputLabelProps={{ shrink: true }}
-                                        label="Kraj projekta"
-                                        name="projectSummaryEndDateTime"
-                                        onBlur={(e) => formik.setFieldValue('projectEndDateTime', e.target.value)}
-                                   />
-
-                                   <FormControl fullWidth>
+                                   <FormControl fullWidth disabled={loading}>
                                         <InputLabel id="demo-simple-select-label">Status</InputLabel>
                                         <Select
                                              name='status'
                                              id="demo-simple-select"
+                                             disabled={loading}
                                              value={formik.values.status}
                                              onChange={formik.handleChange}
                                              error={formik.touched.status && !!formik.errors.status}
@@ -133,7 +127,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                              <MenuItem value={''}>Ponisti</MenuItem>
                                              <MenuItem value={'in-progress'}>U toku</MenuItem>
                                              <MenuItem value={'completed'}>Zavrsen</MenuItem>
-                                             <MenuItem value={'todo'}>U planu</MenuItem>
+                                             <MenuItem value={'to-do'}>U planu</MenuItem>
                                         </Select>
                                    </FormControl>
 
@@ -144,6 +138,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                              id="demo-simple-select"
                                              value={formik.values.locale}
                                              label="Jezik"
+                                             disabled={loading}
                                              name='locale'
                                              onChange={formik.handleChange}
                                              error={formik.touched.locale && !!formik.errors.locale}
@@ -156,81 +151,20 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                    <TextField
                                         InputLabelProps={{ shrink: true }}
                                         fullWidth
-                                        label="Organizatori"
-                                        name="organizers"
+                                        disabled={loading}
+                                        label="Autor"
+                                        name="author"
                                         onBlur={(e) => {
-                                             const { value } = e.target;
-                                             const organizersArray = value.split(',').map((organizer) => organizer.trim());
-                                             formik.setFieldValue('organizers', organizersArray);
-                                             formik.handleBlur(e);
+                                             formik.setFieldValue('author', e.target.value)
                                         }}
-                                        error={formik.touched.organizers && !!formik.errors.organizers}
-                                        helperText={formik.touched.organizers && formik.errors.organizers}
+                                        error={formik.touched.author && !!formik.errors.author}
+                                        helperText={formik.touched.author && formik.errors.author}
                                    />
 
                                    <TextField
                                         InputLabelProps={{ shrink: true }}
                                         fullWidth
-                                        label="Lokacije"
-                                        name="locations"
-                                        onBlur={(e) => {
-                                             const { value } = e.target;
-                                             const locations = value.split(',').map((locations) => locations.trim());
-                                             formik.setFieldValue('locations', locations);
-                                             formik.handleBlur(e);
-                                        }}
-                                        error={formik.touched.locations && !!formik.errors.locations}
-                                        helperText={formik.touched.locations && formik.errors.locations}
-                                   />
-
-                                   <TextField
-                                        InputLabelProps={{ shrink: true }}
-                                        fullWidth
-                                        label="Aplikanti"
-                                        name="applicants"
-                                        onBlur={(e) => {
-                                             const { value } = e.target;
-                                             const applicants = value.split(',').map((applicant) => applicant.trim());
-                                             formik.setFieldValue('applicants', applicants);
-                                             formik.handleBlur(e);
-                                        }}
-                                        error={formik.touched.applicants && !!formik.errors.applicants}
-                                        helperText={formik.touched.applicants && formik.errors.applicants}
-                                   />
-
-                                   <TextField
-                                        InputLabelProps={{ shrink: true }}
-                                        fullWidth
-                                        label="Donatori"
-                                        name="donators"
-                                        onBlur={(e) => {
-                                             const { value } = e.target;
-                                             const donators = value.split(',').map((donator) => donator.trim());
-                                             formik.setFieldValue('donators', donators);
-                                             formik.handleBlur(e);
-                                        }}
-                                        error={formik.touched.donators && !!formik.errors.donators}
-                                        helperText={formik.touched.donators && formik.errors.donators}
-                                   />
-
-                                   <TextField
-                                        InputLabelProps={{ shrink: true }}
-                                        fullWidth
-                                        label="Publikacije"
-                                        name="publications"
-                                        onBlur={(e) => {
-                                             const { value } = e.target;
-                                             const publications = value.split(',').map((publication) => publication.trim());
-                                             formik.setFieldValue('publications', publications);
-                                             formik.handleBlur(e);
-                                        }}
-                                        error={formik.touched.publications && !!formik.errors.publications}
-                                        helperText={formik.touched.publications && formik.errors.publications}
-                                   />
-
-                                   <TextField
-                                        InputLabelProps={{ shrink: true }}
-                                        fullWidth
+                                        disabled={loading}
                                         label="Linkovi"
                                         name="links"
                                         onBlur={(e) => {
@@ -243,24 +177,111 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                         helperText={formik.touched.links && formik.errors.links}
                                    />
 
+                                   <TextField
+                                        InputLabelProps={{ shrink: true }}
+                                        fullWidth
+                                        disabled={loading}
+                                        label="Naslov liste"
+                                        name="listTitle"
+                                        onBlur={(e) => {
+                                             formik.setFieldValue('listTitle', e.target.value)
+                                        }}
+                                        error={formik.touched.listTitle && !!formik.errors.listTitle}
+                                        helperText={formik.touched.listTitle && formik.errors.listTitle}
+                                   />
+
+                                   <TextField
+                                        InputLabelProps={{ shrink: true }}
+                                        fullWidth
+                                        disabled={loading}
+                                        label="Naslov liste"
+                                        name="listTitle"
+                                        onBlur={(e) => {
+                                             formik.setFieldValue('listTitle', e.target.value)
+                                        }}
+                                        error={formik.touched.listTitle && !!formik.errors.listTitle}
+                                        helperText={formik.touched.listTitle && formik.errors.listTitle}
+                                   />
+
+                                   <Grid
+                                        item
+                                        md={6}
+                                        xs={12}
+                                   >
+                                        <Typography sx={{ margin: '10px' }}>Lista:</Typography>
+                                        <FieldArray
+                                             name={'list'}
+                                             render={arrayHelpers => (
+                                                  formik.values?.list.length > 0 ?
+                                                       formik.values?.list.map((list: any, index: any) => (
+                                                            <Box sx={{ display: 'flex', width: '80%' }}>
+                                                                 <Field
+                                                                      InputLabelProps={{ shrink: true }}
+                                                                      defaultValue={list}
+                                                                      fullWidth
+                                                                      name={`list.${index}`}
+                                                                      label={`Opis ${index + 1}`}
+                                                                      disabled={loading}
+                                                                 />
+                                                                 <IconButton onClick={() => arrayHelpers.insert(index + 1, '')}>
+                                                                      <AddBoxIcon />
+                                                                 </IconButton>
+                                                                 <IconButton onClick={() => arrayHelpers.remove(index)}>
+                                                                      <DeleteIcon />
+                                                                 </IconButton>
+                                                            </Box>
+                                                       ))
+                                                       :
+                                                       <IconButton onClick={() => arrayHelpers.push('')}>
+                                                            <AddBoxIcon />
+                                                       </IconButton>
+                                             )}
+                                        />
+                                   </Grid>
+
+                                   <FormControl fullWidth disabled={loading}>
+                                        <InputLabel id="activityCategory">Kategorija aktivnosti</InputLabel>
+                                        <Select
+                                             name='category'
+                                             id="category"
+                                             disabled={loading}
+                                             value={formik.values.category}
+                                             onChange={formik.handleChange}
+                                             error={formik.touched.category && !!formik.errors.category}
+                                             variant='outlined'
+                                             sx={{ borderColor: 'white' }}
+                                        >
+                                             <MenuItem value={''}>Poništi</MenuItem>
+                                             <MenuItem value={'economy'}>Ekonomija</MenuItem>
+                                             <MenuItem value={'democracy'}>Demokratija</MenuItem>
+                                             <MenuItem value={'eu-integrations'}>EU integracije</MenuItem>
+                                             <MenuItem value={'culture'}>Kultura</MenuItem>
+                                             <MenuItem value={'intercultural-dialogue'}>Interkulturalni dijalog</MenuItem>
+                                             <MenuItem value={'migrations'}>Migracije</MenuItem>
+                                             <MenuItem value={'youth'}>Mladi</MenuItem>
+                                             <MenuItem value={'other'}>Ostalo</MenuItem>
+                                        </Select>
+                                   </FormControl>
+
                                    <Divider />
+
                                    <Grid
                                         item
                                         md={6}
                                         xs={12}
                                    >
-                                        <Typography sx={{ margin: '10px' }}>Podnaslovi:</Typography>
+                                        <Typography sx={{ margin: '10px' }}>Pasusi:</Typography>
                                         <FieldArray
-                                             name={'projectSummarySubtitles'}
+                                             name={'descriptions'}
                                              render={arrayHelpers => (
-                                                  formik.values?.projectSummarySubtitles.length > 0 ?
-                                                       formik.values?.projectSummarySubtitles.map((description: any, index: any) => (
+                                                  formik.values?.descriptions.length > 0 ?
+                                                       formik.values?.descriptions.map((description: any, index: any) => (
                                                             <Box sx={{ display: 'flex', width: '80%' }}>
                                                                  <Field
                                                                       InputLabelProps={{ shrink: true }}
                                                                       defaultValue={description}
                                                                       fullWidth
-                                                                      name={`projectSummarySubtitles.${index}`}
+                                                                      name={`description.${index}`}
                                                                       label={`Opis ${index + 1}`}
                                                                       disabled={loading}
                                                                  />
@@ -285,18 +306,18 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                         md={6}
                                         xs={12}
                                    >
-                                        <Typography sx={{ margin: '10px' }}>Opisi:</Typography>
+                                        <Typography sx={{ margin: '10px' }}>Linkovi:</Typography>
                                         <FieldArray
-                                             name={'projectSummaryDescriptions'}
+                                             name={'links'}
                                              render={arrayHelpers => (
-                                                  formik.values?.projectSummaryDescriptions.length > 0 ?
-                                                       formik.values?.projectSummaryDescriptions.map((description: any, index: any) => (
+                                                  formik.values?.links.length > 0 ?
+                                                       formik.values?.links.map((link: any, index: any) => (
                                                             <Box sx={{ display: 'flex', width: '80%' }}>
                                                                  <Field
                                                                       InputLabelProps={{ shrink: true }}
-                                                                      defaultValue={description}
+                                                                      defaultValue={link}
                                                                       fullWidth
-                                                                      name={`projectSummaryDescriptions.${index}`}
+                                                                      name={`link.${index}`}
                                                                       label={`Opis ${index + 1}`}
                                                                       disabled={loading}
                                                                  />
@@ -310,80 +331,6 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                                        ))
                                                        :
                                                        <IconButton onClick={() => arrayHelpers.push('')}>
-                                                            <AddBoxIcon />
-                                                       </IconButton>
-                                             )}
-                                        />
-                                   </Grid>
-
-                                   <Grid
-                                        item
-                                        md={6}
-                                        xs={12}
-                                   >
-                                        <Typography sx={{ margin: '10px' }}>URL-ovi podnaslova:</Typography>
-                                        <FieldArray
-                                             name={'projectSummarySubtitleURLs'}
-                                             render={arrayHelpers => (
-                                                  formik.values?.projectSummarySubtitleURLs.length > 0 ?
-                                                       formik.values?.projectSummarySubtitleURLs.map((description: any, index: any) => (
-                                                            <Box sx={{ display: 'flex', width: '80%' }}>
-                                                                 <Field
-                                                                      InputLabelProps={{ shrink: true }}
-                                                                      defaultValue={description}
-                                                                      fullWidth
-                                                                      name={`projectSummarySubtitleURLs.${index}`}
-                                                                      label={`Opis ${index + 1}`}
-                                                                      disabled={loading}
-                                                                 />
-                                                                 <IconButton onClick={() => arrayHelpers.insert(index + 1, '')}>
-                                                                      <AddBoxIcon />
-                                                                 </IconButton>
-                                                                 <IconButton onClick={() => arrayHelpers.remove(index)}>
-                                                                      <DeleteIcon />
-                                                                 </IconButton>
-                                                            </Box>
-                                                       ))
-                                                       :
-                                                       <IconButton onClick={() => arrayHelpers.push('')}>
-                                                            <AddBoxIcon />
-                                                       </IconButton>
-                                             )}
-                                        />
-                                   </Grid>
-
-                                   <Grid
-                                        item
-                                        md={6}
-                                        xs={12}
-                                   >
-                                        <Typography sx={{ margin: '10px' }}>Vremena odrzavanja projektnih aktivnosti (obavezno):</Typography>
-                                        <FieldArray
-                                             name={'projectSummaryDateTime'}
-                                             render={arrayHelpers => (
-                                                  formik.values?.projectSummaryDateTime.length > 0 ?
-                                                       formik.values?.projectSummaryDateTime.map((date: any, index: any) => (
-                                                            <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
-                                                                 <DateField
-                                                                      format='dd/MM/yyyy'
-                                                                      InputLabelProps={{ shrink: true }}
-                                                                      defaultValue={new Date(date)} // Convert string to Date object
-                                                                      fullWidth
-                                                                      onBlur={(e: any) => formik.setFieldValue(`projectSummaryDateTime.${index}`, e.target.value)}
-                                                                      name={`projectSummaryDateTime.${index}`}
-                                                                      label={`Opis ${index + 1}`}
-                                                                      disabled={loading}
-                                                                 />
-                                                                 <IconButton onClick={() => arrayHelpers.insert(index + 1, '')}>
-                                                                      <AddBoxIcon />
-                                                                 </IconButton>
-                                                                 <IconButton onClick={() => arrayHelpers.remove(index)}>
-                                                                      <DeleteIcon />
-                                                                 </IconButton>
-                                                            </Box>
-                                                       ))
-                                                       :
-                                                       <IconButton onClick={() => arrayHelpers.push(moment().format('dd/MM/yyyy'))}>
                                                             <AddBoxIcon />
                                                        </IconButton>
                                              )}

@@ -8,11 +8,12 @@ import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
 import { Box, Button, Container, Stack, SvgIcon, Typography } from '@mui/material';
 import { useSelection } from 'src/hooks/use-selection';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
-import { ProjectSummaryTable } from '@/sections/project-summaries/project-summary-table';
-import { ProjectsSearch } from '@/sections/project-summaries/project-search';
+import { ProjectActivityTable } from '@/sections/project-activities/project-activity-table';
+import { ProjectsActivitySearch } from '@/sections/project-activities/project-activity-search';
 import { applyPagination } from 'src/utils/apply-pagination';
+import { projectActivitiesServices } from '../utils/project-activity-services'
 import { projectSummaryServices } from '../utils/project-summary-services'
-import { AddProjectSummaryForm } from '../sections/project-summaries/project-summary-form'
+import { AddProjectActivityForm } from '../sections/project-activities/project-activity-form'
 import { useRouter } from 'next/navigation';
 import { TablePagination } from '@mui/material'
 
@@ -40,12 +41,12 @@ const Page = (props: any) => {
      }
 
      const handleRowsPerPageChange = (event: any) => {
-          router.push(`project-summaries/?page=${props.page}&limit=${event.target.value || 5}`);
+          router.push(`project-activities/?page=${props.page}&limit=${event.target.value || 5}`);
           return (event.target.value)
      }
 
      const handlePageChange = (event: any, newPage: any) => {
-          router.push(`/project-summaries?page=${newPage}&limit=${props.limit || 5}`);
+          router.push(`/project-activities?page=${newPage}&limit=${props.limit || 5}`);
      }
 
      const handleRebuild = async () => {
@@ -85,7 +86,7 @@ const Page = (props: any) => {
           <Box>
                <Head>
                     <title>
-                         Projekti
+                         Projektne aktivnosti
                     </title>
                </Head>
                <Box
@@ -104,7 +105,7 @@ const Page = (props: any) => {
                               >
                                    <Stack spacing={1}>
                                         <Typography variant="h4">
-                                             Projekti
+                                             Projektne aktivnosti
                                         </Typography>
                                    </Stack>
 
@@ -122,7 +123,7 @@ const Page = (props: any) => {
                                              }}
                                         >
                                              <Typography>
-                                                  Dodaj projekat
+                                                  Dodaj projektnu aktivnost
                                              </Typography>
                                         </Button>
                                         <Button
@@ -142,24 +143,24 @@ const Page = (props: any) => {
                                                   </Typography>
                                                   :
                                                   <Typography>
-                                                       Pošalji projekat na sajt
+                                                       Pošalji projektnu aktivnost na sajt
                                                   </Typography>
                                              }
                                         </Button>
                                    </Box>
                               </Stack>
-                              <ProjectsSearch />
-                              <ProjectSummaryTable
-                                   count={props.projects.length || 0}
-                                   items={props.projects}
+                              <ProjectsActivitySearch />
+                              <ProjectActivityTable
+                                   projectActivitiesCount={props.projectActivities.length || 0}
+                                   items={props.projectActivities}
                                    page={props.page}
                                    rowsPerPage={props.limit}
                                    selected={ProjectsSelection.selected}
-                                   ProjectsCount={props.projectSummariesCount}
+                                   projectSummaries={props.projectSummaries}
                               />
                               <TablePagination
                                    component="div"
-                                   count={props.projectSummariesCount}
+                                   count={props.projectActivitiesCount}
                                    onPageChange={handlePageChange}
                                    onRowsPerPageChange={handleRowsPerPageChange}
                                    page={props.page}
@@ -180,9 +181,10 @@ const Page = (props: any) => {
                          }
                     }}
                >
-                    <DialogTitle>Dodaj projekat</DialogTitle>
+                    <DialogTitle>Dodaj projektnu aktivnost</DialogTitle>
                     <DialogContent dividers >
-                         <AddProjectSummaryForm
+                         <AddProjectActivityForm
+                              projectSummaries={props.projectSummaries}
                               onSubmitSuccess={handleSubmitSuccess}
                               onSubmitFail={handleSubmitFail} />
                     </DialogContent>
@@ -198,15 +200,17 @@ export async function getServerSideProps(context: any) {
           const page = context.query.page || 1
           const limit = context.query.limit || 5
 
-          const projects = await projectSummaryServices().getProjectsByPage(page, limit);
-          const projectSummariesCount = await projectSummaryServices().getProjectSummariesCount();
+          const projectActivities = await projectActivitiesServices().getProjectActivitiesByPage(page, limit);
+          const projectActivitiesCount = await projectActivitiesServices().getProjectActivitiesCount();
+          const projectSummaries = await projectSummaryServices().getAllProjectSummaries();
 
           return {
                props: {
-                    projects: JSON.parse(JSON.stringify(projects)),
-                    projectSummariesCount: JSON.parse(JSON.stringify(projectSummariesCount)),
+                    projectActivities: JSON.parse(JSON.stringify(projectActivities)),
+                    projectActivitiesCount: JSON.parse(JSON.stringify(projectActivitiesCount)),
                     page: parseInt(context.query.page),
-                    limit: parseInt(context.query.limit)
+                    limit: parseInt(context.query.limit),
+                    projectSummaries: JSON.parse(JSON.stringify(projectSummaries)),
                },
           };
      } catch (error) {
@@ -214,7 +218,7 @@ export async function getServerSideProps(context: any) {
           return {
                props: {
                     projects: [],
-                    projectSummariesCount: 0,
+                    projectActivitiesCount: 0,
                     page: 1,
                     limit: 5,
                     error: "Failed to fetch projects. Please try again later.",

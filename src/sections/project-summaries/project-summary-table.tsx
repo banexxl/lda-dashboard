@@ -495,7 +495,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                              items.map((project: ProjectSummary) => {
                                                   //const isSelected = selected.includes(project._id);
                                                   const isCurrent = project._id === currentProjectID;
-                                                  const statusColor = project.status === 'in-progress' ? 'success' : 'info';
+                                                  const statusColor = project.status.key === 'in-progress' ? 'success' : 'info';
 
                                                   return (
                                                        <Fragment key={Math.floor(Math.random() * 1000000)}>

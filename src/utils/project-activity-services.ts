@@ -1,15 +1,17 @@
+import { log } from "console";
 import { MongoClient } from "mongodb"
 import { ObjectId } from "mongodb"
 
-export const ProjectSummariesServices = () => {
+export const projectActivitiesServices = () => {
 
-     const getAllProjectSummaries = async () => {
+     const getAllProjectActivities = async () => {
           const client = new MongoClient(process.env.MONGODB_URI!);
 
           try {
                await client.connect();
                const database = client.db('LDA_DB');
-               const collection = database.collection('ProjectSummaries').find({}).toArray();
+               const collection = database.collection('Projects').find({}).toArray();
+
                return collection;
           } catch (error: any) {
                console.error('Error while fetching count:', error);
@@ -17,7 +19,7 @@ export const ProjectSummariesServices = () => {
           }
      }
 
-     const getProjectsByPage = async (page: any, limit: any) => {
+     const getProjectActivitiesByPage = async (page: any, limit: any) => {
 
           const client = new MongoClient(process.env.MONGODB_URI!);
           await client.connect();
@@ -31,30 +33,29 @@ export const ProjectSummariesServices = () => {
 
           try {
                const skip = page * parsedLimit;
-               const data = await database.collection('ProjectSummaries')
+               const data = await database.collection('Projects')
                     .find({})
                     .skip(skip)
                     .limit(parsedLimit)
                     .toArray();
-
+               console.log('collection:', data);
                return data;
           } catch (error: any) {
                return { message: error.message };
           }
      };
 
-     const getProjectSummariesCount = async () => {
+     const getProjectActivitiesCount = async () => {
 
           const client = new MongoClient(process.env.MONGODB_URI!);
           await client.connect();
           const database = client.db('LDA_DB');
 
           try {
-               const collection = database.collection('ProjectSummaries');
+               const collection = database.collection('Projects');
 
                // Use countDocuments to get the count of all documents in the collection
                const count = await collection.countDocuments();
-
                return count;
           } catch (error: any) {
                console.error('Error while fetching count:', error);
@@ -63,8 +64,8 @@ export const ProjectSummariesServices = () => {
      }
 
      return {
-          getProjectsByPage,
-          getProjectSummariesCount,
-          getAllProjectSummaries
+          getProjectActivitiesByPage,
+          getProjectActivitiesCount,
+          getAllProjectActivities
      }
 }

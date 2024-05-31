@@ -8,26 +8,26 @@ import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
 import { Box, Button, Container, Stack, SvgIcon, Typography } from '@mui/material';
 import { useSelection } from 'src/hooks/use-selection';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
-import { ProjectSummaryTable } from '@/sections/project-summaries/project-summary-table';
-import { ProjectsSearch } from '@/sections/project-summaries/project-search';
+import { ActivityTable } from '@/sections/activities/activity-table';
+import { ActivitySearch } from '@/sections/activities/activity-search'
 import { applyPagination } from 'src/utils/apply-pagination';
-import { projectSummaryServices } from '../utils/project-summary-services'
-import { AddProjectSummaryForm } from '../sections/project-summaries/project-summary-form'
+import { ActivitiesServices } from '../utils/activity-services'
+import { AddActivityForm } from '../sections/activities/activity-form'
 import { useRouter } from 'next/navigation';
 import { TablePagination } from '@mui/material'
 
 
 const Page = (props: any) => {
 
-     const ProjectsIds = useMemo(() => {
-          if (!Array.isArray(props.projects)) {
+     const ActivityIds = useMemo(() => {
+          if (!Array.isArray(props.activities)) {
                return [];
           }
-          return props.projects.map((project: any) => project._id);
-     }, [props.projects]);
+          return props.activities.map((activity: any) => activity._id);
+     }, [props.activities]);
 
      const [open, setOpen] = useState(false)
-     const ProjectsSelection = useSelection(ProjectsIds);
+     const ActivitySelection = useSelection(ActivityIds);
      const router = useRouter();
      const [loading, setLoading] = useState(false)
 
@@ -40,12 +40,12 @@ const Page = (props: any) => {
      }
 
      const handleRowsPerPageChange = (event: any) => {
-          router.push(`project-summaries/?page=${props.page}&limit=${event.target.value || 5}`);
+          router.push(`activities/?page=${props.page}&limit=${event.target.value || 5}`);
           return (event.target.value)
      }
 
      const handlePageChange = (event: any, newPage: any) => {
-          router.push(`/project-summaries?page=${newPage}&limit=${props.limit || 5}`);
+          router.push(`/activities?page=${newPage}&limit=${props.limit || 5}`);
      }
 
      const handleRebuild = async () => {
@@ -85,7 +85,7 @@ const Page = (props: any) => {
           <Box>
                <Head>
                     <title>
-                         Projekti
+                         Aktivnosti
                     </title>
                </Head>
                <Box
@@ -104,7 +104,7 @@ const Page = (props: any) => {
                               >
                                    <Stack spacing={1}>
                                         <Typography variant="h4">
-                                             Projekti
+                                             Aktivnosti
                                         </Typography>
                                    </Stack>
 
@@ -122,7 +122,7 @@ const Page = (props: any) => {
                                              }}
                                         >
                                              <Typography>
-                                                  Dodaj projekat
+                                                  Dodaj aktivnost
                                              </Typography>
                                         </Button>
                                         <Button
@@ -142,24 +142,24 @@ const Page = (props: any) => {
                                                   </Typography>
                                                   :
                                                   <Typography>
-                                                       Pošalji projekat na sajt
+                                                       Pošalji aktivnost na sajt
                                                   </Typography>
                                              }
                                         </Button>
                                    </Box>
                               </Stack>
-                              <ProjectsSearch />
-                              <ProjectSummaryTable
-                                   count={props.projects.length || 0}
-                                   items={props.projects}
+                              <ActivitySearch />
+                              <ActivityTable
+                                   count={props.activities.length || 0}
+                                   items={props.activities}
                                    page={props.page}
                                    rowsPerPage={props.limit}
-                                   selected={ProjectsSelection.selected}
-                                   ProjectsCount={props.projectSummariesCount}
+                                   selected={ActivitySelection.selected}
+                                   activityCount={props.activitiesCount}
                               />
                               <TablePagination
                                    component="div"
-                                   count={props.projectSummariesCount}
+                                   count={props.activitiesCount}
                                    onPageChange={handlePageChange}
                                    onRowsPerPageChange={handleRowsPerPageChange}
                                    page={props.page}
@@ -182,7 +182,7 @@ const Page = (props: any) => {
                >
                     <DialogTitle>Dodaj projekat</DialogTitle>
                     <DialogContent dividers >
-                         <AddProjectSummaryForm
+                         <AddActivityForm
                               onSubmitSuccess={handleSubmitSuccess}
                               onSubmitFail={handleSubmitFail} />
                     </DialogContent>
@@ -198,26 +198,26 @@ export async function getServerSideProps(context: any) {
           const page = context.query.page || 1
           const limit = context.query.limit || 5
 
-          const projects = await projectSummaryServices().getProjectsByPage(page, limit);
-          const projectSummariesCount = await projectSummaryServices().getProjectSummariesCount();
+          const activities = await ActivitiesServices().getActivitiesByPage(page, limit);
+          const activitiesCount = await ActivitiesServices().getActivitiesCount();
 
           return {
                props: {
-                    projects: JSON.parse(JSON.stringify(projects)),
-                    projectSummariesCount: JSON.parse(JSON.stringify(projectSummariesCount)),
+                    activities: JSON.parse(JSON.stringify(activities)),
+                    activitiesCount: JSON.parse(JSON.stringify(activitiesCount)),
                     page: parseInt(context.query.page),
                     limit: parseInt(context.query.limit)
                },
           };
      } catch (error) {
-          console.error("Error fetching projects:", error);
+          console.error("Error fetching activities:", error);
           return {
                props: {
-                    projects: [],
-                    projectSummariesCount: 0,
+                    activities: [],
+                    activitiesCount: 0,
                     page: 1,
                     limit: 5,
-                    error: "Failed to fetch projects. Please try again later.",
+                    error: "Failed to fetch activities. Please try again later.",
                },
           };
      }
