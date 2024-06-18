@@ -12,8 +12,7 @@ import { DateField } from '@mui/x-date-pickers/DateField';
 import { stringWithHyphens } from '@/utils/url-creator';
 import moment from 'moment';
 
-export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectSummaries }: any) => {
-     console.log(projectSummaries);
+export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
 
      const router = useRouter();
      const [loading, setLoading] = useState<any>(false)
@@ -91,7 +90,7 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                         disabled={loading}
                                         onBlur={(e: any) => {
                                              formik.setFieldValue('title', e.target.value)
-                                             formik.setFieldValue('projectActivityURL', stringWithHyphens(e.target.value))
+                                             formik.setFieldValue('projectURL', stringWithHyphens(e.target.value))
                                         }}
                                         error={formik.touched.title && !!formik.errors.title}
                                         helperText={formik.touched.title && formik.errors.title}
@@ -108,37 +107,38 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                    />
 
                                    <FormControl fullWidth>
-                                        <InputLabel id="demo-simple-select-label">Status</InputLabel>
-                                        <Select
-                                             name='status'
+                                        <TextField
                                              id="demo-simple-select"
+                                             label="Status"
+                                             select
                                              value={formik.values.status}
-                                             onChange={formik.handleChange}
+                                             onChange={(e) => {
+                                                  formik.setFieldValue('status', e.target.value)
+                                             }}
                                              error={formik.touched.status && !!formik.errors.status}
-                                             variant='outlined'
-                                             sx={{ borderColor: 'white' }}
                                         >
                                              <MenuItem value={''}>Ponisti</MenuItem>
                                              <MenuItem value={'in-progress'}>U toku</MenuItem>
                                              <MenuItem value={'completed'}>Zavrsen</MenuItem>
                                              <MenuItem value={'to-do'}>U planu</MenuItem>
-                                        </Select>
+                                        </TextField>
                                    </FormControl>
 
                                    <FormControl fullWidth>
-                                        <InputLabel id="demo-simple-select-label">Jezik</InputLabel>
-                                        <Select
-                                             labelId="demo-simple-select-label"
+                                        <TextField
                                              id="demo-simple-select"
                                              value={formik.values.locale}
+                                             select
                                              label="Jezik"
                                              name='locale'
-                                             onChange={formik.handleChange}
+                                             onChange={(e) => {
+                                                  formik.setFieldValue('locale', e.target.value)
+                                             }}
                                              error={formik.touched.locale && !!formik.errors.locale}
                                         >
                                              <MenuItem value={'sr'}>sr</MenuItem>
                                              <MenuItem value={'en'}>en</MenuItem>
-                                        </Select>
+                                        </TextField>
                                    </FormControl>
 
                                    <DateField

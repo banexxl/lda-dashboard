@@ -184,7 +184,6 @@ const Page = (props: any) => {
                     <DialogTitle>Dodaj projektnu aktivnost</DialogTitle>
                     <DialogContent dividers >
                          <AddProjectActivityForm
-                              projectSummaries={props.projectSummaries}
                               onSubmitSuccess={handleSubmitSuccess}
                               onSubmitFail={handleSubmitFail} />
                     </DialogContent>

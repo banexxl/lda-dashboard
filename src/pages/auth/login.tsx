@@ -5,13 +5,11 @@ import { useRouter } from 'next/navigation';
 import { useFormik } from 'formik';
 import * as Yup from 'yup';
 import { Alert, Box, Button, FormHelperText, Link, Stack, Tab, Tabs, TextField, Typography, Card, CardMedia, useMediaQuery, createTheme } from '@mui/material';
-import { useAuth } from 'src/hooks/use-auth';
 import { Layout as AuthLayout } from 'src/layouts/auth/layout';
+import Swal from 'sweetalert2';
 
 const Page = () => {
      const router = useRouter();
-     const auth: any = useAuth();
-     console.log(router)
 
      const [method, setMethod] = useState('email');
      const mdDown = useMediaQuery((theme: any) => theme.breakpoints.down('md'));
@@ -34,8 +32,30 @@ const Page = () => {
           }),
           onSubmit: async (values: any, helpers: any) => {
                try {
-                    await auth.signIn(values.email, values.password);
-                    router.push('/');
+                    const response = await fetch(`/api/auth/login`, {
+                         method: 'POST',
+                         headers: {
+                              'Content-Type': 'application/json'
+                         },
+                         body: JSON.stringify(values)
+                    });
+
+                    if (response.ok) {
+                         Swal.fire({
+                              icon: 'success',
+                              title: 'Success',
+                              text: 'Login successful!',
+                         });
+                         window.sessionStorage.setItem('authenticated', 'true');
+                         localStorage.setItem('email', values.email);
+                         router.push('/');
+                    } else {
+                         Swal.fire({
+                              icon: 'error',
+                              title: 'Oops...',
+                              text: 'Something went wrong! Error: ',
+                         });
+                    }
                } catch (err: any) {
                     helpers.setStatus({ success: false });
                     helpers.setErrors({ submit: err.message });

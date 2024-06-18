@@ -85,10 +85,10 @@ export const AuthProvider = (props: any) => {
 
           if (isAuthenticated) {
                const user = {
-                    id: '5e86809283e28b96d2d38537',
+                    _id: localStorage.getItem('_id'),
                     avatar: '/assets/avatars/avatar-anika-visser.png',
-                    name: 'Maja',
-                    email: 'maja@apoteka-dar.rs'
+                    firstName: localStorage.getItem('firstName'),
+                    email: localStorage.getItem('email')
                };
 
                dispatch({
