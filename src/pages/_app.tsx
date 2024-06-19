@@ -27,33 +27,33 @@ const App = (props: any) => {
      const theme = createTheme();
 
      return (
-          <AutoLogoutProvider timeoutMs={5000}>
-               <CacheProvider value={emotionCache}>
-                    <Head>
-                         <title>
-                              LDA Subotica
-                         </title>
-                         <meta
-                              name="viewport"
-                              content="initial-scale=1, width=device-width"
-                         />
-                    </Head>
-                    <LocalizationProvider dateAdapter={AdapterDateFns}>
-                         <AuthProvider>
-                              <ThemeProvider theme={theme}>
-                                   <CssBaseline />
-                                   <AuthConsumer>
-                                        {
-                                             (auth: any) => auth.isLoading
-                                                  ? <SplashScreen />
-                                                  : getLayout(<Component {...pageProps} />)
-                                        }
-                                   </AuthConsumer>
-                              </ThemeProvider>
-                         </AuthProvider>
-                    </LocalizationProvider>
-               </CacheProvider>
-          </AutoLogoutProvider>
+          // <AutoLogoutProvider timeoutMs={600000}>
+          <CacheProvider value={emotionCache}>
+               <Head>
+                    <title>
+                         LDA Subotica
+                    </title>
+                    <meta
+                         name="viewport"
+                         content="initial-scale=1, width=device-width"
+                    />
+               </Head>
+               <LocalizationProvider dateAdapter={AdapterDateFns}>
+                    <AuthProvider>
+                         <ThemeProvider theme={theme}>
+                              <CssBaseline />
+                              <AuthConsumer>
+                                   {
+                                        (auth: any) => auth.isLoading
+                                             ? <SplashScreen />
+                                             : getLayout(<Component {...pageProps} />)
+                                   }
+                              </AuthConsumer>
+                         </ThemeProvider>
+                    </AuthProvider>
+               </LocalizationProvider>
+          </CacheProvider>
+          // </AutoLogoutProvider>
      );
 };
 

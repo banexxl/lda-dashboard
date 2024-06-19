@@ -48,7 +48,7 @@ const Page = () => {
                               text: 'Login successful!',
                          });
                          window.sessionStorage.setItem('authenticated', 'true');
-                         window.sessionStorage.setItem('sessionExpires', moment().add(3, 'hour').toISOString())
+                         window.sessionStorage.setItem('sessionExpires', moment().add(2, 'hour').add(1, 'minute').toISOString())
                          localStorage.setItem('lastActivity', moment().format('YYYY-MM-DD HH:mm:ss'));
                          localStorage.setItem('email', values.email);
                          router.push('/');

@@ -14,15 +14,17 @@ type WindowActivityEvent = keyof WindowEventMap;
 
 export const AutoLogoutProvider = ({
      timeoutMs,
-     timeoutCheckMs = 1000,
+     timeoutCheckMs = 5000,
      debug = false,
      requireSession = false,
      children
 }: PropsWithChildren<AutoLogoutProviderProps>) => {
      const [lastActivity, setLastActivity] = useState(initLastActivity());
+
      const reload = () => {
           window.location.reload();
      }
+
      function storage() {
           return global.window !== undefined ? window.localStorage : null;
      }
@@ -75,7 +77,7 @@ export const AutoLogoutProvider = ({
                const expiry = moment(sessionStorage.getItem('sessionExpires')).format('YYYY-MM-DD HH:mm:ss');
                console.log('now > expiry', now > expiry);
 
-               if (now > expiry) {
+               if (moment().format('YYYY-MM-DD HH:mm:ss') > expiry) {
                     if (debug) console.error("user has expired", expiry, now);
                     sessionStorage.removeItem('authenticated')
                     reload();
@@ -84,15 +86,14 @@ export const AutoLogoutProvider = ({
           }
 
           console.log('lastActivity', lastActivity);
-          console.log('timeoutMs', timeoutMs);
           console.log('now', now);
 
-          console.log('lastActivity > now', lastActivity + timeoutMs! > now);
+          console.log('lastActivity > now', lastActivity + timeoutMs > now);
 
-          if (lastActivity + timeoutMs! > now) {
+          if (lastActivity > now) {
                if (debug) console.error("user inactive", lastActivity, now);
                sessionStorage.removeItem('authenticated')
-
+               reload();
                return true;
           }
           return false;
