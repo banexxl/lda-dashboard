@@ -210,7 +210,6 @@ export async function getServerSideProps(context: any) {
                },
           };
      } catch (error) {
-          console.error("Error fetching activities:", error);
           return {
                props: {
                     activities: [],

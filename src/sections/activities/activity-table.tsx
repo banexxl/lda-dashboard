@@ -97,8 +97,6 @@ export const ActivityTable = ({ items }: any) => {
      }
 
      const handleActivityUpdateClick = () => {
-          console.log(currentActivityObject);
-
           Swal.fire({
                title: 'Da li ste sigurni?',
                text: "Možete izmeniti pojekat u svakom momentu...",

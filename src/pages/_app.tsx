@@ -9,6 +9,9 @@ import { useNProgress } from 'src/hooks/use-nprogress';
 import { createTheme } from 'src/theme';
 import { createEmotionCache } from 'src/utils/create-emotion-cache';
 import 'simplebar-react/dist/simplebar.min.css';
+import { AutoLogoutProvider } from '@/utils/auto-logout';
+import { useEffect } from 'react';
+import moment from 'moment';
 
 const clientSideEmotionCache = createEmotionCache();
 
@@ -24,31 +27,33 @@ const App = (props: any) => {
      const theme = createTheme();
 
      return (
-          <CacheProvider value={emotionCache}>
-               <Head>
-                    <title>
-                         LDA Subotica
-                    </title>
-                    <meta
-                         name="viewport"
-                         content="initial-scale=1, width=device-width"
-                    />
-               </Head>
-               <LocalizationProvider dateAdapter={AdapterDateFns}>
-                    <AuthProvider>
-                         <ThemeProvider theme={theme}>
-                              <CssBaseline />
-                              <AuthConsumer>
-                                   {
-                                        (auth: any) => auth.isLoading
-                                             ? <SplashScreen />
-                                             : getLayout(<Component {...pageProps} />)
-                                   }
-                              </AuthConsumer>
-                         </ThemeProvider>
-                    </AuthProvider>
-               </LocalizationProvider>
-          </CacheProvider>
+          <AutoLogoutProvider timeoutMs={5000}>
+               <CacheProvider value={emotionCache}>
+                    <Head>
+                         <title>
+                              LDA Subotica
+                         </title>
+                         <meta
+                              name="viewport"
+                              content="initial-scale=1, width=device-width"
+                         />
+                    </Head>
+                    <LocalizationProvider dateAdapter={AdapterDateFns}>
+                         <AuthProvider>
+                              <ThemeProvider theme={theme}>
+                                   <CssBaseline />
+                                   <AuthConsumer>
+                                        {
+                                             (auth: any) => auth.isLoading
+                                                  ? <SplashScreen />
+                                                  : getLayout(<Component {...pageProps} />)
+                                        }
+                                   </AuthConsumer>
+                              </ThemeProvider>
+                         </AuthProvider>
+                    </LocalizationProvider>
+               </CacheProvider>
+          </AutoLogoutProvider>
      );
 };
 

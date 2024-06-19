@@ -15,13 +15,9 @@ export default async function handler(request: NextApiRequest, response: NextApi
                return response.status(200).json({ message: 'Projects found!', data: allProjects });
 
           } else if (request.method === 'POST') {
-               console.log('POST', request.body);
-
                const projectStart = moment(request.body.projectStartDateTime).toISOString()
                const projectEnd = moment(request.body.projectEndDateTime).toISOString()
                const projectSummarySubtitlesDate = request.body.projectSummaryDateTime.map((date: string) => moment(date).toISOString())
-               console.log(projectStart, projectEnd, projectSummarySubtitlesDate);
-
                const newProjectObject = {
                     ...request.body,
                     projectStartDateTime: projectStart,
@@ -39,20 +35,14 @@ export default async function handler(request: NextApiRequest, response: NextApi
           }
           else if (request.method === 'DELETE') {
                //const idsToDelete = request.body.selected.map((_id: any) => new ObjectId(_id))
-               console.log(request.body);
-
                try {
                     const deleteResponse = await dbProjectSummaries.deleteOne({ _id: ObjectId.createFromHexString(request.body) })
-                    console.log(deleteResponse);
                     return deleteResponse.deletedCount > 0 ? response.status(200).json({ message: 'Projekat uspesno obrisan' }) : response.status(400).json({ message: 'Projekat nije obrisan' });
                } catch (error) {
                     alert(error);
                }
           }
           else if (request.method === 'PUT') {
-
-               console.log('PUUUUUT', request.body);
-
                const projectStart = moment(request.body.projectStartDateTime).toISOString()
                const projectEnd = moment(request.body.projectEndDateTime).toISOString()
                const projectSummarySubtitlesDates = request.body.projectSummaryDateTime.map((date: string) => moment(date).toISOString())
@@ -82,7 +72,6 @@ export default async function handler(request: NextApiRequest, response: NextApi
                               }
                          }
                     )
-                    console.log(mdbResponse);
                     return mdbResponse.modifiedCount > 0 ?
                          response.status(200).json({ message: 'Project successfully updated!', status: 'OK' })
                          :

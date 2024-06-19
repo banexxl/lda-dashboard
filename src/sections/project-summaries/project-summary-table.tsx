@@ -82,8 +82,6 @@ export const ProjectSummaryTable = ({ items }: any) => {
      }
 
      const handleProjectUpdateClick = () => {
-          console.log(currentProjectObject);
-
           Swal.fire({
                title: 'Da li ste sigurni?',
                text: "Možete izmeniti pojekat u svakom momentu...",

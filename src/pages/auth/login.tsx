@@ -7,6 +7,7 @@ import * as Yup from 'yup';
 import { Alert, Box, Button, FormHelperText, Link, Stack, Tab, Tabs, TextField, Typography, Card, CardMedia, useMediaQuery, createTheme } from '@mui/material';
 import { Layout as AuthLayout } from 'src/layouts/auth/layout';
 import Swal from 'sweetalert2';
+import moment from 'moment';
 
 const Page = () => {
      const router = useRouter();
@@ -47,6 +48,8 @@ const Page = () => {
                               text: 'Login successful!',
                          });
                          window.sessionStorage.setItem('authenticated', 'true');
+                         window.sessionStorage.setItem('sessionExpires', moment().add(3, 'hour').toISOString())
+                         localStorage.setItem('lastActivity', moment().format('YYYY-MM-DD HH:mm:ss'));
                          localStorage.setItem('email', values.email);
                          router.push('/');
                     } else {

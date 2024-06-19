@@ -18,6 +18,7 @@ export default async function handler(
      if (searchResults.length === 1) {
           const user = searchResults[0];
           // Use bcryptjs to compare the hashed password with the provided password
+
           const isPasswordCorrect = await compare(password, user.password);
 
           if (isPasswordCorrect) {

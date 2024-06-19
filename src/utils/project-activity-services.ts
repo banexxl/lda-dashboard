@@ -38,7 +38,6 @@ export const projectActivitiesServices = () => {
                     .skip(skip)
                     .limit(parsedLimit)
                     .toArray();
-               console.log('collection:', data);
                return data;
           } catch (error: any) {
                return { message: error.message };

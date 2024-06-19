@@ -6,6 +6,7 @@ import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 const now = new Date();
 
 const Page = () => (
+
      <>
           <Head>
                <title>

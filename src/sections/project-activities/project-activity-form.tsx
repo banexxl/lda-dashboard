@@ -175,7 +175,6 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
                                         name="showProjectDetails"
                                         defaultChecked={formik.values.showProjectDetails}
                                         onChange={(e) => {
-                                             console.log(e.target.checked);
                                              setListEnabled(e.target.checked)
                                              formik.handleChange
                                         }}

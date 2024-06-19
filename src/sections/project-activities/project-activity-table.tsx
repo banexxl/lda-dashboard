@@ -74,7 +74,6 @@ type ProjectLocale = {
 const locales = [{ value: 'en', name: 'Engleski' }, { value: 'sr', name: 'Srpski' }]
 
 export const ProjectActivityTable = (props: any) => {
-     console.log(props.projectSummaries);
      const { items, projectActivitiesCount, page, rowsPerPage, selected } = props;
      const [currentProjectID, setCurrentProjectID] = useState(null);
      const [currentProjectObject, setCurrentProjectObject] = useState<ProjectActivity | null | undefined>(projectActivityInitialValues);
@@ -108,8 +107,6 @@ export const ProjectActivityTable = (props: any) => {
      }
 
      const handleProjectUpdateClick = () => {
-          console.log(currentProjectObject);
-
           Swal.fire({
                title: 'Da li ste sigurni?',
                text: "Možete izmeniti pojekat u svakom momentu...",
