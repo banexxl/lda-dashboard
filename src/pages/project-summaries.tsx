@@ -15,19 +15,26 @@ import { projectSummaryServices } from '../utils/project-summary-services'
 import { AddProjectSummaryForm } from '../sections/project-summaries/project-summary-form'
 import { useRouter } from 'next/navigation';
 import { TablePagination } from '@mui/material'
+import { ProjectSummary } from '@/sections/project-summaries/project-summary-type';
 
+type PageProps = {
+     projects: ProjectSummary[];
+     projectSummariesCount: number;
+     page: number;
+     limit: number;
+}
 
-const Page = (props: any) => {
+const Page = (props: PageProps) => {
 
-     const ProjectsIds = useMemo(() => {
-          if (!Array.isArray(props.projects)) {
-               return [];
-          }
-          return props.projects.map((project: any) => project._id);
-     }, [props.projects]);
+     // const ProjectsIds = useMemo(() => {
+     //      if (!Array.isArray(props.projects)) {
+     //           return [];
+     //      }
+     //      return props.projects.map((project: any) => project._id);
+     // }, [props.projects]);
 
      const [open, setOpen] = useState(false)
-     const ProjectsSelection = useSelection(ProjectsIds);
+     //const projectsSelection = useSelection(ProjectsIds);
      const router = useRouter();
      const [loading, setLoading] = useState(false)
 
@@ -150,12 +157,7 @@ const Page = (props: any) => {
                               </Stack>
                               <ProjectsSearch />
                               <ProjectSummaryTable
-                                   count={props.projects.length || 0}
                                    items={props.projects}
-                                   page={props.page}
-                                   rowsPerPage={props.limit}
-                                   selected={ProjectsSelection.selected}
-                                   ProjectsCount={props.projectSummariesCount}
                               />
                               <TablePagination
                                    component="div"

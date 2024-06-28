@@ -10,7 +10,7 @@ import Image from 'next/image';
 import numeral from 'numeral';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddBoxIcon from '@mui/icons-material/AddBox';
-import { Fragment, JSXElementConstructor, ReactElement, useCallback, useEffect, useState } from 'react';
+import { Fragment, HtmlHTMLAttributes, JSXElementConstructor, ReactElement, useCallback, useEffect, useRef, useState } from 'react';
 import { Scrollbar } from 'src/components/scrollbar';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -25,6 +25,9 @@ import moment from 'moment';
 import { get } from 'http';
 import { da } from 'date-fns/locale';
 import { extractInfoFromUrl } from '@/pages/api/aws-s3';
+import { sanitizeString } from '@/utils/url-creator';
+import { set } from 'nprogress';
+import { log } from 'console';
 
 type ProjectStatus = {
      value: string;
@@ -51,11 +54,52 @@ const locales = [{ value: 'en', name: 'Engleski' }, { value: 'sr', name: 'Srpski
 export const ProjectSummaryTable = ({ items }: any) => {
 
      const [currentProjectID, setCurrentProjectID] = useState(null);
-     const [currentProjectObject, setCurrentProjectObject] = useState<ProjectSummary | null | undefined>(initialProjectSummary);
+     const [currentProjectObject, setCurrentProjectObject] = useState<ProjectSummary | null | undefined>(initialProjectSummary || {});
+     console.log(currentProjectObject);
+     const [disabledFields, setDisabledFields] = useState<boolean[]>([]);
+     const [disabledDescriptions, setDisabledDescriptions] = useState<boolean[]>([]);
+     const [disabledDateTime, setDisabledDateTime] = useState<boolean[]>([]);
+
      const router = useRouter();
      const theme = useTheme()
      const [loading, setLoading] = useState(false)
      const [selectedImage, setSelectedImage] = useState(null);
+     const textFieldSubtitleRefs = useRef<HTMLInputElement[]>([]);
+     const textFieldDescriptionRefs = useRef<HTMLInputElement[]>([]);
+     const textFieldDateTimeRefs = useRef<HTMLInputElement[]>([]);
+
+     const getSubtitleInputValue = (index: number) => {
+          console.log('Getting value from index:', index);
+          console.log('Current refs:', textFieldSubtitleRefs.current);
+
+
+          if (textFieldSubtitleRefs.current[index]) {
+               console.log(textFieldSubtitleRefs.current[index].value);
+
+               return textFieldSubtitleRefs.current[index].value;
+          }
+          return '';
+     };
+
+     const getDescriptionInputValue = (index: number) => {
+          console.log('Getting value from index:', index);
+          console.log('Current refs:', textFieldDescriptionRefs.current);
+
+          if (textFieldDescriptionRefs.current[index]) {
+               return textFieldDescriptionRefs.current[index].value;
+          }
+          return '';
+     }
+
+     const getDateTimeInputValue = (index: number) => {
+          console.log('Getting value from index:', index);
+          console.log('Current refs:', textFieldDateTimeRefs.current);
+
+          if (textFieldDateTimeRefs.current[index]) {
+               return textFieldDateTimeRefs.current[index].value;
+          }
+          return '';
+     }
 
      const getObjectById = (_id: any, arrayToSearch: any) => {
           for (const obj of arrayToSearch) {
@@ -71,7 +115,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                if (prevProjectId === ProjectId) {
                     setCurrentProjectObject(null)
                     return null;
-               } ``
+               }
                setCurrentProjectObject(getObjectById(ProjectId, items))
                return ProjectId;
           });
@@ -199,63 +243,93 @@ export const ProjectSummaryTable = ({ items }: any) => {
           });
      };
 
-     const onAddNewSubtitle = (index: number, text: string) => {
+     const insertNewSubtitleField = () => {
           setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
                if (prevProject) {
-                    const newSubtitles = [...prevProject.projectSummarySubtitles];
-                    newSubtitles[index] = text; // Update the subtitle at the clicked index
+                    const newSubtitles = [...prevProject.projectSummarySubtitles, ''];
+                    const newSubtitlesURLs = [...prevProject.projectSummarySubtitleURLs, ''];
+
                     return {
                          ...prevProject,
                          projectSummarySubtitles: newSubtitles,
-                    };
-               }
-               return prevProject;
-          });
-     };
-
-     const onDeleteSubtitle = (index: number) => {
-          setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
-               if (prevProject) {
-                    const newSubtitles = [...prevProject.projectSummarySubtitles];
-                    newSubtitles.splice(index, 1); // Remove the subtitle at the specified index
-                    return {
-                         ...prevProject,
-                         projectSummarySubtitles: newSubtitles,
-                    };
-               }
-               return prevProject;
-          });
-     };
-
-     const onAddNewSubtitleURL = (index: number, text: string) => {
-          setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
-               if (prevProject) {
-                    const newSubtitlesURLs = [...prevProject.projectSummarySubtitleURLs];
-                    newSubtitlesURLs[index] = text; // Update the subtitle at the clicked index
-                    return {
-                         ...prevProject,
                          projectSummarySubtitleURLs: newSubtitlesURLs,
                     };
                }
                return prevProject;
           });
-     };
+     }
 
-     const onDeleteSubtitleURL = (index: number) => {
+     const insertNewDescriptionField = () => {
           setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
                if (prevProject) {
-                    const newSubtitlesURLs = [...prevProject.projectSummarySubtitleURLs];
-                    newSubtitlesURLs.splice(index, 1); // Remove the subtitle at the specified index
+                    const newDescriptions = [...prevProject.projectSummaryDescriptions, ''];
                     return {
                          ...prevProject,
-                         projectSummarySubtitleURLs: newSubtitlesURLs,
+                         projectSummaryDescriptions: newDescriptions,
                     };
                }
                return prevProject;
           });
+     }
+
+     const insertNewDateTimeField = () => {
+          setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
+               if (prevProject) {
+                    const newDateTimes = [...prevProject.projectSummaryDateTime, ''];
+                    return {
+                         ...prevProject,
+                         projectSummaryDateTime: newDateTimes,
+                    };
+               }
+               return prevProject;
+          });
+     }
+
+     const handleAddSubtitle = (index: number, subtitle: string) => {
+          console.log('Adding subtitle at index:', index, 'with value:', subtitle);
+
+          if (currentProjectObject) {
+               const newSubtitles = [...currentProjectObject.projectSummarySubtitles];
+               const newSubtitlesURLs = [...currentProjectObject.projectSummarySubtitleURLs];
+
+               // Update the empty string with the actual subtitle
+               newSubtitles[index] = subtitle;
+               newSubtitlesURLs[index] = sanitizeString(subtitle);
+               setCurrentProjectObject({
+                    ...currentProjectObject,
+                    projectSummarySubtitles: newSubtitles,
+                    projectSummarySubtitleURLs: newSubtitlesURLs,
+               });
+
+               setDisabledFields((prev) => {
+                    const newDisabledFields = [...prev];
+                    newDisabledFields[index] = true;
+                    return newDisabledFields;
+               });
+          }
      };
 
-     const onAddNewDescription = (index: number, text: string) => {
+     const handleRemoveSubtitle = (index: number) => {
+          if (currentProjectObject) {
+               const newSubtitles = [...currentProjectObject.projectSummarySubtitles];
+               newSubtitles.splice(index, 1); // Remove the subtitle at the current index
+               const newSubtitlesURLs = [...currentProjectObject.projectSummarySubtitleURLs]
+               newSubtitlesURLs.splice(index, 1);
+               setCurrentProjectObject({
+                    ...currentProjectObject,
+                    projectSummarySubtitles: newSubtitles,
+                    projectSummarySubtitleURLs: newSubtitlesURLs
+               });
+
+               setDisabledFields((prev) => {
+                    const newDisabledFields = [...prev];
+                    newDisabledFields[index] = false;
+                    return newDisabledFields;
+               });
+          }
+     };
+
+     const handleAddNewDescription = (index: number, text: string) => {
           setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
                if (prevProject) {
                     const newDescriptions = [...prevProject.projectSummaryDescriptions];
@@ -267,9 +341,14 @@ export const ProjectSummaryTable = ({ items }: any) => {
                }
                return prevProject;
           });
+          setDisabledDescriptions((prev) => {
+               const newDisabledFields = [...prev];
+               newDisabledFields[index] = true;
+               return newDisabledFields;
+          })
      };
 
-     const onDeleteDescription = (index: number) => {
+     const handleDeleteDescription = (index: number) => {
           setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
                if (prevProject) {
                     const newDescription = [...prevProject.projectSummaryDescriptions];
@@ -558,14 +637,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                           fullWidth
                                                                                           label="Naziv projekta"
                                                                                           name="name"
-                                                                                          disabled={loading}
-                                                                                          onBlur={(e: any) =>
-                                                                                               setCurrentProjectObject((previousObject: any) => ({
-                                                                                                    ...previousObject,
-                                                                                                    name: e.target.value
-
-                                                                                               }))
-                                                                                          }
+                                                                                          disabled
                                                                                      />
                                                                                 </Grid>
                                                                                 <Grid
@@ -625,7 +697,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                           fullWidth
                                                                                           label="Jezik projekta"
                                                                                           select
-                                                                                          disabled={loading}
+                                                                                          disabled
                                                                                           onBlur={(e: any) =>
                                                                                                setCurrentProjectObject((previousObject: any) => ({
                                                                                                     ...previousObject,
@@ -653,7 +725,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                           fullWidth
                                                                                           label="URL projekta"
                                                                                           name="name"
-                                                                                          disabled={loading}
+                                                                                          disabled
                                                                                           onBlur={(e: any) =>
                                                                                                setCurrentProjectObject((previousObject: any) => ({
                                                                                                     ...previousObject,
@@ -845,163 +917,112 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                           }}
                                                                                      />
                                                                                 </Grid>
-
-                                                                                <Grid
-                                                                                     item
-                                                                                     md={6}
-                                                                                     xs={12}
-                                                                                >
+                                                                                <Divider />
+                                                                                <Grid item md={6} xs={12}>
                                                                                      <Typography sx={{ margin: '10px' }}>Podnaslovi:</Typography>
-                                                                                     {
-                                                                                          currentProjectObject?.projectSummarySubtitles.length == 0 &&
-                                                                                          <Box>
-                                                                                               <IconButton onClick={() => onAddNewSubtitle(0, '')}>
-                                                                                                    <AddBoxIcon />
-                                                                                               </IconButton>
-                                                                                               <IconButton onClick={() => onDeleteSubtitle(0)}>
-                                                                                                    <DeleteIcon />
-                                                                                               </IconButton>
+                                                                                     {currentProjectObject?.projectSummarySubtitles.map((subtitle, index) => (
+                                                                                          <Box sx={{ display: 'flex', width: '80%' }} key={index}>
+                                                                                               <TextField
+                                                                                                    InputLabelProps={{ shrink: true }}
+                                                                                                    fullWidth
+                                                                                                    defaultValue={subtitle}
+                                                                                                    name={`projectSummarySubtitles.${index}`}
+                                                                                                    label={`Podnaslov ${index + 1}`}
+                                                                                                    disabled={disabledFields[index]} // Disable based on state
+                                                                                                    inputRef={(el: any) => textFieldSubtitleRefs.current[index] = el}
+                                                                                                    InputProps={{
+                                                                                                         endAdornment: (
+                                                                                                              <InputAdornment position="end">
+                                                                                                                   <IconButton
+                                                                                                                        onClick={() => {
+                                                                                                                             const currentValue = getSubtitleInputValue(index);
+                                                                                                                             currentValue === '' ?
+                                                                                                                                  Swal.fire('Greška', 'Morate uneti podnaslov!', 'error')
+                                                                                                                                  :
+                                                                                                                                  handleAddSubtitle(index, currentValue);
+                                                                                                                        }}
+                                                                                                                        disabled={disabledFields[index]} // Disable based on state
+                                                                                                                   >
+                                                                                                                        <AddBoxIcon />
+                                                                                                                   </IconButton>
+                                                                                                                   <IconButton
+                                                                                                                        onClick={() => handleRemoveSubtitle(index)}
+                                                                                                                   >
+                                                                                                                        <DeleteIcon />
+                                                                                                                   </IconButton>
+                                                                                                              </InputAdornment>
+                                                                                                         ),
+                                                                                                    }}
+                                                                                               />
                                                                                           </Box>
-                                                                                     }
+                                                                                     ))}
+                                                                                     <IconButton onClick={insertNewSubtitleField} >
+                                                                                          <AddBoxIcon />
+                                                                                     </IconButton>
 
-                                                                                     {
-                                                                                          currentProjectObject?.projectSummarySubtitles.length != 0 &&
-                                                                                          currentProjectObject?.projectSummarySubtitles?.map((subtitle: any, index: any) =>
-                                                                                               <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
+                                                                                     <Grid item md={6} xs={12}>
+                                                                                          <Typography sx={{ margin: '10px' }}>URL-ovi podnaslova:</Typography>
+                                                                                          {currentProjectObject?.projectSummarySubtitleURLs.map((projectSummarySubtitleURL, index) => (
+                                                                                               <Box sx={{ display: 'flex' }} key={index}>
                                                                                                     <TextField
-                                                                                                         defaultValue={subtitle}
+                                                                                                         InputLabelProps={{ shrink: true }}
+                                                                                                         defaultValue={projectSummarySubtitleURL}
                                                                                                          fullWidth
-                                                                                                         label={`Podnaslov ${index + 1}`}
-                                                                                                         disabled={loading}
-                                                                                                         // name={project.description}
-                                                                                                         onBlur={(e: any) => {
-                                                                                                              setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
-                                                                                                                   if (prevProject) {
-                                                                                                                        const newSubtitles = [...prevProject.projectSummarySubtitles];
-                                                                                                                        newSubtitles[index] = e.target.value; // Update the subtitle at the clicked index
-                                                                                                                        return {
-                                                                                                                             ...prevProject,
-                                                                                                                             projectSummarySubtitles: newSubtitles,
-                                                                                                                        };
-                                                                                                                   }
-                                                                                                                   return prevProject;
-                                                                                                              });
-                                                                                                         }}
+                                                                                                         name={`projectSummarySubtitleURLs.${index}`}
+                                                                                                         label={`URL projekta ${index + 1}`}
+                                                                                                         disabled
                                                                                                     />
-                                                                                                    <IconButton onClick={() => onAddNewSubtitle(index + 1, '')}>
-                                                                                                         <AddBoxIcon />
-                                                                                                    </IconButton>
-                                                                                                    <IconButton onClick={() => onDeleteSubtitle(index)}>
-                                                                                                         <DeleteIcon />
-                                                                                                    </IconButton>
                                                                                                </Box>
-                                                                                          )
-                                                                                     }
-
+                                                                                          ))}
+                                                                                     </Grid>
                                                                                 </Grid>
-
+                                                                                <Divider variant='fullWidth' />
                                                                                 <Grid
                                                                                      item
                                                                                      md={6}
                                                                                      xs={12}
                                                                                 >
                                                                                      <Typography sx={{ margin: '10px' }}>Opisi:</Typography>
+
                                                                                      {
-                                                                                          currentProjectObject?.projectSummaryDescriptions.length == 0 &&
-                                                                                          <Box>
-                                                                                               <IconButton onClick={() => onAddNewDescription(0, '')}>
+                                                                                          currentProjectObject?.projectSummaryDescriptions && currentProjectObject?.projectSummaryDescriptions.length > 0 ?
+                                                                                               currentProjectObject?.projectSummaryDescriptions.map((description: any, index: any) =>
+                                                                                                    <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
+                                                                                                         <TextField
+                                                                                                              InputLabelProps={{ shrink: true }}
+                                                                                                              fullWidth
+                                                                                                              defaultValue={description}
+                                                                                                              name={`projectSummaryDescriptions.${index}`}
+                                                                                                              label={`Prvi pasus iz teksta ${index + 1}`}
+                                                                                                              disabled={disabledDescriptions[index]} // Disable based on state
+                                                                                                              inputRef={(el) => (textFieldSubtitleRefs.current[index] = el)}
+                                                                                                              InputProps={{
+                                                                                                                   endAdornment: (
+                                                                                                                        <InputAdornment position="end">
+                                                                                                                             <IconButton
+                                                                                                                                  onClick={() => {
+                                                                                                                                       const currentValue = getDescriptionInputValue(index);
+                                                                                                                                       handleAddNewDescription(index, currentValue);
+                                                                                                                                  }}
+                                                                                                                                  disabled={disabledDescriptions[index]} // Disable based on state
+                                                                                                                             >
+                                                                                                                                  <AddBoxIcon />
+                                                                                                                             </IconButton>
+                                                                                                                             <IconButton
+                                                                                                                                  onClick={() => handleDeleteDescription(index)}
+                                                                                                                             >
+                                                                                                                                  <DeleteIcon />
+                                                                                                                             </IconButton>
+                                                                                                                        </InputAdornment>
+                                                                                                                   ),
+                                                                                                              }}
+                                                                                                         />
+                                                                                                    </Box>
+                                                                                               )
+                                                                                               :
+                                                                                               <IconButton onClick={insertNewDescriptionField} >
                                                                                                     <AddBoxIcon />
                                                                                                </IconButton>
-                                                                                               <IconButton onClick={() => onDeleteDescription(0)}>
-                                                                                                    <DeleteIcon />
-                                                                                               </IconButton>
-                                                                                          </Box>
-                                                                                     }
-
-                                                                                     {
-                                                                                          currentProjectObject?.projectSummaryDescriptions.map((description: any, index: any) =>
-                                                                                               <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
-                                                                                                    <TextField
-                                                                                                         defaultValue={description}
-                                                                                                         fullWidth
-                                                                                                         label={`Opis ${index + 1}`}
-                                                                                                         disabled={loading}
-                                                                                                         // name={project.description}
-                                                                                                         onBlur={(e: any) =>
-                                                                                                              setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
-                                                                                                                   if (prevProject) {
-                                                                                                                        const newDescriptions = [...prevProject.projectSummaryDescriptions];
-                                                                                                                        newDescriptions[index] = e.target.value; // Update the subtitle at the clicked index
-                                                                                                                        return {
-                                                                                                                             ...prevProject,
-                                                                                                                             projectSummaryDescriptions: newDescriptions,
-                                                                                                                        };
-                                                                                                                   }
-                                                                                                                   return prevProject;
-                                                                                                              })
-                                                                                                         }
-                                                                                                    />
-                                                                                                    <IconButton onClick={() => onAddNewDescription(index + 1, '')}>
-                                                                                                         <AddBoxIcon />
-                                                                                                    </IconButton>
-                                                                                                    <IconButton onClick={() => onDeleteDescription(index)}>
-                                                                                                         <DeleteIcon />
-                                                                                                    </IconButton>
-
-                                                                                               </Box>
-                                                                                          )
-                                                                                     }
-                                                                                </Grid>
-
-                                                                                <Grid
-                                                                                     item
-                                                                                     md={6}
-                                                                                     xs={12}
-                                                                                >
-                                                                                     <Typography sx={{ margin: '10px' }}>URL-ovi podnaslova:</Typography>
-                                                                                     {
-                                                                                          currentProjectObject?.projectSummarySubtitleURLs.length == 0 &&
-                                                                                          <Box>
-                                                                                               <IconButton onClick={() => onAddNewSubtitleURL(0, '')}>
-                                                                                                    <AddBoxIcon />
-                                                                                               </IconButton>
-                                                                                               <IconButton onClick={() => onDeleteSubtitleURL(0)}>
-                                                                                                    <DeleteIcon />
-                                                                                               </IconButton>
-                                                                                          </Box>
-                                                                                     }
-
-                                                                                     {
-                                                                                          currentProjectObject?.projectSummarySubtitleURLs.map((url: any, index: any) =>
-                                                                                               <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
-                                                                                                    <TextField
-                                                                                                         defaultValue={url}
-                                                                                                         fullWidth
-                                                                                                         label={`URL ${index + 1}`}
-                                                                                                         disabled={loading}
-                                                                                                         // name={project.description}
-                                                                                                         onBlur={(e: any) =>
-                                                                                                              setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
-                                                                                                                   if (prevProject) {
-                                                                                                                        const newSubtitlesURLs = [...prevProject.projectSummarySubtitleURLs];
-                                                                                                                        newSubtitlesURLs[index] = e.target.value; // Update the subtitle at the clicked index
-                                                                                                                        return {
-                                                                                                                             ...prevProject,
-                                                                                                                             projectSummarySubtitleURLs: newSubtitlesURLs,
-                                                                                                                        };
-                                                                                                                   }
-                                                                                                                   return prevProject;
-                                                                                                              })
-                                                                                                         }
-                                                                                                    />
-                                                                                                    <IconButton onClick={() => onAddNewSubtitleURL(index + 1, '')}>
-                                                                                                         <AddBoxIcon />
-                                                                                                    </IconButton>
-                                                                                                    <IconButton onClick={() => onDeleteSubtitleURL(index)}>
-                                                                                                         <DeleteIcon />
-                                                                                                    </IconButton>
-                                                                                               </Box>
-                                                                                          )
                                                                                      }
                                                                                 </Grid>
 
@@ -1012,48 +1033,63 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                 >
                                                                                      <Typography sx={{ margin: '10px' }}>Vremena odrzavanja projektnih aktivnosti (MM/DD/YYYY):</Typography>
                                                                                      {
-                                                                                          currentProjectObject?.projectSummaryDateTime.length == 0 &&
-                                                                                          <Box>
-                                                                                               <IconButton onClick={() => onAddNewSubtitleDateTime(0, '')}>
+                                                                                          currentProjectObject?.projectSummaryDateTime && currentProjectObject.projectSummaryDateTime.length > 0 ?
+                                                                                               currentProjectObject?.projectSummaryDateTime.map((date: any, index: any) =>
+                                                                                                    <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
+                                                                                                         <LocalizationProvider dateAdapter={AdapterDayjs}>
+                                                                                                              <DateField
+
+                                                                                                                   format='MM/DD/YYYY'
+                                                                                                                   InputLabelProps={{ shrink: true }}
+
+                                                                                                                   fullWidth
+                                                                                                                   disabled={loading}
+                                                                                                                   label={`Datum ${index + 1}`}
+                                                                                                                   defaultValue={dayjs(currentProjectObject.projectSummaryDateTime[index])}
+                                                                                                                   inputRef={(el) => (textFieldDateTimeRefs.current[index] = el)}
+                                                                                                                   onBlur={(newValue: any) => {
+                                                                                                                        const date = moment(newValue.target.value).format('MM/DD/YYYY');
+                                                                                                                        onAddNewSubtitleDateTime(index, date)
+                                                                                                                   }}
+                                                                                                                   InputProps={{
+                                                                                                                        endAdornment: (
+                                                                                                                             <InputAdornment position="end">
+                                                                                                                                  <IconButton
+                                                                                                                                       onClick={() => {
+                                                                                                                                            const currentValue = getDateTimeInputValue(index);
+                                                                                                                                            onAddNewSubtitleDateTime(index, currentValue);
+                                                                                                                                       }}
+                                                                                                                                       disabled={disabledDateTime[index]} // Disable based on state
+                                                                                                                                  >
+                                                                                                                                       <AddBoxIcon />
+                                                                                                                                  </IconButton>
+                                                                                                                                  <IconButton
+                                                                                                                                       onClick={() => handleDeleteDescription(index)}
+                                                                                                                                  >
+                                                                                                                                       <DeleteIcon />
+                                                                                                                                  </IconButton>
+                                                                                                                             </InputAdornment>
+                                                                                                                        ),
+                                                                                                                   }}
+                                                                                                              />
+                                                                                                         </LocalizationProvider>
+
+
+                                                                                                         <IconButton onClick={() => onAddNewSubtitleDateTime(index + 1, '')}>
+                                                                                                              <AddBoxIcon />
+                                                                                                         </IconButton>
+                                                                                                         <IconButton onClick={() => onDeleteSubtitleDateTime(index)}>
+                                                                                                              <DeleteIcon />
+                                                                                                         </IconButton>
+                                                                                                    </Box>
+                                                                                               )
+                                                                                               :
+                                                                                               <IconButton onClick={insertNewDateTimeField} >
                                                                                                     <AddBoxIcon />
                                                                                                </IconButton>
-                                                                                               <IconButton onClick={() => onDeleteSubtitleDateTime(0)}>
-                                                                                                    <DeleteIcon />
-                                                                                               </IconButton>
-                                                                                          </Box>
-                                                                                     }
-
-                                                                                     {
-                                                                                          currentProjectObject?.projectSummaryDateTime.map((date: any, index: any) =>
-                                                                                               <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
-                                                                                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                                                                                         <DateField
-
-                                                                                                              format='MM/DD/YYYY'
-                                                                                                              InputLabelProps={{ shrink: true }}
-                                                                                                              fullWidth
-                                                                                                              disabled={loading}
-                                                                                                              label={`Datum ${index + 1}`}
-                                                                                                              defaultValue={dayjs(currentProjectObject.projectSummaryDateTime[index])}
-                                                                                                              onBlur={(newValue: any) => {
-                                                                                                                   const date = moment(newValue.target.value).format('MM/DD/YYYY');
-                                                                                                                   onAddNewSubtitleDateTime(index, date)
-                                                                                                              }}
-                                                                                                         />
-                                                                                                    </LocalizationProvider>
-
-
-                                                                                                    <IconButton onClick={() => onAddNewSubtitleDateTime(index + 1, '')}>
-                                                                                                         <AddBoxIcon />
-                                                                                                    </IconButton>
-                                                                                                    <IconButton onClick={() => onDeleteSubtitleDateTime(index)}>
-                                                                                                         <DeleteIcon />
-                                                                                                    </IconButton>
-                                                                                               </Box>
-                                                                                          )
                                                                                      }
                                                                                 </Grid>
-
+                                                                                <Divider />
                                                                                 <Typography sx={{ margin: '10px' }}>Slike:</Typography>
                                                                                 <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', marginBottom: '30px' }}>
                                                                                      {/* -------------------------slike------------------------------------------ */}
@@ -1134,7 +1170,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                                color="error"
                                                                                                disabled={loading}
                                                                                           >
-                                                                                               Obrisi proizvod
+                                                                                               Obrisi projekat
                                                                                           </Button>
                                                                                      </div>
                                                                                 </Stack>

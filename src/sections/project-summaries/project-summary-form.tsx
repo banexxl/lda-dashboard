@@ -16,6 +16,10 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
 
      const router = useRouter();
      const [loading, setLoading] = useState<any>(false)
+     const [projectSummarySubtitleURLs, setProjectSummarySubtitleURLs] = useState<any>([])
+     const [subtitles, setSubtitles] = useState<string[]>([]);
+     const [disabledAddButtons, setDisabledAddButtons] = useState(Array(subtitles.length).fill(false)); // New state variable
+     const [error, setError] = useState("");
 
      const handleSubmit = async (values: any) => {
 
@@ -62,6 +66,45 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
 
      }
 
+     const handleAddSubtitle = (arrayHelpers: any) => {
+          arrayHelpers.push('');
+          setSubtitles([...subtitles, '']);
+          setDisabledAddButtons([...disabledAddButtons, false]);
+     };
+
+     const handleAddUrl = (index: any) => {
+          const sanitizedValue = subtitles[index]
+               .replace(/[^a-zA-Z0-9čćžšđČĆŽŠĐ\s]/g, '') // Keep alphanumeric, Serbian Latinic letters and spaces
+               .replace(/\s+/g, ' '); // Replace multiple spaces with a single space
+          const newUrl = stringWithHyphens(sanitizedValue);
+          const updatedURLs = [...projectSummarySubtitleURLs];
+          updatedURLs[index] = newUrl;
+          setProjectSummarySubtitleURLs(updatedURLs);
+          //formik.setFieldValue('projectSummarySubtitleURLs', updatedURLs);
+          setDisabledAddButtons((prev: any) => {
+               const updatedDisabledButtons = [...prev];
+               updatedDisabledButtons[index] = true;
+               return updatedDisabledButtons;
+          });
+     };
+
+     const handleRemoveSubtitle = (arrayHelpers: any, index: number) => {
+          arrayHelpers.remove(index);
+          const updatedURLs = [...projectSummarySubtitleURLs];
+          updatedURLs.splice(index, 1);
+          setProjectSummarySubtitleURLs(updatedURLs);
+          setSubtitles((prev) => {
+               const updatedSubtitles = [...prev];
+               updatedSubtitles.splice(index, 1);
+               return updatedSubtitles;
+          });
+          setDisabledAddButtons((prev) => {
+               const updatedDisabledButtons = [...prev];
+               updatedDisabledButtons.splice(index, 1);
+               return updatedDisabledButtons;
+          });
+     };
+
      return (
           <Box >
                <Formik
@@ -88,8 +131,11 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                         // value={formik.values.title}
                                         disabled={loading}
                                         onBlur={(e: any) => {
-                                             formik.setFieldValue('title', e.target.value)
-                                             formik.setFieldValue('projectSummaryURL', stringWithHyphens(e.target.value))
+                                             const sanitizedValue = e.target.value
+                                                  .replace(/[^a-zA-Z0-9čćžšđČĆŽŠĐ\s]/g, '') // Keep alphanumeric, Serbian Latinic letters and spaces
+                                                  .replace(/\s+/g, ' ');
+                                             formik.setFieldValue('title', sanitizedValue)
+                                             formik.setFieldValue('projectSummaryURL', stringWithHyphens(sanitizedValue))
                                         }}
                                         error={formik.touched.title && !!formik.errors.title}
                                         helperText={formik.touched.title && formik.errors.title}
@@ -120,37 +166,37 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                    />
 
                                    <FormControl fullWidth>
-                                        <InputLabel id="demo-simple-select-label">Status</InputLabel>
-                                        <Select
+                                        <TextField
+                                             select
+                                             label="Status projekta"
                                              name='status'
                                              id="demo-simple-select"
                                              value={formik.values.status}
                                              onChange={formik.handleChange}
                                              error={formik.touched.status && !!formik.errors.status}
-                                             variant='outlined'
                                              sx={{ borderColor: 'white' }}
                                         >
                                              <MenuItem value={''}>Ponisti</MenuItem>
                                              <MenuItem value={'in-progress'}>U toku</MenuItem>
                                              <MenuItem value={'completed'}>Zavrsen</MenuItem>
                                              <MenuItem value={'todo'}>U planu</MenuItem>
-                                        </Select>
+                                        </TextField>
                                    </FormControl>
 
                                    <FormControl fullWidth>
-                                        <InputLabel id="demo-simple-select-label">Jezik</InputLabel>
-                                        <Select
-                                             labelId="demo-simple-select-label"
-                                             id="demo-simple-select"
-                                             value={formik.values.locale}
+                                        <TextField
+                                             select
                                              label="Jezik"
+                                             id="demo-simple-select"
+                                             value={'sr'}
                                              name='locale'
+                                             disabled
                                              onChange={formik.handleChange}
                                              error={formik.touched.locale && !!formik.errors.locale}
                                         >
                                              <MenuItem value={'sr'}>sr</MenuItem>
                                              <MenuItem value={'en'}>en</MenuItem>
-                                        </Select>
+                                        </TextField>
                                    </FormControl>
 
                                    <TextField
@@ -242,154 +288,6 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                         error={formik.touched.links && !!formik.errors.links}
                                         helperText={formik.touched.links && formik.errors.links}
                                    />
-
-                                   <Divider />
-                                   <Grid
-                                        item
-                                        md={6}
-                                        xs={12}
-                                   >
-                                        <Typography sx={{ margin: '10px' }}>Podnaslovi:</Typography>
-                                        <FieldArray
-                                             name={'projectSummarySubtitles'}
-                                             render={arrayHelpers => (
-                                                  formik.values?.projectSummarySubtitles.length > 0 ?
-                                                       formik.values?.projectSummarySubtitles.map((description: any, index: any) => (
-                                                            <Box sx={{ display: 'flex', width: '80%' }}>
-                                                                 <Field
-                                                                      InputLabelProps={{ shrink: true }}
-                                                                      defaultValue={description}
-                                                                      fullWidth
-                                                                      name={`projectSummarySubtitles.${index}`}
-                                                                      label={`Opis ${index + 1}`}
-                                                                      disabled={loading}
-                                                                 />
-                                                                 <IconButton onClick={() => arrayHelpers.insert(index + 1, '')}>
-                                                                      <AddBoxIcon />
-                                                                 </IconButton>
-                                                                 <IconButton onClick={() => arrayHelpers.remove(index)}>
-                                                                      <DeleteIcon />
-                                                                 </IconButton>
-                                                            </Box>
-                                                       ))
-                                                       :
-                                                       <IconButton onClick={() => arrayHelpers.push('')}>
-                                                            <AddBoxIcon />
-                                                       </IconButton>
-                                             )}
-                                        />
-                                   </Grid>
-
-                                   <Grid
-                                        item
-                                        md={6}
-                                        xs={12}
-                                   >
-                                        <Typography sx={{ margin: '10px' }}>Opisi:</Typography>
-                                        <FieldArray
-                                             name={'projectSummaryDescriptions'}
-                                             render={arrayHelpers => (
-                                                  formik.values?.projectSummaryDescriptions.length > 0 ?
-                                                       formik.values?.projectSummaryDescriptions.map((description: any, index: any) => (
-                                                            <Box sx={{ display: 'flex', width: '80%' }}>
-                                                                 <Field
-                                                                      InputLabelProps={{ shrink: true }}
-                                                                      defaultValue={description}
-                                                                      fullWidth
-                                                                      name={`projectSummaryDescriptions.${index}`}
-                                                                      label={`Opis ${index + 1}`}
-                                                                      disabled={loading}
-                                                                 />
-                                                                 <IconButton onClick={() => arrayHelpers.insert(index + 1, '')}>
-                                                                      <AddBoxIcon />
-                                                                 </IconButton>
-                                                                 <IconButton onClick={() => arrayHelpers.remove(index)}>
-                                                                      <DeleteIcon />
-                                                                 </IconButton>
-                                                            </Box>
-                                                       ))
-                                                       :
-                                                       <IconButton onClick={() => arrayHelpers.push('')}>
-                                                            <AddBoxIcon />
-                                                       </IconButton>
-                                             )}
-                                        />
-                                   </Grid>
-
-                                   <Grid
-                                        item
-                                        md={6}
-                                        xs={12}
-                                   >
-                                        <Typography sx={{ margin: '10px' }}>URL-ovi podnaslova:</Typography>
-                                        <FieldArray
-                                             name={'projectSummarySubtitleURLs'}
-                                             render={arrayHelpers => (
-                                                  formik.values?.projectSummarySubtitleURLs.length > 0 ?
-                                                       formik.values?.projectSummarySubtitleURLs.map((description: any, index: any) => (
-                                                            <Box sx={{ display: 'flex', width: '80%' }}>
-                                                                 <Field
-                                                                      InputLabelProps={{ shrink: true }}
-                                                                      defaultValue={description}
-                                                                      fullWidth
-                                                                      name={`projectSummarySubtitleURLs.${index}`}
-                                                                      label={`Opis ${index + 1}`}
-                                                                      disabled={loading}
-                                                                 />
-                                                                 <IconButton onClick={() => arrayHelpers.insert(index + 1, '')}>
-                                                                      <AddBoxIcon />
-                                                                 </IconButton>
-                                                                 <IconButton onClick={() => arrayHelpers.remove(index)}>
-                                                                      <DeleteIcon />
-                                                                 </IconButton>
-                                                            </Box>
-                                                       ))
-                                                       :
-                                                       <IconButton onClick={() => arrayHelpers.push('')}>
-                                                            <AddBoxIcon />
-                                                       </IconButton>
-                                             )}
-                                        />
-                                   </Grid>
-
-                                   <Grid
-                                        item
-                                        md={6}
-                                        xs={12}
-                                   >
-                                        <Typography sx={{ margin: '10px' }}>Vremena odrzavanja projektnih aktivnosti (obavezno):</Typography>
-                                        <FieldArray
-                                             name={'projectSummaryDateTime'}
-                                             render={arrayHelpers => (
-                                                  formik.values?.projectSummaryDateTime.length > 0 ?
-                                                       formik.values?.projectSummaryDateTime.map((date: any, index: any) => (
-                                                            <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
-                                                                 <DateField
-                                                                      format='dd/MM/yyyy'
-                                                                      InputLabelProps={{ shrink: true }}
-                                                                      defaultValue={new Date(date)} // Convert string to Date object
-                                                                      fullWidth
-                                                                      onBlur={(e: any) => formik.setFieldValue(`projectSummaryDateTime.${index}`, e.target.value)}
-                                                                      name={`projectSummaryDateTime.${index}`}
-                                                                      label={`Opis ${index + 1}`}
-                                                                      disabled={loading}
-                                                                 />
-                                                                 <IconButton onClick={() => arrayHelpers.insert(index + 1, '')}>
-                                                                      <AddBoxIcon />
-                                                                 </IconButton>
-                                                                 <IconButton onClick={() => arrayHelpers.remove(index)}>
-                                                                      <DeleteIcon />
-                                                                 </IconButton>
-                                                            </Box>
-                                                       ))
-                                                       :
-                                                       <IconButton onClick={() => arrayHelpers.push(moment().format('dd/MM/yyyy'))}>
-                                                            <AddBoxIcon />
-                                                       </IconButton>
-                                             )}
-                                        />
-                                   </Grid>
-
                                    <Divider />
                                    <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
                                         <Button

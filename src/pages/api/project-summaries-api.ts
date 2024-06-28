@@ -46,6 +46,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                const projectStart = moment(request.body.projectStartDateTime).toISOString()
                const projectEnd = moment(request.body.projectEndDateTime).toISOString()
                const projectSummarySubtitlesDates = request.body.projectSummaryDateTime.map((date: string) => moment(date).toISOString())
+               console.log(request.body);
 
                try {
                     const mdbResponse = await dbProjectSummaries.updateOne({ _id: ObjectId.createFromHexString(request.body._id) },
@@ -72,6 +73,8 @@ export default async function handler(request: NextApiRequest, response: NextApi
                               }
                          }
                     )
+                    console.log(mdbResponse);
+
                     return mdbResponse.modifiedCount > 0 ?
                          response.status(200).json({ message: 'Project successfully updated!', status: 'OK' })
                          :
