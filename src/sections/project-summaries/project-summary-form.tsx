@@ -9,7 +9,7 @@ import AddBoxIcon from '@mui/icons-material/AddBox';
 import "@uploadthing/react/styles.css";
 import ProjectSummarySchema, { initialProjectSummary } from './project-summary-type';
 import { DateField } from '@mui/x-date-pickers/DateField';
-import { stringWithHyphens } from '@/utils/url-creator';
+import { sanitizeString } from '@/utils/url-creator';
 import moment from 'moment';
 
 export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
@@ -76,7 +76,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
           const sanitizedValue = subtitles[index]
                .replace(/[^a-zA-Z0-9čćžšđČĆŽŠĐ\s]/g, '') // Keep alphanumeric, Serbian Latinic letters and spaces
                .replace(/\s+/g, ' '); // Replace multiple spaces with a single space
-          const newUrl = stringWithHyphens(sanitizedValue);
+          const newUrl = sanitizeString(sanitizedValue);
           const updatedURLs = [...projectSummarySubtitleURLs];
           updatedURLs[index] = newUrl;
           setProjectSummarySubtitleURLs(updatedURLs);
@@ -135,7 +135,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                                   .replace(/[^a-zA-Z0-9čćžšđČĆŽŠĐ\s]/g, '') // Keep alphanumeric, Serbian Latinic letters and spaces
                                                   .replace(/\s+/g, ' ');
                                              formik.setFieldValue('title', sanitizedValue)
-                                             formik.setFieldValue('projectSummaryURL', stringWithHyphens(sanitizedValue))
+                                             formik.setFieldValue('projectSummaryURL', sanitizeString(sanitizedValue))
                                         }}
                                         error={formik.touched.title && !!formik.errors.title}
                                         helperText={formik.touched.title && formik.errors.title}

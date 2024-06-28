@@ -24,7 +24,7 @@ import { ProjectActivity, ProjectCategory, ProjectStatus, projectActivityInitial
 import { DateField } from '@mui/x-date-pickers/DateField';
 import moment from 'moment';
 import { ProjectSummary } from '../project-summaries/project-summary-type';
-import { stringWithHyphens } from '@/utils/url-creator';
+import { sanitizeString } from '@/utils/url-creator';
 
 const projectStatus: ProjectStatus[] = [
      { key: 'in-progress', value: 'In Progress' },
@@ -675,7 +675,7 @@ export const ProjectActivityTable = (props: any) => {
                                                                                                          setCurrentProjectObject((previousObject: any) => ({
                                                                                                               ...previousObject,
                                                                                                               subTitle: e.target.value,
-                                                                                                              projectSummaryURL: '/pregled-projekta/' + stringWithHyphens(e.target.value)
+                                                                                                              projectSummaryURL: '/pregled-projekta/' + sanitizeString(e.target.value)
                                                                                                          }))
                                                                                                     }
                                                                                                >

@@ -22,7 +22,7 @@ import dayjs from 'dayjs';
 import { Activity, initialActivity } from './activity-type';
 import { DateField } from '@mui/x-date-pickers/DateField';
 import moment from 'moment';
-import { stringWithHyphens } from '@/utils/url-creator';
+import { sanitizeString } from '@/utils/url-creator';
 
 type ActivityStatus = {
      value: string;
@@ -550,7 +550,7 @@ export const ActivityTable = ({ items }: any) => {
                                                                                                setCurrentActivityObject((previousObject: any) => ({
                                                                                                     ...previousObject,
                                                                                                     title: e.target.value,
-                                                                                                    activityURL: stringWithHyphens(e.target.value)
+                                                                                                    activityURL: sanitizeString(e.target.value)
                                                                                                }))
                                                                                           }
                                                                                      />

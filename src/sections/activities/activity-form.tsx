@@ -9,7 +9,7 @@ import AddBoxIcon from '@mui/icons-material/AddBox';
 import "@uploadthing/react/styles.css";
 import { ActivitySchema, initialActivity } from './activity-type';
 import { DateField } from '@mui/x-date-pickers/DateField';
-import { stringWithHyphens } from '@/utils/url-creator';
+import { sanitizeString } from '@/utils/url-creator';
 import moment from 'moment';
 
 export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
@@ -88,7 +88,7 @@ export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
                                         disabled={loading}
                                         onBlur={(e: any) => {
                                              formik.setFieldValue('title', e.target.value)
-                                             formik.setFieldValue('activityURL', stringWithHyphens(e.target.value))
+                                             formik.setFieldValue('activityURL', sanitizeString(e.target.value))
                                         }}
                                         error={formik.touched.title && !!formik.errors.title}
                                         helperText={formik.touched.title && formik.errors.title}
