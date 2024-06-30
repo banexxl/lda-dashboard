@@ -398,7 +398,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
           });
      };
 
-     const onAddNewImage = (imageURL: string) => {
+     const onAddNewGalleryImage = (imageURL: string) => {
           setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
                if (prevProject) {
                     const newGallery = [...prevProject.gallery, imageURL]; // Adding imageURL to the end of the array
@@ -411,7 +411,19 @@ export const ProjectSummaryTable = ({ items }: any) => {
           });
      };
 
-     const onDeleteImage = async (imageURL: any) => {
+     const onAddNewCoverImage = (imageURL: string) => {
+          setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
+               if (prevProject) {
+                    return {
+                         ...prevProject,
+                         projectSummaryCoverURL: imageURL
+                    };
+               }
+               return prevProject;
+          });
+     }
+
+     const onDeleteGalleryImage = async (imageURL: any) => {
 
           const url = imageURL.target.currentSrc.split('?')[0]
 
@@ -420,8 +432,8 @@ export const ProjectSummaryTable = ({ items }: any) => {
           }
 
           setLoading(true);
-
-          const apiUrl = 'http://localhost:3000/api/aws-s3';
+          //use process env
+          const apiUrl = '/api/aws-s3';
 
           try {
                const response = await fetch(apiUrl, {
@@ -439,9 +451,9 @@ export const ProjectSummaryTable = ({ items }: any) => {
                          icon: 'error',
                          confirmButtonColor: '#3085d6',
                          confirmButtonText: 'OK',
-                         didClose() {
-                              handleProjectClose()
-                         }
+                         // didClose() {
+                         //      handleProjectClose()
+                         // }
                     })
                } else {
                     setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
@@ -471,7 +483,65 @@ export const ProjectSummaryTable = ({ items }: any) => {
           }
      }
 
-     const handleFileChange = async (event: any) => {
+     const onDeleteCoverImage = async (imageURL: any) => {
+          const url = imageURL.target.currentSrc.split('?')[0]
+
+          if (!imageURL) {
+               return;
+          }
+
+          setLoading(true);
+
+          const apiUrl = '/api/aws-s3';
+
+          try {
+               const response = await fetch(apiUrl, {
+                    method: 'DELETE',
+                    headers: {
+                         'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(imageURL.target.currentSrc)
+               });
+
+               if (!response.ok) {
+                    Swal.fire({
+                         title: 'Greška, neuspešno brisanje slike!',
+                         text: "Ako niste uploadovali novu sliku, ne možete je ni obrisati!",
+                         icon: 'error',
+                         confirmButtonColor: '#3085d6',
+                         confirmButtonText: 'OK',
+                         // didClose() {
+                         //      handleProjectClose()
+                         // }
+                    })
+               } else {
+                    setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
+                         if (prevProject) {
+                              return {
+                                   ...prevProject,
+                                   projectSummaryCoverURL: ''
+                              };
+                         }
+                         return prevProject;
+                    })
+                    Swal.fire({
+                         title: 'OK',
+                         text: "Uspešno brisanje slike! Potrebno je sad da se uradi izmena projekta!",
+                         icon: 'success',
+                         confirmButtonColor: '#3085d6',
+                         confirmButtonText: 'OK',
+                    })
+
+               }
+
+          } catch (error) {
+               console.error('Error uploading image:', error);
+          } finally {
+               setLoading(false);
+          }
+     }
+
+     const handleGalleryChange = async (event: any) => {
 
           const selectedFile = event.target.files[0];
 
@@ -488,7 +558,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
           // Assuming you have a title for the image
           const title = currentProjectObject?.title!
 
-          const apiUrl = 'http://localhost:3000/api/aws-s3';
+          const apiUrl = '/api/aws-s3';
 
           try {
                const reader = new FileReader();
@@ -528,7 +598,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                          })
                          const result = await response.json();
                          const imageUrl = result.imageUrl;
-                         onAddNewImage(imageUrl);
+                         onAddNewGalleryImage(imageUrl);
                     }
                }
           } catch (error) {
@@ -538,7 +608,74 @@ export const ProjectSummaryTable = ({ items }: any) => {
           }
      };
 
-     const onImageClick = (imageURL: any) => {
+     const handleCoverChange = async (event: any) => {
+
+          const selectedFile = event.target.files[0];
+
+          if (!selectedFile) {
+               return;
+          }
+
+          setLoading(true);
+          setSelectedImage(selectedFile);
+
+          // Extract file extension
+          const fileExtension = selectedFile.name.split('.')[1]
+
+          // Assuming you have a title for the image
+          const title = currentProjectObject?.title!
+
+          const apiUrl = '/api/aws-s3';
+
+          try {
+               const reader = new FileReader();
+               reader.readAsDataURL(selectedFile);
+               reader.onloadend = async () => {
+                    const base64Data = reader.result;
+                    const data = {
+                         file: base64Data,
+                         title: title,
+                         extension: fileExtension,
+                         fileName: selectedFile.name
+                    };
+
+                    const response = await fetch(apiUrl, {
+                         method: 'POST',
+                         headers: {
+                              'Content-Type': 'application/json'
+                         },
+                         body: JSON.stringify(data),
+                    });
+
+                    if (!response.ok) {
+                         Swal.fire({
+                              title: 'Greška',
+                              text: "Neuspešan upload slike!",
+                              icon: 'error',
+                              confirmButtonColor: '#3085d6',
+                              confirmButtonText: 'OK',
+                         })
+                    } else {
+                         Swal.fire({
+                              title: 'OK',
+                              text: "Uspešan upload slike!",
+                              icon: 'success',
+                              confirmButtonColor: '#3085d6',
+                              confirmButtonText: 'OK',
+                         })
+                         const result = await response.json();
+                         const imageUrl = result.imageUrl;
+                         onAddNewCoverImage(imageUrl);
+                    }
+               }
+          } catch (error) {
+               console.error('Error uploading image:', error);
+          } finally {
+               setLoading(false);
+          }
+     };
+
+     const onGalleryImageClick = (imageURL: any) => {
 
           Swal.fire({
                title: 'Da li ste sigurni da želite da obrišete sliku?',
@@ -551,9 +688,29 @@ export const ProjectSummaryTable = ({ items }: any) => {
                cancelButtonText: 'Odustani!'
           }).then((result) => {
                if (result.isConfirmed) {
-                    onDeleteImage(imageURL)
+                    onDeleteGalleryImage(imageURL)
                } else {
-                    handleProjectClose()
+                    // handleProjectClose()
+               }
+          })
+     }
+
+     const onCoverImageClick = (imageURL: any) => {
+
+          Swal.fire({
+               title: 'Da li ste sigurni da želite da obrišete sliku?',
+               text: "Možete obrisati samo sliku koju ste uploadovali!",
+               icon: 'warning',
+               showCancelButton: true,
+               confirmButtonColor: '#3085d6',
+               cancelButtonColor: '#d33',
+               confirmButtonText: 'Da, obriši!',
+               cancelButtonText: 'Odustani!'
+          }).then((result) => {
+               if (result.isConfirmed) {
+                    onDeleteCoverImage(imageURL)
+               } else {
+                    // handleProjectClose()
                }
           })
      }
@@ -752,20 +909,16 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', marginBottom: '30px' }}>
                                                                                           {/* -------------------------slike------------------------------------------ */}
                                                                                           {
-                                                                                               currentProjectObject?.gallery && currentProjectObject.gallery.length > 0 && (
-                                                                                                    <ImageList sx={{ width: 500, height: 450 }} cols={3} rowHeight={164}>
-                                                                                                         {currentProjectObject.gallery.map((item: any) => (
-                                                                                                              <ImageListItem key={Math.floor(Math.random() * 1000000)}>
-                                                                                                                   <img
-                                                                                                                        // srcSet={`${item.img}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
-                                                                                                                        src={`${item}?w=164&h=164&fit=crop&auto=format`}
-                                                                                                                        alt={'image'}
-                                                                                                                        loading="lazy"
-                                                                                                                        onClick={(e: any) => onImageClick(e)}
-                                                                                                                   />
-                                                                                                              </ImageListItem>
-                                                                                                         ))}
-                                                                                                    </ImageList>
+                                                                                               currentProjectObject?.projectSummaryCoverURL && (
+                                                                                                    <ImageListItem key={Math.floor(Math.random() * 1000000)}>
+                                                                                                         <img
+                                                                                                              src={`${currentProjectObject?.projectSummaryCoverURL.toString()}`}
+                                                                                                              alt={'image'}
+                                                                                                              loading="lazy"
+                                                                                                              onClick={(e: any) => onCoverImageClick(e)}
+                                                                                                              style={{ cursor: 'pointer', width: '100px', height: '200px', borderRadius: '10px', marginBottom: '10px' }}
+                                                                                                         />
+                                                                                                    </ImageListItem>
                                                                                                )
                                                                                           }
 
@@ -774,7 +927,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                                startIcon={<CloudUploadIcon />}
                                                                                                sx={{ maxWidth: '150px' }}
                                                                                           >
-                                                                                               Ucitaj sliku
+                                                                                               Učitaj sliku
                                                                                                <Input
                                                                                                     type="file"
                                                                                                     inputProps={{ accept: 'image/*' }}
@@ -789,7 +942,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                                          whiteSpace: 'nowrap',
                                                                                                          width: 1,
                                                                                                     }}
-                                                                                                    onChange={async (e: any) => await handleFileChange(e)}
+                                                                                                    onChange={async (e: any) => await handleCoverChange(e)}
                                                                                                />
                                                                                           </Button>
 
@@ -848,7 +1001,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      <TextField
                                                                                           defaultValue={project.locations}
                                                                                           fullWidth
-                                                                                          label={`Lokacije projekta`}
+                                                                                          label={`Lokacije projekta (odvojiti zarezom)`}
                                                                                           name="name"
                                                                                           disabled={loading}
                                                                                           onBlur={(e: any) => {
@@ -865,7 +1018,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      <TextField
                                                                                           defaultValue={project.applicants}
                                                                                           fullWidth
-                                                                                          label={`Aplikanti projekta`}
+                                                                                          label={`Aplikanti projekta (odvojiti zarezom)`}
                                                                                           name="name"
                                                                                           disabled={loading}
                                                                                           onBlur={(e: any) => {
@@ -882,7 +1035,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      <TextField
                                                                                           defaultValue={project.donators}
                                                                                           fullWidth
-                                                                                          label={`Donatori projekta`}
+                                                                                          label={`Donatori projekta (odvojiti zarezom)`}
                                                                                           name="name"
                                                                                           disabled={loading}
                                                                                           onBlur={(e: any) => {
@@ -899,7 +1052,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      <TextField
                                                                                           defaultValue={project.publications}
                                                                                           fullWidth
-                                                                                          label={`Publikacije projekta`}
+                                                                                          label={`Publikacije projekta (odvojiti zarezom)`}
                                                                                           name="name"
                                                                                           disabled={loading}
                                                                                           onBlur={(e: any) => {
@@ -916,7 +1069,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      <TextField
                                                                                           defaultValue={project.links}
                                                                                           fullWidth
-                                                                                          label={`Linkovi`}
+                                                                                          label={`Linkovi (odvojiti zarezom)`}
                                                                                           name="name"
                                                                                           disabled={loading}
                                                                                           onBlur={(e: any) => {
@@ -990,7 +1143,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      md={6}
                                                                                      xs={12}
                                                                                 >
-                                                                                     <Typography sx={{ margin: '10px' }}>Opisi:</Typography>
+                                                                                     <Typography sx={{ margin: '10px' }}>Pasusi (broj pasusa treba da bude jednak broju podnaslova):</Typography>
                                                                                      {
                                                                                           currentProjectObject?.projectSummaryDescriptions.map((description: any, index: any) => (
                                                                                                <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
@@ -1037,6 +1190,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      xs={12}
                                                                                 >
                                                                                      <Typography sx={{ margin: '10px' }}>Vremena odrzavanja projektnih aktivnosti (MM/DD/YYYY):</Typography>
+                                                                                     <Typography sx={{ margin: '10px' }}>Broj vremena treba da bude jednak broju podnaslova</Typography>
                                                                                      {
 
                                                                                           currentProjectObject?.projectSummaryDateTime.map((date: any, index: any) => (
@@ -1084,19 +1238,20 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                 </Grid>
                                                                                 <Divider />
                                                                                 <Typography sx={{ margin: '10px' }}>Slike:</Typography>
-                                                                                <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', marginBottom: '30px' }}>
+                                                                                <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', marginBottom: '50px', width: '90%' }}>
                                                                                      {/* -------------------------slike------------------------------------------ */}
                                                                                      {
                                                                                           currentProjectObject?.gallery && currentProjectObject.gallery.length > 0 && (
-                                                                                               <ImageList sx={{ width: 500, height: 450 }} cols={3} rowHeight={164}>
+                                                                                               <ImageList sx={{ width: '90%', height: 450 }} cols={theme.breakpoints.down('sm') ? 4 : 1} rowHeight={164}>
                                                                                                     {currentProjectObject.gallery.map((item: any) => (
-                                                                                                         <ImageListItem key={Math.floor(Math.random() * 1000000)}>
+                                                                                                         <ImageListItem key={Math.floor(Math.random() * 1000000)} sx={{ margin: '20px 10px 150px 0' }}>
                                                                                                               <img
                                                                                                                    // srcSet={`${item.img}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
-                                                                                                                   src={`${item}?w=164&h=164&fit=crop&auto=format`}
+                                                                                                                   src={`${item}`}
                                                                                                                    alt={'image'}
                                                                                                                    loading="lazy"
-                                                                                                                   onClick={(e: any) => onImageClick(e)}
+                                                                                                                   onClick={(e: any) => onGalleryImageClick(e)}
+                                                                                                                   style={{ cursor: 'pointer', width: '200px', height: '400px', borderRadius: '10px' }}
                                                                                                               />
                                                                                                          </ImageListItem>
                                                                                                     ))}
@@ -1107,7 +1262,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      <Button component="label"
                                                                                           variant="contained"
                                                                                           startIcon={<CloudUploadIcon />}
-                                                                                          sx={{ maxWidth: '150px' }}
+                                                                                          sx={{ maxWidth: '150px', marginTop: '40px' }}
                                                                                      >
                                                                                           Ucitaj sliku
                                                                                           <Input
@@ -1124,7 +1279,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                                     whiteSpace: 'nowrap',
                                                                                                     width: 1,
                                                                                                }}
-                                                                                               onChange={async (e: any) => await handleFileChange(e)}
+                                                                                               onChange={async (e: any) => await handleGalleryChange(e)}
                                                                                           />
                                                                                      </Button>
 

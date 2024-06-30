@@ -17,8 +17,6 @@ export const config = {
 
 export const extractInfoFromUrl = (url: string) => {
 
-     console.log(url);
-
      let splitUrl = url.split('.com/')[1].split('?')[0]
 
      let key = splitUrl.replace(/%20/g, " ")

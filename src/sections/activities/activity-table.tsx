@@ -321,7 +321,7 @@ export const ActivityTable = ({ items }: any) => {
 
           setLoading(true);
 
-          const apiUrl = 'http://localhost:3000/api/aws-s3';
+          const apiUrl = '/api/aws-s3';
 
           try {
                const response = await fetch(apiUrl, {
@@ -388,7 +388,7 @@ export const ActivityTable = ({ items }: any) => {
           // Assuming you have a title for the image
           const title = currentActivityObject?.title!
 
-          const apiUrl = 'http://localhost:3000/api/aws-s3';
+          const apiUrl = '/api/aws-s3';
 
           try {
                const reader = new FileReader();
