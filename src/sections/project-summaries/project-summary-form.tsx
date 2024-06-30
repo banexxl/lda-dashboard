@@ -1,16 +1,12 @@
 import React, { useState } from 'react';
-import { Field, FieldArray } from 'formik';
 import { TextField, Typography, Button, Box, Grid, MenuItem, IconButton, FormControl, InputLabel, Select, Divider } from '@mui/material'
 import { Form, Formik } from 'formik';
 import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2'
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddBoxIcon from '@mui/icons-material/AddBox';
 import "@uploadthing/react/styles.css";
 import ProjectSummarySchema, { initialProjectSummary } from './project-summary-type';
 import { DateField } from '@mui/x-date-pickers/DateField';
 import { sanitizeString } from '@/utils/url-creator';
-import moment from 'moment';
 
 export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
 
@@ -65,45 +61,6 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
           }
 
      }
-
-     const handleAddSubtitle = (arrayHelpers: any) => {
-          arrayHelpers.push('');
-          setSubtitles([...subtitles, '']);
-          setDisabledAddButtons([...disabledAddButtons, false]);
-     };
-
-     const handleAddUrl = (index: any) => {
-          const sanitizedValue = subtitles[index]
-               .replace(/[^a-zA-Z0-9čćžšđČĆŽŠĐ\s]/g, '') // Keep alphanumeric, Serbian Latinic letters and spaces
-               .replace(/\s+/g, ' '); // Replace multiple spaces with a single space
-          const newUrl = sanitizeString(sanitizedValue);
-          const updatedURLs = [...projectSummarySubtitleURLs];
-          updatedURLs[index] = newUrl;
-          setProjectSummarySubtitleURLs(updatedURLs);
-          //formik.setFieldValue('projectSummarySubtitleURLs', updatedURLs);
-          setDisabledAddButtons((prev: any) => {
-               const updatedDisabledButtons = [...prev];
-               updatedDisabledButtons[index] = true;
-               return updatedDisabledButtons;
-          });
-     };
-
-     const handleRemoveSubtitle = (arrayHelpers: any, index: number) => {
-          arrayHelpers.remove(index);
-          const updatedURLs = [...projectSummarySubtitleURLs];
-          updatedURLs.splice(index, 1);
-          setProjectSummarySubtitleURLs(updatedURLs);
-          setSubtitles((prev) => {
-               const updatedSubtitles = [...prev];
-               updatedSubtitles.splice(index, 1);
-               return updatedSubtitles;
-          });
-          setDisabledAddButtons((prev) => {
-               const updatedDisabledButtons = [...prev];
-               updatedDisabledButtons.splice(index, 1);
-               return updatedDisabledButtons;
-          });
-     };
 
      return (
           <Box >
@@ -202,7 +159,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                    <TextField
                                         InputLabelProps={{ shrink: true }}
                                         fullWidth
-                                        label="Organizatori"
+                                        label="Organizatori (odvojeni zarezom)"
                                         name="organizers"
                                         onBlur={(e) => {
                                              const { value } = e.target;
@@ -217,7 +174,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                    <TextField
                                         InputLabelProps={{ shrink: true }}
                                         fullWidth
-                                        label="Lokacije"
+                                        label="Lokacije (odvojeni zarezom)"
                                         name="locations"
                                         onBlur={(e) => {
                                              const { value } = e.target;
@@ -232,7 +189,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                    <TextField
                                         InputLabelProps={{ shrink: true }}
                                         fullWidth
-                                        label="Aplikanti"
+                                        label="Aplikanti (odvojeni zarezom)"
                                         name="applicants"
                                         onBlur={(e) => {
                                              const { value } = e.target;
@@ -247,7 +204,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                    <TextField
                                         InputLabelProps={{ shrink: true }}
                                         fullWidth
-                                        label="Donatori"
+                                        label="Donatori (odvojeni zarezom)"
                                         name="donators"
                                         onBlur={(e) => {
                                              const { value } = e.target;
@@ -262,7 +219,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                    <TextField
                                         InputLabelProps={{ shrink: true }}
                                         fullWidth
-                                        label="Publikacije"
+                                        label="Publikacije (odvojeni zarezom)"
                                         name="publications"
                                         onBlur={(e) => {
                                              const { value } = e.target;
@@ -277,7 +234,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                    <TextField
                                         InputLabelProps={{ shrink: true }}
                                         fullWidth
-                                        label="Linkovi"
+                                        label="Linkovi (odvojeni zarezom)"
                                         name="links"
                                         onBlur={(e) => {
                                              const { value } = e.target;

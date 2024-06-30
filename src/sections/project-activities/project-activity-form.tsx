@@ -76,11 +76,9 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
                          (formik) => (
                               <Form style={{ display: 'flex', flexDirection: 'column', gap: '15px', opacity: loading ? .5 : 1 }}>
 
-
                                    <Typography>
                                         {`${JSON.stringify(formik.errors)}`}
                                    </Typography>
-
 
                                    <TextField
                                         InputLabelProps={{ shrink: true }}
@@ -89,8 +87,11 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
                                         // value={formik.values.title}
                                         disabled={loading}
                                         onBlur={(e: any) => {
-                                             formik.setFieldValue('title', e.target.value)
-                                             formik.setFieldValue('projectURL', sanitizeString(e.target.value))
+                                             const sanitizedValue = e.target.value
+                                                  .replace(/[^a-zA-Z0-9čćžšđČĆŽŠĐ\s]/g, '') // Keep alphanumeric, Serbian Latinic letters and spaces
+                                                  .replace(/\s+/g, ' ');
+                                             formik.setFieldValue('title', sanitizedValue)
+                                             formik.setFieldValue('projectURL', sanitizeString(sanitizedValue))
                                         }}
                                         error={formik.touched.title && !!formik.errors.title}
                                         helperText={formik.touched.title && formik.errors.title}
@@ -99,11 +100,11 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
                                    <TextField
                                         InputLabelProps={{ shrink: true }}
                                         disabled
-                                        label="URL projekta"
+                                        label="URL projektne aktivnosti"
                                         name="projectActivityURL"
                                         multiline
                                         rows={4}
-                                        value={formik.values.projectURL}
+                                        value={'/projektna-aktivnost/' + formik.values.projectURL}
                                    />
 
                                    <FormControl fullWidth>
@@ -130,6 +131,7 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
                                              value={formik.values.locale}
                                              select
                                              label="Jezik"
+                                             disabled
                                              name='locale'
                                              onChange={(e) => {
                                                   formik.setFieldValue('locale', e.target.value)
@@ -149,14 +151,15 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
                                    />
 
                                    <FormControl fullWidth>
-                                        <InputLabel id="demo-simple-select-label">Kategorija</InputLabel>
-                                        <Select
+
+                                        <TextField
                                              name='category'
                                              id="demo-simple-select"
+                                             label="Kategorija"
                                              value={formik.values.category}
+                                             select
                                              onChange={formik.handleChange}
                                              error={formik.touched.category && !!formik.errors.category}
-                                             variant='outlined'
                                              sx={{ borderColor: 'white' }}
                                         >
                                              <MenuItem value={''}>Poništi</MenuItem>
@@ -168,9 +171,10 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
                                              <MenuItem value={'migrations'}>Migracije</MenuItem>
                                              <MenuItem value={'youth'}>Omladina</MenuItem>
                                              <MenuItem value={'other'}>Ostalo</MenuItem>
-                                        </Select>
+                                        </TextField>
                                    </FormControl>
 
+                                   <InputLabel id="showProjectDetails">Prikazi detalje projekta</InputLabel>
                                    <Checkbox
                                         name="showProjectDetails"
                                         defaultChecked={formik.values.showProjectDetails}
@@ -236,7 +240,7 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
                                    >
                                         <Typography sx={{ margin: '10px' }}>Linkovi:</Typography>
                                         <FieldArray
-                                             name={'list'}
+                                             name={'links'}
                                              render={arrayHelpers => (
                                                   formik.values?.links.length > 0 ?
                                                        formik.values?.links.map((link: any, index: any) => (
@@ -272,7 +276,7 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
                                    >
                                         <Typography sx={{ margin: '10px' }}>Pasusi:</Typography>
                                         <FieldArray
-                                             name={'list'}
+                                             name={'paragraphs'}
                                              render={arrayHelpers => (
                                                   formik.values?.paragraphs.length > 0 ?
                                                        formik.values?.paragraphs.map((paragraph: any, index: any) => (
@@ -308,7 +312,7 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
                                    >
                                         <Typography sx={{ margin: '10px' }}>Lokacije:</Typography>
                                         <FieldArray
-                                             name={'list'}
+                                             name={'locations'}
                                              render={arrayHelpers => (
                                                   formik.values?.locations.length > 0 ?
                                                        formik.values?.locations.map((location: any, index: any) => (
@@ -344,7 +348,7 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
                                    >
                                         <Typography sx={{ margin: '10px' }}>Aplikanti:</Typography>
                                         <FieldArray
-                                             name={'list'}
+                                             name={'applicants'}
                                              render={arrayHelpers => (
                                                   formik.values?.applicants.length > 0 ?
                                                        formik.values?.applicants.map((applicant: any, index: any) => (
@@ -380,7 +384,7 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
                                    >
                                         <Typography sx={{ margin: '10px' }}>Organizatori:</Typography>
                                         <FieldArray
-                                             name={'list'}
+                                             name={'organizers'}
                                              render={arrayHelpers => (
                                                   formik.values?.organizers.length > 0 ?
                                                        formik.values?.organizers.map((organizer: any, index: any) => (
@@ -416,7 +420,7 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
                                    >
                                         <Typography sx={{ margin: '10px' }}>Pod Organizatori:</Typography>
                                         <FieldArray
-                                             name={'list'}
+                                             name={'subOrganizers'}
                                              render={arrayHelpers => (
                                                   formik.values?.subOrganizers.length > 0 ?
                                                        formik.values?.subOrganizers.map((subOrganizer: any, index: any) => (
@@ -452,7 +456,7 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
                                    >
                                         <Typography sx={{ margin: '10px' }}>Donatori:</Typography>
                                         <FieldArray
-                                             name={'list'}
+                                             name={'donators'}
                                              render={arrayHelpers => (
                                                   formik.values?.donators.length > 0 ?
                                                        formik.values?.donators.map((donator: any, index: any) => (
@@ -488,7 +492,7 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
                                    >
                                         <Typography sx={{ margin: '10px' }}>Publikacije:</Typography>
                                         <FieldArray
-                                             name={'list'}
+                                             name={'publications'}
                                              render={arrayHelpers => (
                                                   formik.values?.publications.length > 0 ?
                                                        formik.values?.publications.map((publication: any, index: any) => (
