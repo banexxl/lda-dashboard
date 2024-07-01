@@ -21,24 +21,26 @@ export const authOptions = {
      callbacks: {
           async signIn({ account, profile }: any) {
                // Check if account exists on MongoDB and if so, return true
+
                if (account.provider === "google") {
                     const user = await UserServices().getUserByEmail(profile.email)
-                    console.log('user', user[0]);
-                    console.log(profile.email_verified)
-                    console.log(profile.email.endsWith("@gmail.com"))
-                    console.log(user[0].email ? true : false)
-
-                    return profile.email_verified && profile.email.endsWith("@gmail.com") && user[0].email ? true : false;
+                    return profile.email_verified && profile.email.endsWith("@gmail.com") && user?.email ? true : false;
                }
                return false; // Do different verification for other providers that don't have `email_verified`
           },
-          async session({ session, token, user }: any) {
-               const sessionUser = await UserServices().getUserByEmail(user.email);
-               if (sessionUser.length > 0) {
-                    session.user.id = sessionUser[0]._id;
+          async session({ session, token }: any) {
+               const sessionUser = await UserServices().getUserByEmail(session.user.email);
+
+               if (sessionUser) {
+                    session.user.id = sessionUser._id;
                }
                return session;
           },
+          async redirect({ url, baseUrl }: any) {
+               const redirectUrl = url.startsWith('/') ? new URL(url, baseUrl).toString() : url;
+               console.log(`[next-auth] Redirecting to "${redirectUrl}" (resolved from url "${url}" and baseUrl "${baseUrl}")`);
+               return redirectUrl;
+          }
      }
 }
 export default NextAuth(authOptions);
