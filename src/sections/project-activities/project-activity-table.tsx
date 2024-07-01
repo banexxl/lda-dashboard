@@ -189,7 +189,7 @@ export const ProjectActivityTable = (props: any) => {
                     method: 'DELETE',
                     headers: {
                          'Content-Type': 'application/json',
-                         'Access-Control-Allow-Origin': 'https://dar-pharmacy-dashboard.vercel.app/api/project-api, http://localhost:3000/api/project-api',
+                         'Access-Control-Allow-Origin': 'https://lda-dashboard.vercel.app/api/project-api, http://localhost:3000/api/project-api',
                          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS' // Set the content type to JSON
                     },
                     body: JSON.stringify(currentProjectID), // Convert your data to JSON

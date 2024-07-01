@@ -179,7 +179,7 @@ export const ActivityTable = ({ items }: any) => {
                     method: 'DELETE',
                     headers: {
                          'Content-Type': 'application/json',
-                         'Access-Control-Allow-Origin': 'https://dar-pharmacy-dashboard.vercel.app/api/activity-api, http://localhost:3000/api/activity-api',
+                         'Access-Control-Allow-Origin': 'https://lda-dashboard.vercel.app/, http://localhost:3000/api/activity-api',
                          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS' // Set the content type to JSON
                     },
                     body: JSON.stringify(currentActivityID), // Convert your data to JSON
