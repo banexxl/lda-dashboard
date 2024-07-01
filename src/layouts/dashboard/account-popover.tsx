@@ -2,17 +2,17 @@ import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import PropTypes from 'prop-types';
 import { Box, Divider, MenuItem, MenuList, Popover, Typography } from '@mui/material';
-import { useSession } from 'next-auth/react';
+import { useSession, signOut } from 'next-auth/react';
 
 export const AccountPopover = (props: any) => {
      const { anchorEl, onClose, open } = props;
      const router = useRouter();
-     const auth: any = useSession()
+     const auth = useSession()
 
      const handleSignOut = useCallback(
           () => {
                onClose?.();
-               auth.signOut();
+               signOut()
                window.sessionStorage.setItem('authenticated', 'false')
                router.push('/auth/login');
           },
@@ -43,14 +43,14 @@ export const AccountPopover = (props: any) => {
                          color="text.secondary"
                          variant="body2"
                     >
-                         {auth.user?.name}
+                         {auth.data?.user?.name}
 
                     </Typography>
                     <Typography
                          color="text.secondary"
                          variant="body2"
                     >
-                         {auth.user?.email}
+                         {auth.data?.user?.email}
                     </Typography>
                </Box>
                <Divider />
