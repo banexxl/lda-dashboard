@@ -3,6 +3,7 @@ import { useRouter } from 'next/navigation';
 import PropTypes from 'prop-types';
 import { Box, Divider, MenuItem, MenuList, Popover, Typography } from '@mui/material';
 import { useSession, signOut } from 'next-auth/react';
+import Image from 'next/image';
 
 export const AccountPopover = (props: any) => {
      const { anchorEl, onClose, open } = props;
@@ -13,7 +14,6 @@ export const AccountPopover = (props: any) => {
           () => {
                onClose?.();
                signOut()
-               window.sessionStorage.setItem('authenticated', 'false')
                router.push('/auth/login');
           },
           [onClose, auth, router]
@@ -28,7 +28,7 @@ export const AccountPopover = (props: any) => {
                }}
                onClose={onClose}
                open={open}
-               PaperProps={{ sx: { width: 200 } }}
+               PaperProps={{ sx: { width: 300 } }}
           >
                <Box
                     sx={{
@@ -52,6 +52,7 @@ export const AccountPopover = (props: any) => {
                     >
                          {auth.data?.user?.email}
                     </Typography>
+
                </Box>
                <Divider />
                <MenuList

@@ -16,6 +16,7 @@ import {
 import { alpha } from '@mui/material/styles';
 import { usePopover } from 'src/hooks/use-popover';
 import { AccountPopover } from './account-popover';
+import { useSession } from 'next-auth/react';
 
 const SIDE_NAV_WIDTH = 280;
 const TOP_NAV_HEIGHT = 64;
@@ -24,7 +25,7 @@ export const TopNav = (props: any) => {
      const { onNavOpen } = props;
      const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up('lg'));
      const accountPopover = usePopover();
-
+     const auth = useSession()
      return (
           <>
                <Box
@@ -106,7 +107,7 @@ export const TopNav = (props: any) => {
                                         height: 40,
                                         width: 40
                                    }}
-                                   src="/assets/avatars/avatar-anika-visser.png"
+                                   src={`${auth.data?.user?.image}`}
                               />
                          </Stack>
                     </Stack>

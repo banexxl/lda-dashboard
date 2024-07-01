@@ -1088,7 +1088,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                                     defaultValue={subtitle}
                                                                                                     name={`projectSummarySubtitles.${index}`}
                                                                                                     label={`Podnaslov ${index + 1}`}
-                                                                                                    disabled={disabledFields[index]} // Disable based on state
+                                                                                                    disabled={disabledFields[index] || currentProjectObject?.projectSummarySubtitles[index] != ""} // Disable based on state
                                                                                                     inputRef={(el: any) => textFieldSubtitleRefs.current[index] = el}
                                                                                                     InputProps={{
                                                                                                          endAdornment: (
@@ -1101,7 +1101,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                                                                   :
                                                                                                                                   handleAddSubtitle(index, currentValue);
                                                                                                                         }}
-                                                                                                                        disabled={disabledFields[index]} // Disable based on state
+                                                                                                                        disabled={disabledFields[index] || currentProjectObject?.projectSummarySubtitles[index] != ""} // Disable based on state
                                                                                                                    >
                                                                                                                         <AddBoxIcon />
                                                                                                                    </IconButton>
@@ -1152,7 +1152,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                                          defaultValue={description}
                                                                                                          name={`projectSummaryDescriptions.${index}`}
                                                                                                          label={`Prvi pasus iz teksta ${index + 1}`}
-                                                                                                         disabled={disabledDescriptions[index]} // Disable based on state
+                                                                                                         disabled={disabledDescriptions[index] || currentProjectObject?.projectSummaryDescriptions[index] != ""} // Disable based on state
                                                                                                          inputRef={(el: any) => textFieldDescriptionRefs.current[index] = el}
                                                                                                          InputProps={{
                                                                                                               endAdornment: (
@@ -1162,7 +1162,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                                                                   const currentValue = getDescriptionInputValue(index);
                                                                                                                                   handleAddNewDescription(index, currentValue);
                                                                                                                              }}
-                                                                                                                             disabled={disabledDescriptions[index]} // Disable based on state
+                                                                                                                             disabled={disabledDescriptions[index] || currentProjectObject?.projectSummaryDescriptions[index] != ""} // Disable based on state
                                                                                                                         >
                                                                                                                              <AddBoxIcon />
                                                                                                                         </IconButton>
@@ -1199,7 +1199,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                                               format='MM/DD/YYYY'
                                                                                                               InputLabelProps={{ shrink: true }}
                                                                                                               fullWidth
-                                                                                                              disabled={disabledDateTime[index]}
+                                                                                                              disabled={disabledDateTime[index] || currentProjectObject?.projectSummaryDateTime[index] != ""}
                                                                                                               label={`Datum ${index + 1}`}
                                                                                                               defaultValue={dayjs(currentProjectObject.projectSummaryDateTime[index])}
                                                                                                               inputRef={(el) => (textFieldDateTimeRefs.current[index] = el)}
@@ -1215,7 +1215,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                                                                        const currentValue = getDateTimeInputValue(index);
                                                                                                                                        onAddNewSubtitleDateTime(index, currentValue);
                                                                                                                                   }}
-                                                                                                                                  disabled={disabledDateTime[index]} // Disable based on state
+                                                                                                                                  disabled={disabledDateTime[index] || currentProjectObject?.projectSummaryDateTime[index] != ""} // Disable based on state
                                                                                                                              >
                                                                                                                                   <AddBoxIcon />
                                                                                                                              </IconButton>
