@@ -70,7 +70,6 @@ export const ProjectSummaryTable = ({ items }: any) => {
 
      const getSubtitleInputValue = (index: number) => {
           if (textFieldSubtitleRefs.current[index]) {
-               console.log(textFieldSubtitleRefs.current[index].value);
 
                return textFieldSubtitleRefs.current[index].value;
           }
@@ -284,7 +283,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
 
                // Update the empty string with the actual subtitle
                newSubtitles[index] = subtitle;
-               newSubtitlesURLs[index] = sanitizeString(subtitle);
+               newSubtitlesURLs[index] = '/projektna-aktivnost/' + sanitizeString(subtitle);
                setCurrentProjectObject({
                     ...currentProjectObject,
                     projectSummarySubtitles: newSubtitles,
