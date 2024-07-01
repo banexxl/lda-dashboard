@@ -4,6 +4,7 @@ import PropTypes from 'prop-types';
 import ArrowTopRightOnSquareIcon from '@heroicons/react/24/solid/ArrowTopRightOnSquareIcon';
 import ChevronUpDownIcon from '@heroicons/react/24/solid/ChevronUpDownIcon';
 import {
+     Avatar,
      Box,
      Button,
      Divider,
@@ -42,7 +43,7 @@ export const SideNav = (props: any) => {
                          height: '100%'
                     }}
                >
-                    <Box sx={{ p: 3, display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+                    <Box sx={{ p: 3, display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
                          <Box
                               component={NextLink}
                               href="/"
@@ -52,44 +53,21 @@ export const SideNav = (props: any) => {
                                    width: 32
                               }}
                          >
-                              <Logo />
+                              {/* <Logo /> */}
+                              <Avatar
+                                   sx={{
+                                        cursor: 'pointer',
+                                        height: 40,
+                                        width: 40
+                                   }}
+                                   src={`https://lda-subotica.org/_next/static/media/logo-small.c5e8653b.png`}
+                              />
                          </Box>
-                         {/* <Box
-                                                            sx={{
-                                                                      alignItems: 'center',
-                                                                      backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                                                                      borderRadius: 1,
-                                                                      cursor: 'pointer',
-                                                                      display: 'flex',
-                                                                      justifyContent: 'space-between',
-                                                                      mt: 2,
-                                                                      p: '12px'
-                                                            }}
-                                                  >
-                                                            <div>
-                                                                      <Typography
-                                                                                color="inherit"
-                                                                                variant="subtitle1"
-                                                                      >
-                                                                                Devias
-                                                                      </Typography>
-                                                                      <Typography
-                                                                                color="neutral.400"
-                                                                                variant="body2"
-                                                                      >
-                                                                                Production
-                                                                      </Typography>
-                                                            </div>
-                                                            <SvgIcon
-                                                                      fontSize="small"
-                                                                      sx={{ color: 'neutral.500' }}
-                                                            >
-                                                                      <ChevronUpDownIcon />
-                                                            </SvgIcon>
-                                                  </Box> */}
+
                          <Typography
                               color="primary.main"
-                              variant="h5">
+                              variant="h6"
+                         >
                               LDA Subotica
                          </Typography>
                     </Box>

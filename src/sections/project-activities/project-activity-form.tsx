@@ -238,34 +238,19 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
                                         md={6}
                                         xs={12}
                                    >
-                                        <Typography sx={{ margin: '10px' }}>Linkovi:</Typography>
-                                        <FieldArray
-                                             name={'links'}
-                                             render={arrayHelpers => (
-                                                  formik.values?.links.length > 0 ?
-                                                       formik.values?.links.map((link: any, index: any) => (
-                                                            <Box sx={{ display: 'flex', width: '80%' }}>
-                                                                 <Field
-                                                                      InputLabelProps={{ shrink: true }}
-                                                                      defaultValue={link}
-                                                                      fullWidth
-                                                                      name={`links.${index}`}
-                                                                      label={`Link ${index + 1}`}
-                                                                      disabled={loading}
-                                                                 />
-                                                                 <IconButton onClick={() => arrayHelpers.insert(index + 1, '')}>
-                                                                      <AddBoxIcon />
-                                                                 </IconButton>
-                                                                 <IconButton onClick={() => arrayHelpers.remove(index)}>
-                                                                      <DeleteIcon />
-                                                                 </IconButton>
-                                                            </Box>
-                                                       ))
-                                                       :
-                                                       <IconButton onClick={() => arrayHelpers.push('')}>
-                                                            <AddBoxIcon />
-                                                       </IconButton>
-                                             )}
+                                        <TextField
+                                             InputLabelProps={{ shrink: true }}
+                                             fullWidth
+                                             label="Linkovi (odvojeni zarezom)"
+                                             name="links"
+                                             onBlur={(e) => {
+                                                  const { value } = e.target;
+                                                  const links = value.split(',').map((link) => link.trim());
+                                                  formik.setFieldValue('links', links);
+                                                  formik.handleBlur(e);
+                                             }}
+                                             error={formik.touched.links && !!formik.errors.links}
+                                             helperText={formik.touched.links && formik.errors.links}
                                         />
                                    </Grid>
 
@@ -274,34 +259,19 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
                                         md={6}
                                         xs={12}
                                    >
-                                        <Typography sx={{ margin: '10px' }}>Pasusi:</Typography>
-                                        <FieldArray
-                                             name={'paragraphs'}
-                                             render={arrayHelpers => (
-                                                  formik.values?.paragraphs.length > 0 ?
-                                                       formik.values?.paragraphs.map((paragraph: any, index: any) => (
-                                                            <Box sx={{ display: 'flex', width: '80%' }}>
-                                                                 <Field
-                                                                      InputLabelProps={{ shrink: true }}
-                                                                      defaultValue={paragraph}
-                                                                      fullWidth
-                                                                      name={`paragraphs.${index}`}
-                                                                      label={`Paragraf ${index + 1}`}
-                                                                      disabled={loading}
-                                                                 />
-                                                                 <IconButton onClick={() => arrayHelpers.insert(index + 1, '')}>
-                                                                      <AddBoxIcon />
-                                                                 </IconButton>
-                                                                 <IconButton onClick={() => arrayHelpers.remove(index)}>
-                                                                      <DeleteIcon />
-                                                                 </IconButton>
-                                                            </Box>
-                                                       ))
-                                                       :
-                                                       <IconButton onClick={() => arrayHelpers.push('')}>
-                                                            <AddBoxIcon />
-                                                       </IconButton>
-                                             )}
+                                        <TextField
+                                             InputLabelProps={{ shrink: true }}
+                                             fullWidth
+                                             label="Lokacije (odvojeni zarezom)"
+                                             name="locations"
+                                             onBlur={(e) => {
+                                                  const { value } = e.target;
+                                                  const locations = value.split(',').map((location) => location.trim());
+                                                  formik.setFieldValue('locations', locations);
+                                                  formik.handleBlur(e);
+                                             }}
+                                             error={formik.touched.locations && !!formik.errors.locations}
+                                             helperText={formik.touched.locations && formik.errors.locations}
                                         />
                                    </Grid>
 
@@ -310,34 +280,19 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
                                         md={6}
                                         xs={12}
                                    >
-                                        <Typography sx={{ margin: '10px' }}>Lokacije:</Typography>
-                                        <FieldArray
-                                             name={'locations'}
-                                             render={arrayHelpers => (
-                                                  formik.values?.locations.length > 0 ?
-                                                       formik.values?.locations.map((location: any, index: any) => (
-                                                            <Box sx={{ display: 'flex', width: '80%' }}>
-                                                                 <Field
-                                                                      InputLabelProps={{ shrink: true }}
-                                                                      defaultValue={location}
-                                                                      fullWidth
-                                                                      name={`locations.${index}`}
-                                                                      label={`Lokacije ${index + 1}`}
-                                                                      disabled={loading}
-                                                                 />
-                                                                 <IconButton onClick={() => arrayHelpers.insert(index + 1, '')}>
-                                                                      <AddBoxIcon />
-                                                                 </IconButton>
-                                                                 <IconButton onClick={() => arrayHelpers.remove(index)}>
-                                                                      <DeleteIcon />
-                                                                 </IconButton>
-                                                            </Box>
-                                                       ))
-                                                       :
-                                                       <IconButton onClick={() => arrayHelpers.push('')}>
-                                                            <AddBoxIcon />
-                                                       </IconButton>
-                                             )}
+                                        <TextField
+                                             InputLabelProps={{ shrink: true }}
+                                             fullWidth
+                                             label="Aplikanti (odvojeni zarezom)"
+                                             name="applicants"
+                                             onBlur={(e) => {
+                                                  const { value } = e.target;
+                                                  const applicants = value.split(',').map((applicant) => applicant.trim());
+                                                  formik.setFieldValue('applicants', applicants);
+                                                  formik.handleBlur(e);
+                                             }}
+                                             error={formik.touched.applicants && !!formik.errors.applicants}
+                                             helperText={formik.touched.applicants && formik.errors.applicants}
                                         />
                                    </Grid>
 
@@ -346,34 +301,19 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
                                         md={6}
                                         xs={12}
                                    >
-                                        <Typography sx={{ margin: '10px' }}>Aplikanti:</Typography>
-                                        <FieldArray
-                                             name={'applicants'}
-                                             render={arrayHelpers => (
-                                                  formik.values?.applicants.length > 0 ?
-                                                       formik.values?.applicants.map((applicant: any, index: any) => (
-                                                            <Box sx={{ display: 'flex', width: '80%' }}>
-                                                                 <Field
-                                                                      InputLabelProps={{ shrink: true }}
-                                                                      defaultValue={applicant}
-                                                                      fullWidth
-                                                                      name={`applicants.${index}`}
-                                                                      label={`Aplikanti ${index + 1}`}
-                                                                      disabled={loading}
-                                                                 />
-                                                                 <IconButton onClick={() => arrayHelpers.insert(index + 1, '')}>
-                                                                      <AddBoxIcon />
-                                                                 </IconButton>
-                                                                 <IconButton onClick={() => arrayHelpers.remove(index)}>
-                                                                      <DeleteIcon />
-                                                                 </IconButton>
-                                                            </Box>
-                                                       ))
-                                                       :
-                                                       <IconButton onClick={() => arrayHelpers.push('')}>
-                                                            <AddBoxIcon />
-                                                       </IconButton>
-                                             )}
+                                        <TextField
+                                             InputLabelProps={{ shrink: true }}
+                                             fullWidth
+                                             label="Organizatori (odvojeni zarezom)"
+                                             name="organizers"
+                                             onBlur={(e) => {
+                                                  const { value } = e.target;
+                                                  const organizers = value.split(',').map((organizer: any) => organizer.trim());
+                                                  formik.setFieldValue('organizers', organizers);
+                                                  formik.handleBlur(e);
+                                             }}
+                                             error={formik.touched.organizers && !!formik.errors.organizers}
+                                             helperText={formik.touched.organizers && formik.errors.organizers}
                                         />
                                    </Grid>
 
@@ -382,34 +322,19 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
                                         md={6}
                                         xs={12}
                                    >
-                                        <Typography sx={{ margin: '10px' }}>Organizatori:</Typography>
-                                        <FieldArray
-                                             name={'organizers'}
-                                             render={arrayHelpers => (
-                                                  formik.values?.organizers.length > 0 ?
-                                                       formik.values?.organizers.map((organizer: any, index: any) => (
-                                                            <Box sx={{ display: 'flex', width: '80%' }}>
-                                                                 <Field
-                                                                      InputLabelProps={{ shrink: true }}
-                                                                      defaultValue={organizer}
-                                                                      fullWidth
-                                                                      name={`organizers.${index}`}
-                                                                      label={`Organizator ${index + 1}`}
-                                                                      disabled={loading}
-                                                                 />
-                                                                 <IconButton onClick={() => arrayHelpers.insert(index + 1, '')}>
-                                                                      <AddBoxIcon />
-                                                                 </IconButton>
-                                                                 <IconButton onClick={() => arrayHelpers.remove(index)}>
-                                                                      <DeleteIcon />
-                                                                 </IconButton>
-                                                            </Box>
-                                                       ))
-                                                       :
-                                                       <IconButton onClick={() => arrayHelpers.push('')}>
-                                                            <AddBoxIcon />
-                                                       </IconButton>
-                                             )}
+                                        <TextField
+                                             InputLabelProps={{ shrink: true }}
+                                             fullWidth
+                                             label="Pod Organizatori (odvojeni zarezom)"
+                                             name="subOrganizers"
+                                             onBlur={(e) => {
+                                                  const { value } = e.target;
+                                                  const subOrganizers = value.split(',').map((subOrganizer: any) => subOrganizer.trim());
+                                                  formik.setFieldValue('subOrganizers', subOrganizers);
+                                                  formik.handleBlur(e);
+                                             }}
+                                             error={formik.touched.subOrganizers && !!formik.errors.subOrganizers}
+                                             helperText={formik.touched.subOrganizers && formik.errors.subOrganizers}
                                         />
                                    </Grid>
 
@@ -418,106 +343,19 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
                                         md={6}
                                         xs={12}
                                    >
-                                        <Typography sx={{ margin: '10px' }}>Pod Organizatori:</Typography>
-                                        <FieldArray
-                                             name={'subOrganizers'}
-                                             render={arrayHelpers => (
-                                                  formik.values?.subOrganizers.length > 0 ?
-                                                       formik.values?.subOrganizers.map((subOrganizer: any, index: any) => (
-                                                            <Box sx={{ display: 'flex', width: '80%' }}>
-                                                                 <Field
-                                                                      InputLabelProps={{ shrink: true }}
-                                                                      defaultValue={subOrganizer}
-                                                                      fullWidth
-                                                                      name={`subOrganizers.${index}`}
-                                                                      label={`Pod Organizator ${index + 1}`}
-                                                                      disabled={loading}
-                                                                 />
-                                                                 <IconButton onClick={() => arrayHelpers.insert(index + 1, '')}>
-                                                                      <AddBoxIcon />
-                                                                 </IconButton>
-                                                                 <IconButton onClick={() => arrayHelpers.remove(index)}>
-                                                                      <DeleteIcon />
-                                                                 </IconButton>
-                                                            </Box>
-                                                       ))
-                                                       :
-                                                       <IconButton onClick={() => arrayHelpers.push('')}>
-                                                            <AddBoxIcon />
-                                                       </IconButton>
-                                             )}
-                                        />
-                                   </Grid>
-
-                                   <Grid
-                                        item
-                                        md={6}
-                                        xs={12}
-                                   >
-                                        <Typography sx={{ margin: '10px' }}>Donatori:</Typography>
-                                        <FieldArray
-                                             name={'donators'}
-                                             render={arrayHelpers => (
-                                                  formik.values?.donators.length > 0 ?
-                                                       formik.values?.donators.map((donator: any, index: any) => (
-                                                            <Box sx={{ display: 'flex', width: '80%' }}>
-                                                                 <Field
-                                                                      InputLabelProps={{ shrink: true }}
-                                                                      defaultValue={donator}
-                                                                      fullWidth
-                                                                      name={`donators.${index}`}
-                                                                      label={`Donatori ${index + 1}`}
-                                                                      disabled={loading}
-                                                                 />
-                                                                 <IconButton onClick={() => arrayHelpers.insert(index + 1, '')}>
-                                                                      <AddBoxIcon />
-                                                                 </IconButton>
-                                                                 <IconButton onClick={() => arrayHelpers.remove(index)}>
-                                                                      <DeleteIcon />
-                                                                 </IconButton>
-                                                            </Box>
-                                                       ))
-                                                       :
-                                                       <IconButton onClick={() => arrayHelpers.push('')}>
-                                                            <AddBoxIcon />
-                                                       </IconButton>
-                                             )}
-                                        />
-                                   </Grid>
-
-                                   <Grid
-                                        item
-                                        md={6}
-                                        xs={12}
-                                   >
-                                        <Typography sx={{ margin: '10px' }}>Publikacije:</Typography>
-                                        <FieldArray
-                                             name={'publications'}
-                                             render={arrayHelpers => (
-                                                  formik.values?.publications.length > 0 ?
-                                                       formik.values?.publications.map((publication: any, index: any) => (
-                                                            <Box sx={{ display: 'flex', width: '80%' }}>
-                                                                 <Field
-                                                                      InputLabelProps={{ shrink: true }}
-                                                                      defaultValue={publication}
-                                                                      fullWidth
-                                                                      name={`publications.${index}`}
-                                                                      label={`Publikacija ${index + 1}`}
-                                                                      disabled={loading}
-                                                                 />
-                                                                 <IconButton onClick={() => arrayHelpers.insert(index + 1, '')}>
-                                                                      <AddBoxIcon />
-                                                                 </IconButton>
-                                                                 <IconButton onClick={() => arrayHelpers.remove(index)}>
-                                                                      <DeleteIcon />
-                                                                 </IconButton>
-                                                            </Box>
-                                                       ))
-                                                       :
-                                                       <IconButton onClick={() => arrayHelpers.push('')}>
-                                                            <AddBoxIcon />
-                                                       </IconButton>
-                                             )}
+                                        <TextField
+                                             InputLabelProps={{ shrink: true }}
+                                             fullWidth
+                                             label="Donatori (odvojeni zarezom)"
+                                             name="donators"
+                                             onBlur={(e) => {
+                                                  const { value } = e.target;
+                                                  const donators = value.split(',').map((donator: any) => donator.trim());
+                                                  formik.setFieldValue('donators', donators);
+                                                  formik.handleBlur(e);
+                                             }}
+                                             error={formik.touched.donators && !!formik.errors.donators}
+                                             helperText={formik.touched.donators && formik.errors.donators}
                                         />
                                    </Grid>
 
