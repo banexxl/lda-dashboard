@@ -18,12 +18,7 @@ export const UserServices = () => {
                await client.connect();
                const database = client.db('LDA_DB');
                const collection = await database.collection('Auth').find({ email: email }).toArray();
-               console.log('collection', collection);
-
                const user = collection[0] as User;
-
-               console.log('modifiedCollection', user);
-
                return user;
           } catch (error: any) {
                console.error('Error while fetching count:', error);
