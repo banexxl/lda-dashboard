@@ -14,19 +14,13 @@ export default async function handler(request: NextApiRequest, response: NextApi
                return response.status(200).json({ message: 'Project s found!', data: allProjects });
 
           } else if (request.method === 'POST') {
-               console.log('usao u post', request.body);
-
-               const projectPublishedDate = moment(request.body.published).toISOString()
-
                const newProjectObject = {
                     ...request.body,
-                    published: projectPublishedDate
+                    published: new Date(request.body.published)
                }
 
                try {
                     const res = await dbProjects.insertOne(newProjectObject)
-                    console.log(res);
-
                     return response.status(200).json({ message: 'Project successfully added!' });
                } catch (error) {
                     console.log(error);
@@ -43,35 +37,17 @@ export default async function handler(request: NextApiRequest, response: NextApi
                }
           }
           else if (request.method === 'PUT') {
-               const projectPublished = moment(request.body.published).toISOString()
+               const newProjectObject = {
+                    ...request.body,
+                    published: new Date(request.body.published)
+               }
+               console.log(ObjectId.createFromHexString(request.body._id));
 
                try {
                     const mdbResponse = await dbProjects.updateOne({ _id: ObjectId.createFromHexString(request.body._id) },
                          {
                               $set: {
-                                   _id: request.body._id,
-                                   projectSummaryURL: request.body.projectSummaryURL,
-                                   projectURL: request.body.projectURL,
-                                   links: request.body.links,
-                                   title: request.body.title,
-                                   subTitle: request.body.subTitle,
-                                   paragraphs: request.body.paragraphs,
-                                   category: request.body.category,
-                                   status: request.body.status,
-                                   locations: request.body.locations,
-                                   published: projectPublished,
-                                   favorited: request.body.favorited,
-                                   favoritedNumber: request.body.favoritedNumber,
-                                   organizers: request.body.organizers,
-                                   subOrganizers: request.body.subOrganizers,
-                                   applicants: request.body.applicants,
-                                   donators: request.body.donators,
-                                   publications: request.body.publications,
-                                   gallery: request.body.gallery,
-                                   showProjectDetails: request.body.showProjectDetails,
-                                   listTitle: request.body.listTitle,
-                                   list: request.body.list,
-                                   locale: request.body.locale
+                                   newProjectObject
                               }
                          }
                     )

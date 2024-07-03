@@ -126,9 +126,11 @@ export const ProjectActivityTable = (props: any) => {
      }
 
      const handleUpdateProject = async (currentProjectObject: any) => {
+          console.log(currentProjectObject);
+
           try {
                //API CALL
-               const response = await fetch('/api/project-summaries-api', {
+               const response = await fetch('/api/project-activities-api', {
                     method: 'PUT',
                     headers: {
                          'Content-Type': 'application/json',

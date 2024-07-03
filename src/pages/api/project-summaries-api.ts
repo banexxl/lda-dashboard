@@ -15,13 +15,13 @@ export default async function handler(request: NextApiRequest, response: NextApi
                return response.status(200).json({ message: 'Projects found!', data: allProjects });
 
           } else if (request.method === 'POST') {
-               const projectStart = moment(request.body.projectStartDateTime).toISOString()
-               const projectEnd = moment(request.body.projectEndDateTime).toISOString()
-               const projectSummarySubtitlesDate = request.body.projectSummaryDateTime.map((date: string) => moment(date).toISOString())
+               const projectStart = moment(request.body.projectStartDateTime)
+               const projectEnd = moment(request.body.projectEndDateTime)
+               const projectSummarySubtitlesDate = request.body.projectSummaryDateTime.map((date: string) => moment(date))
                const newProjectObject = {
                     ...request.body,
-                    projectStartDateTime: projectStart,
-                    projectEndDateTime: projectEnd,
+                    projectStartDateTime: new Date(request.body.projectStartDateTime),
+                    projectEndDateTime: new Date(request.body.projectEndDateTime),
                     projectSummaryDateTime: projectSummarySubtitlesDate
                }
 
@@ -43,8 +43,6 @@ export default async function handler(request: NextApiRequest, response: NextApi
                }
           }
           else if (request.method === 'PUT') {
-               const projectStart = moment(request.body.projectStartDateTime).toISOString()
-               const projectEnd = moment(request.body.projectEndDateTime).toISOString()
                const projectSummarySubtitlesDates = request.body.projectSummaryDateTime.map((date: string) => moment(date).toISOString())
                try {
                     const mdbResponse = await dbProjectSummaries.updateOne({ _id: ObjectId.createFromHexString(request.body._id) },
@@ -54,8 +52,8 @@ export default async function handler(request: NextApiRequest, response: NextApi
                                    projectSummaryCoverURL: request.body.projectSummaryCoverURL,
                                    status: request.body.status,
                                    gallery: request.body.gallery,
-                                   projectEndDateTime: projectEnd,
-                                   projectStartDateTime: projectStart,
+                                   projectEndDateTime: new Date(request.body.projectEndDateTime),
+                                   projectStartDateTime: new Date(request.body.projectStartDateTime),
                                    organizers: request.body.organizers,
                                    locations: request.body.locations,
                                    applicants: request.body.applicants,
