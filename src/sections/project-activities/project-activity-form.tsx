@@ -103,7 +103,7 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                         name="projectActivityURL"
                                         multiline
                                         rows={4}
-                                        value={'/projektna-aktivnost/' + formik.values.projectURL}
+                                        value={formik.values.projectURL}
                                    />
 
                                    <FormControl fullWidth>
