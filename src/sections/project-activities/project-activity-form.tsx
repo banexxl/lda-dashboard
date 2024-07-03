@@ -12,7 +12,7 @@ import { DateField } from '@mui/x-date-pickers/DateField';
 import { sanitizeString } from '@/utils/url-creator';
 import moment from 'moment';
 
-export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
+export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectSummaries }: any) => {
 
      const router = useRouter();
      const [loading, setLoading] = useState<any>(false)
@@ -21,7 +21,7 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
      const handleSubmit = async (values: any) => {
 
           try {
-               const responseValues: any = await fetch('/api/project-summaries-api', {
+               const responseValues: any = await fetch('/api/project-activities-api', {
                     method: 'POST',
                     headers: {
                          'Content-Type': 'application/json',
@@ -66,7 +66,6 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
      return (
           <Box >
                <Formik
-
                     initialValues={projectActivityInitialValues}
                     onSubmit={(values) => {
                          handleSubmit(values)
@@ -106,6 +105,30 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) =
                                         rows={4}
                                         value={'/projektna-aktivnost/' + formik.values.projectURL}
                                    />
+
+                                   <FormControl fullWidth>
+                                        <TextField
+                                             select
+                                             label="Glavni projekat"
+                                             name='projectSummaryURL'
+                                             id="demo-simple-select"
+                                             value={formik.values.projectSummaryURL}
+                                             onChange={formik.handleChange}
+                                             error={formik.touched.projectSummaryURL && !!formik.errors.projectSummaryURL}
+                                             sx={{ borderColor: 'white' }}
+                                        >
+                                             {
+                                                  projectSummaries.map((projectSummary: any) => (
+                                                       <MenuItem
+                                                            value={projectSummary.projectSummaryURL}
+                                                            key={projectSummary.projectSummaryURL}
+                                                       >
+                                                            {projectSummary.title}
+                                                       </MenuItem>
+                                                  ))
+                                             }
+                                        </TextField>
+                                   </FormControl>
 
                                    <FormControl fullWidth>
                                         <TextField
