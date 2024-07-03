@@ -51,7 +51,7 @@ const Page = (props: any) => {
      const handleRebuild = async () => {
 
           try {
-               const response = await fetch('https://api.vercel.com/v1/integrations/deploy/prj_XLF2AEk8T1bjTg8qzyJm5wX8wBVT/gLAMvz7E56s', {
+               const response = await fetch('https://api.vercel.com/v1/integrations/deploy/prj_kIxJglN591xV8HcSkVOzbL6T3oLj/grTojSC3fc', {
                     method: 'POST'
                })
 
