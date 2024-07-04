@@ -64,6 +64,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
      const theme = useTheme()
      const [loading, setLoading] = useState(false)
      const [selectedImage, setSelectedImage] = useState(null);
+     const [selectedPublication, setSelectedPublication] = useState(null);
      const textFieldSubtitleRefs = useRef<HTMLInputElement[]>([]);
      const textFieldDescriptionRefs = useRef<HTMLInputElement[]>([]);
      const textFieldDateTimeRefs = useRef<HTMLInputElement[]>([]);
@@ -714,6 +715,183 @@ export const ProjectSummaryTable = ({ items }: any) => {
           })
      }
 
+     const handlePublicationsChange = async (event: any) => {
+          const selectedFile = event.target.files[0];
+
+          if (!selectedFile) {
+               return;
+          }
+
+          // Validate file type
+          const validExtensions = ['pdf', 'docx', 'doc'];
+          const fileExtension = selectedFile.name.split('.').pop().toLowerCase();
+
+          if (!validExtensions.includes(fileExtension)) {
+               Swal.fire({
+                    title: 'Greška',
+                    text: "Dozvoljeni su samo PDF i Word dokumenti!",
+                    icon: 'error',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK',
+               });
+               return;
+          }
+
+          setLoading(true);
+          setSelectedPublication(selectedFile);
+
+          // Assuming you have a title for the publication
+          const title = currentProjectObject?.title;
+
+          const apiUrl = '/api/aws-s3';
+
+          try {
+               const reader = new FileReader();
+               reader.readAsDataURL(selectedFile);
+               reader.onloadend = async () => {
+                    const base64Data = reader.result;
+                    const data = {
+                         file: base64Data,
+                         title: title,
+                         extension: fileExtension,
+                         fileName: selectedFile.name
+                    };
+
+                    const response = await fetch(apiUrl, {
+                         method: 'POST',
+                         headers: {
+                              'Content-Type': 'application/json'
+                         },
+                         body: JSON.stringify(data),
+                    });
+
+                    if (!response.ok) {
+                         Swal.fire({
+                              title: 'Greška',
+                              text: "Neuspešan upload publikacije!",
+                              icon: 'error',
+                              confirmButtonColor: '#3085d6',
+                              confirmButtonText: 'OK',
+                         });
+                    } else {
+                         const result = await response.json();
+                         const publicationURL = result.publicationURL;
+                         onAddNewPublication(publicationURL);
+
+                         Swal.fire({
+                              title: 'OK',
+                              text: "Uspešan upload publikacije!",
+                              icon: 'success',
+                              confirmButtonColor: '#3085d6',
+                              confirmButtonText: 'OK',
+                         });
+                    }
+               }
+          } catch (error) {
+               console.error('Error uploading publication:', error);
+               Swal.fire({
+                    title: 'Greška',
+                    text: "Došlo je do greške prilikom učitavanja publikacije!",
+                    icon: 'error',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK',
+               });
+          } finally {
+               setLoading(false);
+          }
+     }
+
+     const handleDeletePublication = async (publicationURL: any) => {
+          const url = publicationURL.target.currentSrc.split('?')[0]
+
+          if (!publicationURL) {
+               return;
+          }
+
+          setLoading(true);
+
+          const apiUrl = '/api/aws-s3';
+
+          try {
+               const response = await fetch(apiUrl, {
+                    method: 'DELETE',
+                    headers: {
+                         'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(publicationURL.target.currentSrc)
+               });
+
+               if (!response.ok) {
+                    Swal.fire({
+                         title: 'Greška, neuspešno brisanje publikacije!',
+                         text: "Ako niste uploadovali publikaciju, ne možete je ni obrisati!",
+                         icon: 'error',
+                         confirmButtonColor: '#3085d6',
+                         confirmButtonText: 'OK',
+                         // didClose() {
+                         //      handleProjectClose()
+                         // }
+                    })
+               } else {
+                    setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
+                         if (prevProject) {
+                              const newPublications: string[] = prevProject.publications.filter((image: string) => image !== url); // Remove the specified imageURL from the array
+                              return {
+                                   ...prevProject,
+                                   publications: newPublications,
+                              };
+                         }
+                         return prevProject;
+                    })
+                    Swal.fire({
+                         title: 'OK',
+                         text: "Uspešno brisanje publikacije! Potrebno je sad da se uradi izmena projekta!",
+                         icon: 'success',
+                         confirmButtonColor: '#3085d6',
+                         confirmButtonText: 'OK',
+                    })
+
+               }
+
+          } catch (error) {
+               console.error('Error uploading image:', error);
+          } finally {
+               setLoading(false);
+          }
+     }
+
+     const onPublicationClick = (publicationURL: string) => {
+          Swal.fire({
+               title: 'Da li ste sigurni da želite da obrišete publikaciju?',
+               text: "Možete obrisati samo publikaciju koju ste uploadovali!",
+               icon: 'warning',
+               showCancelButton: true,
+               confirmButtonColor: '#3085d6',
+               cancelButtonColor: '#d33',
+               confirmButtonText: 'Da, obriši!',
+               cancelButtonText: 'Odustani!'
+          }).then((result) => {
+               if (result.isConfirmed) {
+                    handleDeletePublication(publicationURL)
+               } else {
+                    // handleProjectClose()
+               }
+          })
+     }
+
+     const onAddNewPublication = (publicationURL: string) => {
+          setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
+               if (prevProject) {
+                    const newPublications = [...prevProject.publications, publicationURL]; // Adding imageURL to the end of the array
+                    return {
+                         ...prevProject,
+                         gallery: newPublications,
+                    };
+               }
+               return prevProject;
+          });
+     };
+
      return (
           <Card>
                <Scrollbar>
@@ -924,9 +1102,11 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                           <Button component="label"
                                                                                                variant="contained"
                                                                                                startIcon={<CloudUploadIcon />}
-                                                                                               sx={{ maxWidth: '150px' }}
+                                                                                               sx={{ maxWidth: '200px' }}
                                                                                           >
-                                                                                               Učitaj sliku
+                                                                                               {
+                                                                                                    currentProjectObject?.projectSummaryCoverURL != "" ? 'Promeni sliku' : 'Učitaj sliku'
+                                                                                               }
                                                                                                <Input
                                                                                                     type="file"
                                                                                                     inputProps={{ accept: 'image/*' }}
@@ -1040,23 +1220,6 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                           onBlur={(e: any) => {
                                                                                                const newArray = e.target.value.split(',').map((value: string) => value.trim());
                                                                                                handleAddToProjectObjectArray('donators', newArray)
-                                                                                          }}
-                                                                                     />
-                                                                                </Grid>
-                                                                                <Grid
-                                                                                     item
-                                                                                     md={6}
-                                                                                     xs={12}
-                                                                                >
-                                                                                     <TextField
-                                                                                          defaultValue={project.publications}
-                                                                                          fullWidth
-                                                                                          label={`Publikacije projekta (odvojiti zarezom)`}
-                                                                                          name="name"
-                                                                                          disabled={loading}
-                                                                                          onBlur={(e: any) => {
-                                                                                               const newArray = e.target.value.split(',').map((value: string) => value.trim());
-                                                                                               handleAddToProjectObjectArray('publications', newArray)
                                                                                           }}
                                                                                      />
                                                                                 </Grid>
@@ -1262,7 +1425,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                           startIcon={<CloudUploadIcon />}
                                                                                           sx={{ maxWidth: '150px', marginTop: '40px' }}
                                                                                      >
-                                                                                          Ucitaj sliku
+                                                                                          Učitaj sliku
                                                                                           <Input
                                                                                                type="file"
                                                                                                inputProps={{ accept: 'image/*' }}
@@ -1282,6 +1445,55 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      </Button>
 
                                                                                 </Box>
+
+                                                                                <Typography sx={{ margin: '10px' }}>Publikacije:</Typography>
+                                                                                <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', marginBottom: '50px', width: '90%' }}>
+                                                                                     {/* -------------------------publikacije------------------------------------------ */}
+                                                                                     {
+                                                                                          currentProjectObject?.publications && currentProjectObject.publications.length > 0 && (
+                                                                                               <ImageList sx={{ width: '90%', height: 450 }} cols={theme.breakpoints.down('sm') ? 4 : 1} rowHeight={164}>
+                                                                                                    {currentProjectObject.publications.map((item: any) => (
+                                                                                                         <ImageListItem key={Math.floor(Math.random() * 1000000)} sx={{ margin: '20px 10px 150px 0' }}>
+                                                                                                              <img
+                                                                                                                   // srcSet={`${item.img}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
+                                                                                                                   src={`${item}`}
+                                                                                                                   alt={'image'}
+                                                                                                                   loading="lazy"
+                                                                                                                   onClick={(e: any) => onPublicationClick(e)}
+                                                                                                                   style={{ cursor: 'pointer', width: '200px', height: '400px', borderRadius: '10px' }}
+                                                                                                              />
+                                                                                                         </ImageListItem>
+                                                                                                    ))}
+                                                                                               </ImageList>
+                                                                                          )
+                                                                                     }
+
+                                                                                     <Button component="label"
+                                                                                          variant="contained"
+                                                                                          startIcon={<CloudUploadIcon />}
+                                                                                          sx={{ maxWidth: '150px', marginTop: '40px' }}
+                                                                                     >
+                                                                                          Učitaj dokument
+                                                                                          <Input
+                                                                                               type="file"
+                                                                                               inputProps={{ accept: '.pdf, .docx, .doc' }}
+                                                                                               sx={{
+                                                                                                    clip: 'rect(0 0 0 0)',
+                                                                                                    clipPath: 'inset(50%)',
+                                                                                                    height: 1,
+                                                                                                    overflow: 'hidden',
+                                                                                                    position: 'absolute',
+                                                                                                    bottom: 0,
+                                                                                                    left: 0,
+                                                                                                    whiteSpace: 'nowrap',
+                                                                                                    width: 1,
+                                                                                               }}
+                                                                                               onChange={(e: any) => handlePublicationsChange(e)}
+                                                                                          />
+                                                                                     </Button>
+
+                                                                                </Box>
+
                                                                                 <Divider />
                                                                                 <Stack
                                                                                      alignItems="center"

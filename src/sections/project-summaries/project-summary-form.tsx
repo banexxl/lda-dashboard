@@ -80,9 +80,9 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                               <Form style={{ display: 'flex', flexDirection: 'column', gap: '15px', opacity: loading ? .5 : 1 }}>
 
 
-                                   <Typography>
+                                   {/* <Typography>
                                         {`${JSON.stringify(formik.errors)}`}
-                                   </Typography>
+                                   </Typography> */}
 
 
                                    <TextField
@@ -115,7 +115,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
 
                                    <DateField
                                         InputLabelProps={{ shrink: true }}
-                                        label="Pocetak projekta"
+                                        label="Početak projekta"
                                         name="projectStartDateTime"
                                         value={formik.values.projectStartDateTime}
                                         onChange={(value) => formik.setFieldValue('projectStartDateTime', value)}
