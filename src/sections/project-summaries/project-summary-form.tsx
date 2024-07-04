@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TextField, Typography, Button, Box, Grid, MenuItem, IconButton, FormControl, InputLabel, Select, Divider } from '@mui/material'
+import { TextField, Typography, Button, Box, Grid, MenuItem, IconButton, FormControl, InputLabel, Select, Divider, FormHelperText } from '@mui/material'
 import { Form, Formik } from 'formik';
 import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2'
@@ -7,6 +7,10 @@ import "@uploadthing/react/styles.css";
 import ProjectSummarySchema, { initialProjectSummary } from './project-summary-type';
 import { DateField } from '@mui/x-date-pickers/DateField';
 import { sanitizeString } from '@/utils/url-creator';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker/DesktopDatePicker';
+import moment from 'moment';
+import dayjs from 'dayjs';
 
 export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
 
@@ -108,19 +112,53 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                         value={formik.values.projectSummaryURL}
                                    />
 
+
                                    <DateField
                                         InputLabelProps={{ shrink: true }}
                                         label="Pocetak projekta"
-                                        name="projectSummaryStartDateTime"
-                                        onBlur={(e) => formik.setFieldValue('projectStartDateTime', e.target.value)}
+                                        name="projectStartDateTime"
+                                        value={formik.values.projectStartDateTime}
+                                        onChange={(value) => formik.setFieldValue('projectStartDateTime', value)}
+                                        onBlur={() => formik.setFieldTouched('projectStartDateTime', true)}
+                                        helperText={
+                                             formik.touched.projectStartDateTime && formik.errors.projectStartDateTime ? String(formik.errors.projectStartDateTime) : null
+                                        }
+                                        FormHelperTextProps={{
+                                             sx: {
+                                                  color: formik.touched.projectStartDateTime && formik.errors.projectStartDateTime ? 'red' : 'inherit',
+                                             },
+                                        }}
+                                        // You can use the sx prop directly if available
+                                        sx={{
+                                             '& .MuiFormHelperText-root': {
+                                                  color: formik.touched.projectStartDateTime && formik.errors.projectStartDateTime ? 'red' : 'inherit',
+                                             },
+                                        }}
                                    />
 
                                    <DateField
                                         InputLabelProps={{ shrink: true }}
                                         label="Kraj projekta"
-                                        name="projectSummaryEndDateTime"
-                                        onBlur={(e) => formik.setFieldValue('projectEndDateTime', e.target.value)}
+                                        name="projectEndDateTime"
+                                        value={formik.values.projectEndDateTime}
+                                        onChange={(value) => formik.setFieldValue('projectEndDateTime', value)}
+                                        onBlur={() => formik.setFieldTouched('projectEndDateTime', true)}
+                                        helperText={
+                                             formik.touched.projectEndDateTime && formik.errors.projectEndDateTime ? String(formik.errors.projectEndDateTime) : null
+                                        }
+                                        FormHelperTextProps={{
+                                             sx: {
+                                                  color: formik.touched.projectEndDateTime && formik.errors.projectEndDateTime ? 'red' : 'inherit',
+                                             },
+                                        }}
+                                        // You can use the sx prop directly if available
+                                        sx={{
+                                             '& .MuiFormHelperText-root': {
+                                                  color: formik.touched.projectEndDateTime && formik.errors.projectEndDateTime ? 'red' : 'inherit',
+                                             },
+                                        }}
                                    />
+
 
                                    <FormControl fullWidth>
                                         <TextField
@@ -216,7 +254,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                         helperText={formik.touched.donators && formik.errors.donators}
                                    />
 
-                                   <TextField
+                                   {/* <TextField
                                         InputLabelProps={{ shrink: true }}
                                         fullWidth
                                         label="Publikacije (odvojeni zarezom)"
@@ -229,7 +267,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                         }}
                                         error={formik.touched.publications && !!formik.errors.publications}
                                         helperText={formik.touched.publications && formik.errors.publications}
-                                   />
+                                   /> */}
 
                                    <TextField
                                         InputLabelProps={{ shrink: true }}

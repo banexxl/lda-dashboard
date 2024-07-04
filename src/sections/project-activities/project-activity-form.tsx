@@ -232,7 +232,7 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                                   formik.values?.list.length > 0 ?
                                                        formik.values?.list.map((listItem: any, index: any) => (
                                                             <Box sx={{ display: 'flex', width: '80%' }}>
-                                                                 <Field
+                                                                 <TextField
                                                                       disabled={loading || !listEnabled}
                                                                       InputLabelProps={{ shrink: true }}
                                                                       defaultValue={listItem}

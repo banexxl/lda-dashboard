@@ -4,10 +4,10 @@ import { ProjectStatus } from '../project-activities/project-activity-type';
 export const ProjectSummarySchema = yup.object().shape({
      projectSummaryURL: yup.string(),
      projectSummaryCoverURL: yup.string(),
-     status: yup.string().required(),
+     status: yup.string().required('Status projekta je obavezno polje.'),
      gallery: yup.array().of(yup.string()),
-     projectEndDateTime: yup.date().required(),
-     projectStartDateTime: yup.date().required(),
+     projectEndDateTime: yup.date().typeError('Vreme završetka projekta mora biti u formatu DD/MM/YYYY.').required('Vreme završetka projekta je obavezno polje.'),
+     projectStartDateTime: yup.date().typeError('Vreme kraja projekta mora biti u formatu DD/MM/YYYY.').required('Vreme početka projekta je obavezno polje.'),
      organizers: yup.array().of(yup.string()),
      locations: yup.array().of(yup.string()),
      applicants: yup.array().of(yup.string()),
@@ -18,8 +18,8 @@ export const ProjectSummarySchema = yup.object().shape({
      projectSummaryDateTime: yup.array().of(yup.date()),
      projectSummarySubtitles: yup.array().of(yup.string()),
      links: yup.array().of(yup.string()),
-     title: yup.string().required(),
-     locale: yup.string().required(),
+     title: yup.string().required('Naslov projekta je obavezno polje.'),
+     locale: yup.string().required('Jezik projekta je obavezno polje.'),
 });
 
 export default ProjectSummarySchema;
@@ -44,8 +44,8 @@ export interface ProjectSummary {
      projectSummarySubtitles: string[];
 
      gallery: string[];
-     projectEndDateTime: string;
-     projectStartDateTime: string;
+     projectEndDateTime: Date;
+     projectStartDateTime: Date;
 }
 
 export const initialProjectSummary: ProjectSummary = {
@@ -53,8 +53,8 @@ export const initialProjectSummary: ProjectSummary = {
      projectSummaryCoverURL: "",
      status: { key: 'to-do', value: 'To Do' },
      gallery: [],
-     projectEndDateTime: "",
-     projectStartDateTime: "",
+     projectEndDateTime: new Date(),
+     projectStartDateTime: new Date(),
      organizers: [],
      locations: [],
      applicants: [],

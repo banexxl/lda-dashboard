@@ -1078,7 +1078,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      />
                                                                                 </Grid>
                                                                                 <Divider />
-                                                                                <Grid item md={6} xs={12}>
+                                                                                {/* <Grid item md={6} xs={12}>
                                                                                      <Typography sx={{ margin: '10px' }}>Podnaslovi:</Typography>
                                                                                      {currentProjectObject?.projectSummarySubtitles.map((subtitle, index) => (
                                                                                           <Box sx={{ display: 'flex', width: '80%' }} key={index}>
@@ -1182,7 +1182,6 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                           <AddBoxIcon />
                                                                                      </IconButton>
                                                                                 </Grid>
-
                                                                                 <Grid
                                                                                      item
                                                                                      md={6}
@@ -1235,7 +1234,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                           <AddBoxIcon />
                                                                                      </IconButton>
                                                                                 </Grid>
-                                                                                <Divider />
+                                                                                <Divider /> */}
                                                                                 <Typography sx={{ margin: '10px' }}>Slike:</Typography>
                                                                                 <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', marginBottom: '50px', width: '90%' }}>
                                                                                      {/* -------------------------slike------------------------------------------ */}
