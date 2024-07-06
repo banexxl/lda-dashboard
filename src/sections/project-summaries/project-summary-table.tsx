@@ -24,7 +24,8 @@ import { DateField } from '@mui/x-date-pickers/DateField';
 import moment from 'moment';
 import { get } from 'http';
 import { da } from 'date-fns/locale';
-import { extractInfoFromUrl } from '@/pages/api/aws-s3';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import ArticleIcon from '@mui/icons-material/Article';
 import { sanitizeString } from '@/utils/url-creator';
 import { set } from 'nprogress';
 import { log } from 'console';
@@ -69,6 +70,16 @@ export const ProjectSummaryTable = ({ items }: any) => {
      const textFieldDescriptionRefs = useRef<HTMLInputElement[]>([]);
      const textFieldDateTimeRefs = useRef<HTMLInputElement[]>([]);
 
+     const extractFileName = (url: string) => {
+          // Extract the file name
+          const fileName = url.split('/').pop();
+
+          // Decode the file name
+          const decodedFileName = decodeURIComponent(fileName!);
+
+          return decodedFileName;
+     }
+
      const getSubtitleInputValue = (index: number) => {
           if (textFieldSubtitleRefs.current[index]) {
 
@@ -90,6 +101,18 @@ export const ProjectSummaryTable = ({ items }: any) => {
           }
           return '';
      }
+
+     const getThumbnail = (fileName: any) => {
+
+          const fileExtension = fileName ? fileName.split('.').pop().toLowerCase() : '';
+          if (fileExtension === 'pdf') {
+               return 'pdf'
+          } else if (fileExtension === 'doc' || fileExtension === 'docx') {
+               return 'doc'
+          } else {
+               return '';
+          }
+     };
 
      const getObjectById = (_id: any, arrayToSearch: any) => {
           for (const obj of arrayToSearch) {
@@ -276,7 +299,6 @@ export const ProjectSummaryTable = ({ items }: any) => {
      }
 
      const handleAddSubtitle = (index: number, subtitle: string) => {
-          console.log('Adding subtitle at index:', index, 'with value:', subtitle);
 
           if (currentProjectObject) {
                const newSubtitles = [...currentProjectObject.projectSummarySubtitles];
@@ -716,6 +738,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
      }
 
      const handlePublicationsChange = async (event: any) => {
+
           const selectedFile = event.target.files[0];
 
           if (!selectedFile) {
@@ -747,6 +770,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
 
           try {
                const reader = new FileReader();
+
                reader.readAsDataURL(selectedFile);
                reader.onloadend = async () => {
                     const base64Data = reader.result;
@@ -775,8 +799,8 @@ export const ProjectSummaryTable = ({ items }: any) => {
                          });
                     } else {
                          const result = await response.json();
-                         const publicationURL = result.publicationURL;
-                         onAddNewPublication(publicationURL);
+
+                         onAddNewPublication(result.imageUrl);
 
                          Swal.fire({
                               title: 'OK',
@@ -880,12 +904,13 @@ export const ProjectSummaryTable = ({ items }: any) => {
      }
 
      const onAddNewPublication = (publicationURL: string) => {
+
           setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
                if (prevProject) {
                     const newPublications = [...prevProject.publications, publicationURL]; // Adding imageURL to the end of the array
                     return {
                          ...prevProject,
-                         gallery: newPublications,
+                         publications: newPublications,
                     };
                }
                return prevProject;
@@ -1268,10 +1293,8 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                                                    >
                                                                                                                         <AddBoxIcon />
                                                                                                                    </IconButton>
-                                                                                                                   <IconButton
-                                                                                                                        onClick={() => handleRemoveSubtitle(index)}
-                                                                                                                   >
-                                                                                                                        <DeleteIcon />
+                                                                                                                                                                    <Grid component="div" sx={{ width: '90%', height: 450 }} cols={theme.breakpoints.down('sm') ? 1 : 4} rowHeight={164}>                       {
+                                                                                                                   typeof item === 'string' && item.split('.').pop().toLowerCase().includes('pdf') ?                                                                 <DeleteIcon />
                                                                                                                    </IconButton>
                                                                                                               </InputAdornment>
                                                                                                          ),
@@ -1414,6 +1437,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                                                    onClick={(e: any) => onGalleryImageClick(e)}
                                                                                                                    style={{ cursor: 'pointer', width: '200px', height: '400px', borderRadius: '10px' }}
                                                                                                               />
+
                                                                                                          </ImageListItem>
                                                                                                     ))}
                                                                                                </ImageList>
@@ -1445,26 +1469,44 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      </Button>
 
                                                                                 </Box>
-
+                                                                                <Divider />
                                                                                 <Typography sx={{ margin: '10px' }}>Publikacije:</Typography>
                                                                                 <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', marginBottom: '50px', width: '90%' }}>
                                                                                      {/* -------------------------publikacije------------------------------------------ */}
                                                                                      {
                                                                                           currentProjectObject?.publications && currentProjectObject.publications.length > 0 && (
-                                                                                               <ImageList sx={{ width: '90%', height: 450 }} cols={theme.breakpoints.down('sm') ? 4 : 1} rowHeight={164}>
-                                                                                                    {currentProjectObject.publications.map((item: any) => (
-                                                                                                         <ImageListItem key={Math.floor(Math.random() * 1000000)} sx={{ margin: '20px 10px 150px 0' }}>
-                                                                                                              <img
-                                                                                                                   // srcSet={`${item.img}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
-                                                                                                                   src={`${item}`}
-                                                                                                                   alt={'image'}
-                                                                                                                   loading="lazy"
-                                                                                                                   onClick={(e: any) => onPublicationClick(e)}
-                                                                                                                   style={{ cursor: 'pointer', width: '200px', height: '400px', borderRadius: '10px' }}
-                                                                                                              />
-                                                                                                         </ImageListItem>
+                                                                                               <Grid
+                                                                                                    sx={{ width: '90%', height: 450 }}
+                                                                                                    item
+                                                                                                    md={6}
+                                                                                                    xs={12}
+                                                                                               >
+                                                                                                    {currentProjectObject.publications.map((item: string, index: number) => (
+                                                                                                         <Box key={index} sx={{ margin: '20px 10px 150px 0' }}>
+                                                                                                              {getThumbnail(item) === 'pdf' ? (
+                                                                                                                   <Box>
+                                                                                                                        <PictureAsPdfIcon style={{ fontSize: 64, cursor: 'pointer' }} onClick={() => onPublicationClick(item)} />
+                                                                                                                        <Typography>
+                                                                                                                             {
+                                                                                                                                  extractFileName(item)
+                                                                                                                             }
+                                                                                                                        </Typography>
+                                                                                                                   </Box>
+                                                                                                              ) : getThumbnail(item) === 'doc' ? (
+                                                                                                                   <Box>
+                                                                                                                        <ArticleIcon style={{ fontSize: 64, cursor: 'pointer' }} onClick={() => onPublicationClick(item)} />
+                                                                                                                        <Typography>
+                                                                                                                             {
+                                                                                                                                  extractFileName(item)
+                                                                                                                             }
+                                                                                                                        </Typography>
+                                                                                                                   </Box>
+                                                                                                              ) : (
+                                                                                                                   <></>
+                                                                                                              )}
+                                                                                                         </Box>
                                                                                                     ))}
-                                                                                               </ImageList>
+                                                                                               </Grid>
                                                                                           )
                                                                                      }
 
