@@ -2,7 +2,7 @@ import ChevronRightIcon from '@untitled-ui/icons-react/build/esm/ChevronRight';
 import ChevronDownIcon from '@untitled-ui/icons-react/build/esm/ChevronDown';
 import {
      Avatar, Box, Button, Card, CardContent, Checkbox, Divider, Grid, IconButton, ImageList, ImageListItem, Input, InputAdornment, LinearProgress, MenuItem,
-     Stack, SvgIcon, Switch, Table, TableBody, TableCell, TableHead, TableRow, TextField, TextFieldProps, Typography, useTheme
+     Stack, SvgIcon, Switch, Table, TableBody, TableCell, TableHead, TableRow, TextField, TextFieldProps, Tooltip, Typography, useTheme
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import InsertPhotoIcon from '@mui/icons-material/InsertPhoto';
@@ -64,11 +64,6 @@ export const ProjectSummaryTable = ({ items }: any) => {
      const router = useRouter();
      const theme = useTheme()
      const [loading, setLoading] = useState(false)
-     const [selectedImage, setSelectedImage] = useState(null);
-     const [selectedPublication, setSelectedPublication] = useState(null);
-     const textFieldSubtitleRefs = useRef<HTMLInputElement[]>([]);
-     const textFieldDescriptionRefs = useRef<HTMLInputElement[]>([]);
-     const textFieldDateTimeRefs = useRef<HTMLInputElement[]>([]);
 
      const extractFileName = (url: string) => {
           // Extract the file name
@@ -78,28 +73,6 @@ export const ProjectSummaryTable = ({ items }: any) => {
           const decodedFileName = decodeURIComponent(fileName!);
 
           return decodedFileName;
-     }
-
-     const getSubtitleInputValue = (index: number) => {
-          if (textFieldSubtitleRefs.current[index]) {
-
-               return textFieldSubtitleRefs.current[index].value;
-          }
-          return '';
-     };
-
-     const getDescriptionInputValue = (index: number) => {
-          if (textFieldDescriptionRefs.current[index]) {
-               return textFieldDescriptionRefs.current[index].value;
-          }
-          return '';
-     }
-
-     const getDateTimeInputValue = (index: number) => {
-          if (textFieldDateTimeRefs.current[index]) {
-               return textFieldDateTimeRefs.current[index].value;
-          }
-          return '';
      }
 
      const getThumbnail = (fileName: any) => {
@@ -256,91 +229,6 @@ export const ProjectSummaryTable = ({ items }: any) => {
           });
      };
 
-     const insertNewSubtitleField = () => {
-          setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
-               if (prevProject) {
-                    const newSubtitles = [...prevProject.projectSummarySubtitles, ''];
-                    const newSubtitlesURLs = [...prevProject.projectSummarySubtitleURLs, ''];
-
-                    return {
-                         ...prevProject,
-                         projectSummarySubtitles: newSubtitles,
-                         projectSummarySubtitleURLs: newSubtitlesURLs,
-                    };
-               }
-               return prevProject;
-          });
-     }
-
-     const insertNewDescriptionField = () => {
-          setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
-               if (prevProject) {
-                    const newDescriptions = [...prevProject.projectSummaryDescriptions, ''];
-                    return {
-                         ...prevProject,
-                         projectSummaryDescriptions: newDescriptions,
-                    };
-               }
-               return prevProject;
-          });
-     }
-
-     const insertNewDateTimeField = () => {
-          setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
-               if (prevProject) {
-                    const newDateTimes = [...prevProject.projectSummaryDateTime, ''];
-                    return {
-                         ...prevProject,
-                         projectSummaryDateTime: newDateTimes,
-                    };
-               }
-               return prevProject;
-          });
-     }
-
-     const handleAddSubtitle = (index: number, subtitle: string) => {
-
-          if (currentProjectObject) {
-               const newSubtitles = [...currentProjectObject.projectSummarySubtitles];
-               const newSubtitlesURLs = [...currentProjectObject.projectSummarySubtitleURLs];
-
-               // Update the empty string with the actual subtitle
-               newSubtitles[index] = subtitle;
-               newSubtitlesURLs[index] = '/projektna-aktivnost/' + sanitizeString(subtitle);
-               setCurrentProjectObject({
-                    ...currentProjectObject,
-                    projectSummarySubtitles: newSubtitles,
-                    projectSummarySubtitleURLs: newSubtitlesURLs,
-               });
-
-               setDisabledFields((prev) => {
-                    const newDisabledFields = [...prev];
-                    newDisabledFields[index] = true;
-                    return newDisabledFields;
-               });
-          }
-     };
-
-     const handleRemoveSubtitle = (index: number) => {
-          if (currentProjectObject) {
-               const newSubtitles = [...currentProjectObject.projectSummarySubtitles];
-               newSubtitles.splice(index, 1); // Remove the subtitle at the current index
-               const newSubtitlesURLs = [...currentProjectObject.projectSummarySubtitleURLs]
-               newSubtitlesURLs.splice(index, 1);
-               setCurrentProjectObject({
-                    ...currentProjectObject,
-                    projectSummarySubtitles: newSubtitles,
-                    projectSummarySubtitleURLs: newSubtitlesURLs
-               });
-
-               setDisabledFields((prev) => {
-                    const newDisabledFields = [...prev];
-                    newDisabledFields[index] = false;
-                    return newDisabledFields;
-               });
-          }
-     };
-
      const handleAddNewDescription = (index: number, text: string) => {
           setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
                if (prevProject) {
@@ -375,45 +263,6 @@ export const ProjectSummaryTable = ({ items }: any) => {
                return prevProject;
           });
           setDisabledDescriptions((prev) => {
-               const newDisabledFields = [...prev];
-               newDisabledFields[index] = false;
-               return newDisabledFields;
-          });
-     };
-
-     const onAddNewSubtitleDateTime = (index: number, text: string) => {
-          setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
-               if (prevProject) {
-                    const newDateTimes = [...prevProject.projectSummaryDateTime];
-                    newDateTimes[index] = text; // Update the subtitle at the clicked index
-                    return {
-                         ...prevProject,
-                         projectSummaryDateTime: newDateTimes,
-                    };
-               }
-               return prevProject;
-          });
-          setDisabledDateTime((prev) => {
-               const newDisabledFields = [...prev];
-               newDisabledFields[index] = true;
-               return newDisabledFields;
-          })
-     };
-
-     const onDeleteSubtitleDateTime = (index: number) => {
-          setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
-               if (prevProject) {
-                    const newDateTimes = [...prevProject.projectSummaryDateTime];
-                    newDateTimes.splice(index, 1); // Remove the subtitle at the specified index
-                    return {
-                         ...prevProject,
-                         projectSummaryDateTime: newDateTimes,
-                    };
-               }
-               return prevProject;
-          });
-
-          setDisabledDateTime((prev) => {
                const newDisabledFields = [...prev];
                newDisabledFields[index] = false;
                return newDisabledFields;
@@ -572,7 +421,6 @@ export const ProjectSummaryTable = ({ items }: any) => {
           }
 
           setLoading(true);
-          setSelectedImage(selectedFile);
 
           // Extract file extension
           const fileExtension = selectedFile.name.split('.')[1]
@@ -639,7 +487,6 @@ export const ProjectSummaryTable = ({ items }: any) => {
           }
 
           setLoading(true);
-          setSelectedImage(selectedFile);
 
           // Extract file extension
           const fileExtension = selectedFile.name.split('.')[1]
@@ -761,7 +608,6 @@ export const ProjectSummaryTable = ({ items }: any) => {
           }
 
           setLoading(true);
-          setSelectedPublication(selectedFile);
 
           // Assuming you have a title for the publication
           const title = currentProjectObject?.title;
@@ -1420,14 +1266,16 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      </IconButton>
                                                                                 </Grid>
                                                                                 <Divider /> */}
-                                                                                <Typography sx={{ margin: '10px' }}>Slike:</Typography>
-                                                                                <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', marginBottom: '50px', width: '90%' }}>
+                                                                                <Tooltip placement='bottom-start' title={'Ovde možemo samo da brišemo slike. Nakon brisanja slike, obavezno uraditi izmenu dokumenta!'}>
+                                                                                     <Typography sx={{ margin: '10px' }}>Slike:</Typography>
+                                                                                </Tooltip>
+                                                                                <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', marginBottom: '20px', width: '90%' }}>
                                                                                      {/* -------------------------slike------------------------------------------ */}
                                                                                      {
                                                                                           currentProjectObject?.gallery && currentProjectObject.gallery.length > 0 && (
                                                                                                <ImageList sx={{ width: '90%' }} cols={theme.breakpoints.down('sm') ? 4 : 1} rowHeight={164}>
                                                                                                     {currentProjectObject.gallery.map((item: any) => (
-                                                                                                         <ImageListItem key={Math.floor(Math.random() * 1000000)} sx={{ margin: '20px 10px 150px 0' }}>
+                                                                                                         <ImageListItem key={Math.floor(Math.random() * 1000000)} sx={{ margin: '20px 10px 10px 0' }}>
                                                                                                               <img
                                                                                                                    // srcSet={`${item.img}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
                                                                                                                    src={`${item}`}
@@ -1469,7 +1317,10 @@ export const ProjectSummaryTable = ({ items }: any) => {
 
                                                                                 </Box>
                                                                                 <Divider />
-                                                                                <Typography sx={{ margin: '10px' }}>Publikacije:</Typography>
+                                                                                <Tooltip placement='bottom-start' title={'Ovde možemo samo da brišemo publikacije za sad. Ako želimo da pregledamo, moramo otići na lda-subotica.org'}>
+
+                                                                                     <Typography sx={{ margin: '10px' }}>Publikacije:</Typography>
+                                                                                </Tooltip>
                                                                                 <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', width: '90%', marginBottom: '20px' }}>
                                                                                      {/* -------------------------publikacije------------------------------------------ */}
                                                                                      {
@@ -1479,35 +1330,49 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                                     {currentProjectObject.publications.map((item: string, index: number) => (
                                                                                                          <Box
                                                                                                               key={index}
-                                                                                                              sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+                                                                                                              sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-around', marginRight: '40px' }}
                                                                                                          >
                                                                                                               {getThumbnail(item) === 'pdf' ? (
-                                                                                                                   <Box sx={{ textAlign: 'center' }}>
-                                                                                                                        <Image
-                                                                                                                             style={{ fontSize: 64, cursor: 'pointer' }}
+
+
+                                                                                                                   <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', width: '100px' }}>
+                                                                                                                        <PictureAsPdfIcon
+                                                                                                                             sx={{ color: theme.palette.primary.dark, cursor: 'pointer', width: '50px', alignItems: 'center', height: '50px' }}
                                                                                                                              onClick={() => onPublicationClick(item)}
-                                                                                                                             src={'/pdf-icon.webp'}
-                                                                                                                             alt={'pdf'}
-                                                                                                                             width={150}
-                                                                                                                             height={150}
                                                                                                                         />
-                                                                                                                        <Typography sx={{ maxWidth: '100px' }}>
-                                                                                                                             {extractFileName(item)}
-                                                                                                                        </Typography>
+                                                                                                                        <Tooltip title={extractFileName(item)}>
+                                                                                                                             <Typography
+                                                                                                                                  sx={{
+                                                                                                                                       overflow: 'hidden',
+                                                                                                                                       textOverflow: 'ellipsis',
+                                                                                                                                       whiteSpace: 'nowrap',
+                                                                                                                                       maxWidth: '100px', // Adjust the width as needed
+                                                                                                                                  }}
+                                                                                                                             >
+                                                                                                                                  {extractFileName(item)}
+                                                                                                                             </Typography>
+                                                                                                                        </Tooltip>
                                                                                                                    </Box>
+
                                                                                                               ) : getThumbnail(item) === 'doc' ? (
-                                                                                                                   <Box sx={{ textAlign: 'center' }}>
-                                                                                                                        <Image
-                                                                                                                             style={{ fontSize: 64, cursor: 'pointer' }}
+
+                                                                                                                   <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '100px' }}>
+                                                                                                                        <ArticleIcon
+                                                                                                                             sx={{ color: theme.palette.primary.dark, cursor: 'pointer', width: '50px', height: '50px' }}
                                                                                                                              onClick={() => onPublicationClick(item)}
-                                                                                                                             src={'/docx_icon.svg.png'}
-                                                                                                                             alt={'docx'}
-                                                                                                                             width={150}
-                                                                                                                             height={150}
                                                                                                                         />
-                                                                                                                        <Typography sx={{ maxWidth: '10px', textAlign: 'center' }}>
-                                                                                                                             {extractFileName(item)}
-                                                                                                                        </Typography>
+                                                                                                                        <Tooltip title={extractFileName(item)}>
+                                                                                                                             <Typography
+                                                                                                                                  sx={{
+                                                                                                                                       overflow: 'hidden',
+                                                                                                                                       textOverflow: 'ellipsis',
+                                                                                                                                       whiteSpace: 'nowrap',
+                                                                                                                                       maxWidth: '100px', // Adjust the width as needed
+                                                                                                                                  }}
+                                                                                                                             >
+                                                                                                                                  {extractFileName(item)}
+                                                                                                                             </Typography>
+                                                                                                                        </Tooltip>
                                                                                                                    </Box>
                                                                                                               ) : null}
                                                                                                          </Box>
