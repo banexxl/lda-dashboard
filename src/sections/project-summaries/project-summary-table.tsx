@@ -1471,44 +1471,52 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                 </Box>
                                                                                 <Divider />
                                                                                 <Typography sx={{ margin: '10px' }}>Publikacije:</Typography>
-                                                                                <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', marginBottom: '50px', width: '90%' }}>
+                                                                                <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', width: '90%', marginBottom: '20px' }}>
                                                                                      {/* -------------------------publikacije------------------------------------------ */}
                                                                                      {
                                                                                           currentProjectObject?.publications && currentProjectObject.publications.length > 0 && (
-                                                                                               <Grid
-                                                                                                    sx={{ width: '90%', height: 450 }}
-                                                                                                    item
-                                                                                                    md={6}
-                                                                                                    xs={12}
+                                                                                               <Box sx={{ width: '90%', height: 450, display: 'flex' }}
                                                                                                >
                                                                                                     {currentProjectObject.publications.map((item: string, index: number) => (
-                                                                                                         <Box key={index} sx={{ margin: '20px 10px 150px 0' }}>
+                                                                                                         <Box
+                                                                                                              key={index}
+                                                                                                              sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+                                                                                                         >
                                                                                                               {getThumbnail(item) === 'pdf' ? (
-                                                                                                                   <Box>
-                                                                                                                        <PictureAsPdfIcon style={{ fontSize: 64, cursor: 'pointer' }} onClick={() => onPublicationClick(item)} />
+                                                                                                                   <Box sx={{ textAlign: 'center' }}>
+                                                                                                                        <Image
+                                                                                                                             style={{ fontSize: 64, cursor: 'pointer' }}
+                                                                                                                             onClick={() => onPublicationClick(item)}
+                                                                                                                             src={'/pdf-icon.webp'}
+                                                                                                                             alt={'pdf'}
+                                                                                                                             width={150}
+                                                                                                                             height={150}
+                                                                                                                        />
                                                                                                                         <Typography>
-                                                                                                                             {
-                                                                                                                                  extractFileName(item)
-                                                                                                                             }
+                                                                                                                             {extractFileName(item)}
                                                                                                                         </Typography>
                                                                                                                    </Box>
                                                                                                               ) : getThumbnail(item) === 'doc' ? (
-                                                                                                                   <Box>
-                                                                                                                        <ArticleIcon style={{ fontSize: 64, cursor: 'pointer' }} onClick={() => onPublicationClick(item)} />
+                                                                                                                   <Box sx={{ textAlign: 'center' }}>
+                                                                                                                        <Image
+                                                                                                                             style={{ fontSize: 64, cursor: 'pointer' }}
+                                                                                                                             onClick={() => onPublicationClick(item)}
+                                                                                                                             src={'/docx_icon.svg.png'}
+                                                                                                                             alt={'docx'}
+                                                                                                                             width={150}
+                                                                                                                             height={150}
+                                                                                                                        />
                                                                                                                         <Typography>
-                                                                                                                             {
-                                                                                                                                  extractFileName(item)
-                                                                                                                             }
+                                                                                                                             {extractFileName(item)}
                                                                                                                         </Typography>
                                                                                                                    </Box>
-                                                                                                              ) : (
-                                                                                                                   <></>
-                                                                                                              )}
+                                                                                                              ) : null}
                                                                                                          </Box>
                                                                                                     ))}
-                                                                                               </Grid>
+                                                                                               </Box>
                                                                                           )
                                                                                      }
+
 
                                                                                      <Button component="label"
                                                                                           variant="contained"
