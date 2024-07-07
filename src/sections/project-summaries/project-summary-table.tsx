@@ -1,20 +1,14 @@
 import ChevronRightIcon from '@untitled-ui/icons-react/build/esm/ChevronRight';
 import ChevronDownIcon from '@untitled-ui/icons-react/build/esm/ChevronDown';
 import {
-     Avatar, Box, Button, Card, CardContent, Checkbox, Divider, Grid, IconButton, ImageList, ImageListItem, Input, InputAdornment, LinearProgress, MenuItem,
-     Stack, SvgIcon, Switch, Table, TableBody, TableCell, TableHead, TableRow, TextField, TextFieldProps, Tooltip, Typography, useTheme
+     Box, Button, Card, Divider, Grid, IconButton, ImageList, ImageListItem, Input, MenuItem,
+     Stack, SvgIcon, Table, TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography, useTheme
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import InsertPhotoIcon from '@mui/icons-material/InsertPhoto';
-import Image from 'next/image';
-import numeral from 'numeral';
-import DeleteIcon from '@mui/icons-material/Delete';
-import AddBoxIcon from '@mui/icons-material/AddBox';
-import { Fragment, HtmlHTMLAttributes, JSXElementConstructor, ReactElement, useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Scrollbar } from 'src/components/scrollbar';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import Swal from 'sweetalert2';
 import { useRouter } from 'next/navigation';
 import "@uploadthing/react/styles.css";
@@ -22,13 +16,10 @@ import dayjs from 'dayjs';
 import { ProjectSummary, initialProjectSummary } from './project-summary-type';
 import { DateField } from '@mui/x-date-pickers/DateField';
 import moment from 'moment';
-import { get } from 'http';
-import { da } from 'date-fns/locale';
+
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import ArticleIcon from '@mui/icons-material/Article';
-import { sanitizeString } from '@/utils/url-creator';
-import { set } from 'nprogress';
-import { log } from 'console';
+
 
 type ProjectStatus = {
      value: string;
@@ -56,10 +47,6 @@ export const ProjectSummaryTable = ({ items }: any) => {
 
      const [currentProjectID, setCurrentProjectID] = useState(null);
      const [currentProjectObject, setCurrentProjectObject] = useState<ProjectSummary | null | undefined>(initialProjectSummary || {});
-     console.log(currentProjectObject);
-     const [disabledFields, setDisabledFields] = useState<boolean[]>([]);
-     const [disabledDescriptions, setDisabledDescriptions] = useState<boolean[]>([]);
-     const [disabledDateTime, setDisabledDateTime] = useState<boolean[]>([]);
 
      const router = useRouter();
      const theme = useTheme()
@@ -226,46 +213,6 @@ export const ProjectSummaryTable = ({ items }: any) => {
                const updatedProject: ProjectSummary = { ...prevProject };
                updatedProject[arrayName] = newArray;
                return updatedProject;
-          });
-     };
-
-     const handleAddNewDescription = (index: number, text: string) => {
-          setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
-               if (prevProject) {
-                    const newDescriptions = [...prevProject.projectSummaryDescriptions];
-                    newDescriptions[index] = text; // Update the subtitle at the clicked index
-                    return {
-                         ...prevProject,
-                         projectSummaryDescriptions: newDescriptions,
-                    };
-               }
-               return prevProject;
-          });
-          setDisabledDescriptions((prev) => {
-               const newDisabledFields = [...prev];
-               newDisabledFields[index] = true;
-               return newDisabledFields;
-          })
-     };
-
-     const handleDeleteDescription = (index: number) => {
-          setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
-               if (prevProject) {
-                    const newDescription = [...prevProject.projectSummaryDescriptions];
-                    newDescription.splice(index, 1); // Remove the subtitle at the specified index
-
-                    return {
-                         ...prevProject,
-                         projectSummaryDescriptions: newDescription,
-                    };
-
-               }
-               return prevProject;
-          });
-          setDisabledDescriptions((prev) => {
-               const newDisabledFields = [...prev];
-               newDisabledFields[index] = false;
-               return newDisabledFields;
           });
      };
 
