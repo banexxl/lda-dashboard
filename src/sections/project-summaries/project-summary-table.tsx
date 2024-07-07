@@ -826,7 +826,6 @@ export const ProjectSummaryTable = ({ items }: any) => {
      }
 
      const handleDeletePublication = async (publicationURL: any) => {
-          const url = publicationURL.target.currentSrc.split('?')[0]
 
           if (!publicationURL) {
                return;
@@ -842,7 +841,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                     headers: {
                          'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify(publicationURL.target.currentSrc)
+                    body: JSON.stringify(publicationURL)
                });
 
                if (!response.ok) {
@@ -859,7 +858,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                } else {
                     setCurrentProjectObject((prevProject: ProjectSummary | null | undefined) => {
                          if (prevProject) {
-                              const newPublications: string[] = prevProject.publications.filter((image: string) => image !== url); // Remove the specified imageURL from the array
+                              const newPublications: string[] = prevProject.publications.filter((image: string) => image !== publicationURL); // Remove the specified imageURL from the array
                               return {
                                    ...prevProject,
                                    publications: newPublications,
@@ -1426,7 +1425,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      {/* -------------------------slike------------------------------------------ */}
                                                                                      {
                                                                                           currentProjectObject?.gallery && currentProjectObject.gallery.length > 0 && (
-                                                                                               <ImageList sx={{ width: '90%', height: 450 }} cols={theme.breakpoints.down('sm') ? 4 : 1} rowHeight={164}>
+                                                                                               <ImageList sx={{ width: '90%' }} cols={theme.breakpoints.down('sm') ? 4 : 1} rowHeight={164}>
                                                                                                     {currentProjectObject.gallery.map((item: any) => (
                                                                                                          <ImageListItem key={Math.floor(Math.random() * 1000000)} sx={{ margin: '20px 10px 150px 0' }}>
                                                                                                               <img
@@ -1475,7 +1474,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      {/* -------------------------publikacije------------------------------------------ */}
                                                                                      {
                                                                                           currentProjectObject?.publications && currentProjectObject.publications.length > 0 && (
-                                                                                               <Box sx={{ width: '90%', height: 450, display: 'flex' }}
+                                                                                               <Box sx={{ width: '90%', display: 'flex' }}
                                                                                                >
                                                                                                     {currentProjectObject.publications.map((item: string, index: number) => (
                                                                                                          <Box
@@ -1492,7 +1491,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                                                              width={150}
                                                                                                                              height={150}
                                                                                                                         />
-                                                                                                                        <Typography>
+                                                                                                                        <Typography sx={{ maxWidth: '100px' }}>
                                                                                                                              {extractFileName(item)}
                                                                                                                         </Typography>
                                                                                                                    </Box>
@@ -1506,7 +1505,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                                                              width={150}
                                                                                                                              height={150}
                                                                                                                         />
-                                                                                                                        <Typography>
+                                                                                                                        <Typography sx={{ maxWidth: '10px', textAlign: 'center' }}>
                                                                                                                              {extractFileName(item)}
                                                                                                                         </Typography>
                                                                                                                    </Box>
