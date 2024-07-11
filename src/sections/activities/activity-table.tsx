@@ -116,9 +116,11 @@ export const ActivityTable = ({ items }: any) => {
      }
 
      const handleUpdateActivity = async (currentActivityObject: any) => {
+          console.log('currentActivityObject', currentActivityObject);
+
           try {
                //API CALL
-               const response = await fetch('/api/activity-api', {
+               const response = await fetch('/api/activities-api', {
                     method: 'PUT',
                     headers: {
                          'Content-Type': 'application/json',
@@ -298,21 +300,92 @@ export const ActivityTable = ({ items }: any) => {
           });
      };
 
-     const onAddNewImage = (imageURL: string) => {
-          setCurrentActivityObject((prevActivity: Activity | null | undefined) => {
-               if (prevActivity) {
-                    const newGallery = [...prevActivity.gallery, imageURL]; // Adding imageURL to the end of the array
+     const onAddNewGalleryImage = (imageURL: string) => {
+          setCurrentActivityObject((prevProject: Activity | null | undefined) => {
+               if (prevProject) {
+                    const newGallery = [...prevProject.gallery, imageURL]; // Adding imageURL to the end of the array
                     return {
-                         ...prevActivity,
+                         ...prevProject,
                          gallery: newGallery,
                     };
                }
-               return prevActivity;
+               return prevProject;
           });
      };
 
-     const onDeleteImage = async (imageURL: any) => {
+     const onAddNewCoverImage = (imageURL: string) => {
+          setCurrentActivityObject((prevProject: Activity | null | undefined) => {
+               if (prevProject) {
+                    return {
+                         ...prevProject,
+                         coverURL: imageURL
+                    };
+               }
+               return prevProject;
+          });
+     }
 
+     const onDeleteGalleryImage = async (imageURL: any) => {
+
+          const url = imageURL.target.currentSrc.split('?')[0]
+
+          if (!imageURL) {
+               return;
+          }
+
+          setLoading(true);
+          //use process env
+          const apiUrl = '/api/aws-s3';
+
+          try {
+               const response = await fetch(apiUrl, {
+                    method: 'DELETE',
+                    headers: {
+                         'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(imageURL.target.currentSrc)
+               });
+
+               if (!response.ok) {
+                    Swal.fire({
+                         title: 'Greška, neuspešno brisanje slike!',
+                         text: "Ako niste uploadovali novu sliku, ne možete je ni obrisati!",
+                         icon: 'error',
+                         confirmButtonColor: '#3085d6',
+                         confirmButtonText: 'OK',
+                         // didClose() {
+                         //      handleProjectClose()
+                         // }
+                    })
+               } else {
+                    setCurrentActivityObject((prevProject: Activity | null | undefined) => {
+                         if (prevProject) {
+                              const newGallery: string[] = prevProject.gallery.filter((image: string) => image !== url); // Remove the specified imageURL from the array
+                              return {
+                                   ...prevProject,
+                                   gallery: newGallery,
+                              };
+                         }
+                         return prevProject;
+                    })
+                    Swal.fire({
+                         title: 'OK',
+                         text: "Uspešno brisanje slike! Potrebno je sad da se uradi izmena projekta!",
+                         icon: 'success',
+                         confirmButtonColor: '#3085d6',
+                         confirmButtonText: 'OK',
+                    })
+
+               }
+
+          } catch (error) {
+               console.error('Error uploading image:', error);
+          } finally {
+               setLoading(false);
+          }
+     }
+
+     const onDeleteCoverImage = async (imageURL: any) => {
           const url = imageURL.target.currentSrc.split('?')[0]
 
           if (!imageURL) {
@@ -339,20 +412,19 @@ export const ActivityTable = ({ items }: any) => {
                          icon: 'error',
                          confirmButtonColor: '#3085d6',
                          confirmButtonText: 'OK',
-                         didClose() {
-                              handleActivityClose()
-                         }
+                         // didClose() {
+                         //      handleProjectClose()
+                         // }
                     })
                } else {
-                    setCurrentActivityObject((prevActivity: Activity | null | undefined) => {
-                         if (prevActivity) {
-                              const newGallery: string[] = prevActivity.gallery.filter((image: string) => image !== url); // Remove the specified imageURL from the array
+                    setCurrentActivityObject((prevProject: Activity | null | undefined) => {
+                         if (prevProject) {
                               return {
-                                   ...prevActivity,
-                                   gallery: newGallery,
+                                   ...prevProject,
+                                   coverURL: ''
                               };
                          }
-                         return prevActivity;
+                         return prevProject;
                     })
                     Swal.fire({
                          title: 'OK',
@@ -371,7 +443,7 @@ export const ActivityTable = ({ items }: any) => {
           }
      }
 
-     const handleFileChange = async (event: any) => {
+     const handleGalleryChange = async (event: any) => {
 
           const selectedFile = event.target.files[0];
 
@@ -380,7 +452,6 @@ export const ActivityTable = ({ items }: any) => {
           }
 
           setLoading(true);
-          setSelectedImage(selectedFile);
 
           // Extract file extension
           const fileExtension = selectedFile.name.split('.')[1]
@@ -428,7 +499,7 @@ export const ActivityTable = ({ items }: any) => {
                          })
                          const result = await response.json();
                          const imageUrl = result.imageUrl;
-                         onAddNewImage(imageUrl);
+                         onAddNewGalleryImage(imageUrl);
                     }
                }
           } catch (error) {
@@ -438,7 +509,73 @@ export const ActivityTable = ({ items }: any) => {
           }
      };
 
-     const onImageClick = (imageURL: any) => {
+     const handleCoverChange = async (event: any) => {
+
+          const selectedFile = event.target.files[0];
+
+          if (!selectedFile) {
+               return;
+          }
+
+          setLoading(true);
+
+          // Extract file extension
+          const fileExtension = selectedFile.name.split('.')[1]
+
+          // Assuming you have a title for the image
+          const title = currentActivityObject?.title!
+
+          const apiUrl = '/api/aws-s3';
+
+          try {
+               const reader = new FileReader();
+               reader.readAsDataURL(selectedFile);
+               reader.onloadend = async () => {
+                    const base64Data = reader.result;
+                    const data = {
+                         file: base64Data,
+                         title: title,
+                         extension: fileExtension,
+                         fileName: selectedFile.name
+                    };
+
+                    const response = await fetch(apiUrl, {
+                         method: 'POST',
+                         headers: {
+                              'Content-Type': 'application/json'
+                         },
+                         body: JSON.stringify(data),
+                    });
+
+                    if (!response.ok) {
+                         Swal.fire({
+                              title: 'Greška',
+                              text: "Neuspešan upload slike!",
+                              icon: 'error',
+                              confirmButtonColor: '#3085d6',
+                              confirmButtonText: 'OK',
+                         })
+                    } else {
+                         Swal.fire({
+                              title: 'OK',
+                              text: "Uspešan upload slike!",
+                              icon: 'success',
+                              confirmButtonColor: '#3085d6',
+                              confirmButtonText: 'OK',
+                         })
+                         const result = await response.json();
+                         const imageUrl = result.imageUrl;
+                         onAddNewCoverImage(imageUrl);
+                    }
+               }
+          } catch (error) {
+               console.error('Error uploading image:', error);
+          } finally {
+               setLoading(false);
+          }
+     };
+
+     const onGalleryImageClick = (imageURL: any) => {
 
           Swal.fire({
                title: 'Da li ste sigurni da želite da obrišete sliku?',
@@ -451,9 +588,29 @@ export const ActivityTable = ({ items }: any) => {
                cancelButtonText: 'Odustani!'
           }).then((result) => {
                if (result.isConfirmed) {
-                    onDeleteImage(imageURL)
+                    onDeleteGalleryImage(imageURL)
                } else {
-                    handleActivityClose()
+                    // handleProjectClose()
+               }
+          })
+     }
+
+     const onCoverImageClick = (imageURL: any) => {
+
+          Swal.fire({
+               title: 'Da li ste sigurni da želite da obrišete sliku?',
+               text: "Možete obrisati samo sliku koju ste uploadovali!",
+               icon: 'warning',
+               showCancelButton: true,
+               confirmButtonColor: '#3085d6',
+               cancelButtonColor: '#d33',
+               confirmButtonText: 'Da, obriši!',
+               cancelButtonText: 'Odustani!'
+          }).then((result) => {
+               if (result.isConfirmed) {
+                    onDeleteCoverImage(imageURL)
+               } else {
+                    // handleProjectClose()
                }
           })
      }
@@ -480,7 +637,6 @@ export const ActivityTable = ({ items }: any) => {
                                              items.map((activity: Activity) => {
                                                   //const isSelected = selected.includes(activity._id);
                                                   const isCurrent = activity._id === currentActivityID;
-                                                  const statusColor = activity.status === 'in-progress' ? 'success' : 'info';
 
                                                   return (
                                                        <Fragment key={Math.floor(Math.random() * 1000000)}>
@@ -534,6 +690,7 @@ export const ActivityTable = ({ items }: any) => {
                                                                                      },
                                                                                 }}
                                                                            >
+                                                                                <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
                                                                                 {/* -------------------------------Title-------------------------- */}
                                                                                 <Grid
                                                                                      item
@@ -564,9 +721,9 @@ export const ActivityTable = ({ items }: any) => {
                                                                                      <TextField
                                                                                           defaultValue={activity.activityURL}
                                                                                           fullWidth
+                                                                                          disabled
                                                                                           label="URL aktivnosti"
                                                                                           name="activityURL"
-                                                                                          disabled={loading}
                                                                                      />
                                                                                 </Grid>
                                                                                 {/* -------------------------------Published-------------------------- */}
@@ -605,7 +762,7 @@ export const ActivityTable = ({ items }: any) => {
                                                                                           fullWidth
                                                                                           label="Jezik projekta"
                                                                                           select
-                                                                                          disabled={loading}
+                                                                                          disabled
                                                                                           onBlur={(e: any) =>
                                                                                                setCurrentActivityObject((previousObject: any) => ({
                                                                                                     ...previousObject,
@@ -630,7 +787,7 @@ export const ActivityTable = ({ items }: any) => {
                                                                                      xs={12}
                                                                                 >
                                                                                      <TextField
-                                                                                          defaultValue={activity.status}
+                                                                                          defaultValue={currentActivityObject?.status}
                                                                                           fullWidth
                                                                                           label="Status projekta"
                                                                                           select
@@ -652,6 +809,56 @@ export const ActivityTable = ({ items }: any) => {
                                                                                           ))}
                                                                                      </TextField>
                                                                                 </Grid>
+                                                                                {/* -------------------------------Author-------------------------- */}
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <TextField
+                                                                                          defaultValue={activity.author}
+                                                                                          fullWidth
+                                                                                          label={`Autor`}
+                                                                                          name="author"
+                                                                                          disabled={loading}
+                                                                                          onBlur={(e: any) =>
+                                                                                               setCurrentActivityObject((previousObject: any) => ({
+                                                                                                    ...previousObject,
+                                                                                                    author: e.target.value
+                                                                                               }))
+                                                                                          }
+                                                                                     />
+                                                                                </Grid>
+                                                                                {/* -------------------------------Category-------------------------- */}
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <TextField
+                                                                                          defaultValue={currentActivityObject?.category}
+                                                                                          fullWidth
+                                                                                          label="Kategorija aktivnosti"
+                                                                                          select
+                                                                                          disabled={loading}
+                                                                                          onBlur={(e: any) =>
+                                                                                               setCurrentActivityObject((previousObject: any) => ({
+                                                                                                    ...previousObject,
+                                                                                                    category: e.target.value
+                                                                                               }))
+                                                                                          }
+                                                                                     >
+                                                                                          {activityCategory.map((option: ActivityStatus) => (
+                                                                                               <MenuItem
+                                                                                                    key={Math.floor(Math.random() * 1000000)}
+                                                                                                    value={option.value}
+                                                                                               >
+                                                                                                    {option.value}
+                                                                                               </MenuItem>
+                                                                                          ))}
+                                                                                     </TextField>
+                                                                                </Grid>
+                                                                                <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
                                                                                 {/* -------------------------------Cover url-------------------------- */}
                                                                                 <Grid
                                                                                      item
@@ -663,13 +870,13 @@ export const ActivityTable = ({ items }: any) => {
                                                                                           {/* -------------------------slike------------------------------------------ */}
                                                                                           {
                                                                                                currentActivityObject?.coverURL && (
-                                                                                                    <ImageListItem key={Math.floor(Math.random() * 1000000)}>
+                                                                                                    <ImageListItem key={Math.floor(Math.random() * 1000000)} sx={{ width: '200px', height: '300px', paddingBottom: '10px' }}>
                                                                                                          <img
                                                                                                               // srcSet={`${item.img}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
                                                                                                               src={`${currentActivityObject?.coverURL}?w=164&h=164&fit=crop&auto=format`}
                                                                                                               alt={'image'}
                                                                                                               loading="lazy"
-                                                                                                              onClick={(e: any) => onImageClick(e)}
+                                                                                                              onClick={(e: any) => onCoverImageClick(e)}
                                                                                                          />
                                                                                                     </ImageListItem>
                                                                                                )
@@ -695,39 +902,21 @@ export const ActivityTable = ({ items }: any) => {
                                                                                                          whiteSpace: 'nowrap',
                                                                                                          width: 1,
                                                                                                     }}
-                                                                                                    onChange={async (e: any) => await handleFileChange(e)}
+                                                                                                    onChange={async (e: any) => await handleCoverChange(e)}
                                                                                                />
                                                                                           </Button>
 
                                                                                      </Box>
                                                                                 </Grid>
-                                                                                {/* -------------------------------Author-------------------------- */}
-                                                                                <Grid
-                                                                                     item
-                                                                                     md={6}
-                                                                                     xs={12}
-                                                                                >
-                                                                                     <TextField
-                                                                                          defaultValue={activity.author}
-                                                                                          fullWidth
-                                                                                          label={`Autor`}
-                                                                                          name="author"
-                                                                                          disabled={loading}
-                                                                                          onBlur={(e: any) =>
-                                                                                               setCurrentActivityObject((previousObject: any) => ({
-                                                                                                    ...previousObject,
-                                                                                                    author: e.target.value
-                                                                                               }))
-                                                                                          }
-                                                                                     />
-                                                                                </Grid>
+                                                                                <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
+
                                                                                 {/* -------------------------------Links-------------------------- */}
                                                                                 <Grid
                                                                                      item
                                                                                      md={6}
                                                                                      xs={12}
                                                                                 >
-                                                                                     <Typography sx={{ margin: '10px' }}>Linkovi:</Typography>
+                                                                                     <Typography sx={{ margin: '10px' }}>Linkovi za posetu:</Typography>
                                                                                      {
                                                                                           currentActivityObject?.links.length == 0 &&
                                                                                           <Box>
@@ -775,6 +964,27 @@ export const ActivityTable = ({ items }: any) => {
                                                                                      }
 
                                                                                 </Grid>
+                                                                                <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
+                                                                                {/* -------------------------------List Title-------------------------- */}
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <TextField
+                                                                                          defaultValue={activity.listTitle}
+                                                                                          fullWidth
+                                                                                          label={`Opis liste`}
+                                                                                          name="listTitle"
+                                                                                          disabled={loading}
+                                                                                          onBlur={(e: any) =>
+                                                                                               setCurrentActivityObject((previousObject: any) => ({
+                                                                                                    ...previousObject,
+                                                                                                    listTitle: e.target.value
+                                                                                               }))
+                                                                                          }
+                                                                                     />
+                                                                                </Grid>
                                                                                 {/* -------------------------------List-------------------------- */}
                                                                                 <Grid
                                                                                      item
@@ -785,10 +995,10 @@ export const ActivityTable = ({ items }: any) => {
                                                                                      {
                                                                                           currentActivityObject?.list.length == 0 &&
                                                                                           <Box>
-                                                                                               <IconButton onClick={() => onAddNewLink(0, '')}>
+                                                                                               <IconButton onClick={() => onAddNewList(0, '')}>
                                                                                                     <AddBoxIcon />
                                                                                                </IconButton>
-                                                                                               <IconButton onClick={() => onDeleteLink(0)}>
+                                                                                               <IconButton onClick={() => onDeleteList(0)}>
                                                                                                     <DeleteIcon />
                                                                                                </IconButton>
                                                                                           </Box>
@@ -801,7 +1011,7 @@ export const ActivityTable = ({ items }: any) => {
                                                                                                     <TextField
                                                                                                          defaultValue={currentActivityObject.list[index]}
                                                                                                          fullWidth
-                                                                                                         label={`Link ${index + 1}`}
+                                                                                                         label={`List pasus ${index + 1}`}
                                                                                                          disabled={loading}
                                                                                                          // name={activity.description}
                                                                                                          onBlur={(e: any) => {
@@ -829,55 +1039,8 @@ export const ActivityTable = ({ items }: any) => {
                                                                                      }
 
                                                                                 </Grid>
-                                                                                {/* -------------------------------List Title-------------------------- */}
-                                                                                <Grid
-                                                                                     item
-                                                                                     md={6}
-                                                                                     xs={12}
-                                                                                >
-                                                                                     <TextField
-                                                                                          defaultValue={activity.listTitle}
-                                                                                          fullWidth
-                                                                                          label={`List Title`}
-                                                                                          name="listTitle"
-                                                                                          disabled={loading}
-                                                                                          onBlur={(e: any) =>
-                                                                                               setCurrentActivityObject((previousObject: any) => ({
-                                                                                                    ...previousObject,
-                                                                                                    listTitle: e.target.value
-                                                                                               }))
-                                                                                          }
-                                                                                     />
-                                                                                </Grid>
-                                                                                {/* -------------------------------Category-------------------------- */}
-                                                                                <Grid
-                                                                                     item
-                                                                                     md={6}
-                                                                                     xs={12}
-                                                                                >
-                                                                                     <TextField
-                                                                                          defaultValue={activity.category}
-                                                                                          fullWidth
-                                                                                          label="Kategorija aktivnosti"
-                                                                                          select
-                                                                                          disabled={loading}
-                                                                                          onBlur={(e: any) =>
-                                                                                               setCurrentActivityObject((previousObject: any) => ({
-                                                                                                    ...previousObject,
-                                                                                                    category: e.target.value
-                                                                                               }))
-                                                                                          }
-                                                                                     >
-                                                                                          {activityStatus.map((option: ActivityStatus) => (
-                                                                                               <MenuItem
-                                                                                                    key={Math.floor(Math.random() * 1000000)}
-                                                                                                    value={option.value}
-                                                                                               >
-                                                                                                    {option.name}
-                                                                                               </MenuItem>
-                                                                                          ))}
-                                                                                     </TextField>
-                                                                                </Grid>
+                                                                                <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
+
                                                                                 {/* -------------------------------Opisi (pasusi)-------------------------- */}
                                                                                 <Grid
                                                                                      item
@@ -939,13 +1102,13 @@ export const ActivityTable = ({ items }: any) => {
                                                                                           currentActivityObject?.gallery && currentActivityObject.gallery.length > 0 && (
                                                                                                <ImageList sx={{ width: 500, height: 450 }} cols={3} rowHeight={164}>
                                                                                                     {currentActivityObject.gallery.map((item: any) => (
-                                                                                                         <ImageListItem key={Math.floor(Math.random() * 1000000)}>
+                                                                                                         <ImageListItem key={Math.floor(Math.random() * 1000000)} sx={{ width: '200px', height: '300px' }}>
                                                                                                               <img
                                                                                                                    // srcSet={`${item.img}?w=164&h=164&fit=crop&auto=format&dpr=2 2x`}
                                                                                                                    src={`${item}?w=164&h=164&fit=crop&auto=format`}
                                                                                                                    alt={'image'}
                                                                                                                    loading="lazy"
-                                                                                                                   onClick={(e: any) => onImageClick(e)}
+                                                                                                                   onClick={(e: any) => onGalleryImageClick(e)}
                                                                                                               />
                                                                                                          </ImageListItem>
                                                                                                     ))}
@@ -973,13 +1136,13 @@ export const ActivityTable = ({ items }: any) => {
                                                                                                     whiteSpace: 'nowrap',
                                                                                                     width: 1,
                                                                                                }}
-                                                                                               onChange={async (e: any) => await handleFileChange(e)}
+                                                                                               onChange={async (e: any) => await handleGalleryChange(e)}
                                                                                           />
                                                                                      </Button>
 
                                                                                 </Box>
                                                                                 {/* ------------------------------------------------------------------------ */}
-                                                                                <Divider />
+                                                                                <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
                                                                                 <Stack
                                                                                      alignItems="center"
                                                                                      direction="row"
@@ -1013,7 +1176,7 @@ export const ActivityTable = ({ items }: any) => {
                                                                                                color="error"
                                                                                                disabled={loading}
                                                                                           >
-                                                                                               Obrisi proizvod
+                                                                                               Obriši aktivnost
                                                                                           </Button>
                                                                                      </div>
                                                                                 </Stack>

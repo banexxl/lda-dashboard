@@ -99,7 +99,7 @@ export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
                                    <TextField
                                         InputLabelProps={{ shrink: true }}
                                         disabled
-                                        label="URL projekta"
+                                        label="URL aktivnosti"
                                         name="activityURL"
                                         multiline
                                         rows={4}
@@ -158,22 +158,6 @@ export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
                                         }}
                                         error={formik.touched.author && !!formik.errors.author}
                                         helperText={formik.touched.author && formik.errors.author}
-                                   />
-
-                                   <TextField
-                                        InputLabelProps={{ shrink: true }}
-                                        fullWidth
-                                        disabled={loading}
-                                        label="Linkovi (odvojeni zarezom)"
-                                        name="links"
-                                        onBlur={(e) => {
-                                             const { value } = e.target;
-                                             const links = value.split(',').map((link) => link.trim());
-                                             formik.setFieldValue('links', links);
-                                             formik.handleBlur(e);
-                                        }}
-                                        error={formik.touched.links && !!formik.errors.links}
-                                        helperText={formik.touched.links && formik.errors.links}
                                    />
 
                                    <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
@@ -345,7 +329,7 @@ export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
                                              color="primary"
                                              disabled={Object.keys(formik.errors).length != 0 && loading}
                                         >
-                                             Dodaj projekat
+                                             Dodaj aktivnost
                                         </Button>
                                    </Box>
                               </Form>

@@ -1388,7 +1388,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                                color="error"
                                                                                                disabled={loading}
                                                                                           >
-                                                                                               Obrisi projekat
+                                                                                               Obriši projekat
                                                                                           </Button>
                                                                                      </div>
                                                                                 </Stack>

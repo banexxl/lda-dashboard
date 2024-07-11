@@ -17,7 +17,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                     const res = await dbActivities.insertOne(
                          {
                               ...request.body,
-                              published: new Date(request.body.published)
+                              publishedDate: new Date(request.body.publishedDate)
                          }
                     )
                     return response.status(200).json({ message: 'activity successfully added!', data: res });
@@ -42,7 +42,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                          {
                               $set: {
                                    ...activityWithoutId,
-                                   publishedDate: new Date(request.body.published)
+                                   publishedDate: new Date(request.body.publishedDate)
                               }
                          }
                     )

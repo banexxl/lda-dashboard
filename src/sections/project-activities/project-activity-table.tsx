@@ -1226,7 +1226,7 @@ export const ProjectActivityTable = (props: any) => {
                                                                                                color="error"
                                                                                                disabled={loading}
                                                                                           >
-                                                                                               Obrisi proizvod
+                                                                                               Obriši projektnu aktivnost
                                                                                           </Button>
                                                                                      </div>
                                                                                 </Stack>
