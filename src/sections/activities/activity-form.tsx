@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Field, FieldArray } from 'formik';
-import { TextField, Typography, Button, Box, Grid, MenuItem, IconButton, FormControl, InputLabel, Select, Divider } from '@mui/material'
+import { TextField, Typography, Button, Box, Grid, MenuItem, IconButton, FormControl, InputLabel, Select, Divider, useTheme } from '@mui/material'
 import { Form, Formik } from 'formik';
 import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2'
@@ -16,8 +16,10 @@ export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
 
      const router = useRouter();
      const [loading, setLoading] = useState<any>(false)
+     const theme = useTheme();
 
      const handleSubmit = async (values: any) => {
+          console.log('values', values);
 
           try {
                const responseValues: any = await fetch('/api/activities-api', {
@@ -83,7 +85,7 @@ export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
 
                                    <TextField
                                         InputLabelProps={{ shrink: true }}
-                                        label="Naslov projektne aktivnosti"
+                                        label="Naslov aktivnosti"
                                         name="title"
                                         disabled={loading}
                                         onBlur={(e: any) => {
@@ -113,32 +115,29 @@ export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
                                    />
 
                                    <FormControl fullWidth disabled={loading}>
-                                        <InputLabel id="demo-simple-select-label">Status</InputLabel>
+                                        <InputLabel id="activity-status" sx={{ backgroundColor: 'white' }}>Status</InputLabel>
                                         <Select
                                              name='status'
-                                             id="demo-simple-select"
-                                             disabled={loading}
+                                             labelId="activity-status-id"
+                                             id="activity-status"
                                              value={formik.values.status}
                                              onChange={formik.handleChange}
                                              error={formik.touched.status && !!formik.errors.status}
-                                             variant='outlined'
-                                             sx={{ borderColor: 'white' }}
                                         >
-                                             <MenuItem value={''}>Ponisti</MenuItem>
+                                             <MenuItem value={'completed'}>Završeno</MenuItem>
                                              <MenuItem value={'in-progress'}>U toku</MenuItem>
-                                             <MenuItem value={'completed'}>Zavrsen</MenuItem>
                                              <MenuItem value={'to-do'}>U planu</MenuItem>
                                         </Select>
                                    </FormControl>
 
                                    <FormControl fullWidth>
-                                        <InputLabel id="demo-simple-select-label">Jezik</InputLabel>
+                                        <InputLabel id="activity-locale" sx={{ backgroundColor: 'white' }}>Jezik</InputLabel>
                                         <Select
-                                             labelId="demo-simple-select-label"
-                                             id="demo-simple-select"
+                                             labelId="activity-locale"
+                                             id="activity-locale-id"
                                              value={formik.values.locale}
                                              label="Jezik"
-                                             disabled={loading}
+                                             disabled
                                              name='locale'
                                              onChange={formik.handleChange}
                                              error={formik.touched.locale && !!formik.errors.locale}
@@ -165,7 +164,7 @@ export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
                                         InputLabelProps={{ shrink: true }}
                                         fullWidth
                                         disabled={loading}
-                                        label="Linkovi"
+                                        label="Linkovi (odvojeni zarezom)"
                                         name="links"
                                         onBlur={(e) => {
                                              const { value } = e.target;
@@ -177,18 +176,7 @@ export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
                                         helperText={formik.touched.links && formik.errors.links}
                                    />
 
-                                   <TextField
-                                        InputLabelProps={{ shrink: true }}
-                                        fullWidth
-                                        disabled={loading}
-                                        label="Naslov liste"
-                                        name="listTitle"
-                                        onBlur={(e) => {
-                                             formik.setFieldValue('listTitle', e.target.value)
-                                        }}
-                                        error={formik.touched.listTitle && !!formik.errors.listTitle}
-                                        helperText={formik.touched.listTitle && formik.errors.listTitle}
-                                   />
+                                   <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
 
                                    <TextField
                                         InputLabelProps={{ shrink: true }}
@@ -215,7 +203,7 @@ export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
                                                   formik.values?.list.length > 0 ?
                                                        formik.values?.list.map((list: any, index: any) => (
                                                             <Box sx={{ display: 'flex', width: '80%' }}>
-                                                                 <Field
+                                                                 <TextField
                                                                       InputLabelProps={{ shrink: true }}
                                                                       defaultValue={list}
                                                                       fullWidth
@@ -239,11 +227,14 @@ export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
                                         />
                                    </Grid>
 
+                                   <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
+
                                    <FormControl fullWidth disabled={loading}>
-                                        <InputLabel id="activityCategory">Kategorija aktivnosti</InputLabel>
+                                        <InputLabel id="activity-category-label" sx={{ backgroundColor: 'white' }}>Kategorija</InputLabel>
                                         <Select
+                                             labelId='activity-category-label'
                                              name='category'
-                                             id="category"
+                                             id="activity-category"
                                              disabled={loading}
                                              value={formik.values.category}
                                              onChange={formik.handleChange}
@@ -276,12 +267,13 @@ export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
                                              render={arrayHelpers => (
                                                   formik.values?.descriptions.length > 0 ?
                                                        formik.values?.descriptions.map((description: any, index: any) => (
-                                                            <Box sx={{ display: 'flex', width: '80%' }}>
-                                                                 <Field
+                                                            <Box key={index} sx={{ display: 'flex', width: '80%', alignItems: 'center' }}>
+                                                                 <TextField
                                                                       InputLabelProps={{ shrink: true }}
-                                                                      defaultValue={description}
+                                                                      value={formik.values.descriptions[index]}
+                                                                      onChange={formik.handleChange}
                                                                       fullWidth
-                                                                      name={`description.${index}`}
+                                                                      name={`descriptions.${index}`}
                                                                       label={`Opis ${index + 1}`}
                                                                       disabled={loading}
                                                                  />
@@ -309,35 +301,36 @@ export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
                                         <Typography sx={{ margin: '10px' }}>Linkovi:</Typography>
                                         <FieldArray
                                              name={'links'}
-                                             render={arrayHelpers => (
+                                             render={arrayHelpersLinks => (
                                                   formik.values?.links.length > 0 ?
                                                        formik.values?.links.map((link: any, index: any) => (
-                                                            <Box sx={{ display: 'flex', width: '80%' }}>
-                                                                 <Field
+                                                            <Box key={index} sx={{ display: 'flex', width: '80%', alignItems: 'center' }}>
+                                                                 <TextField
                                                                       InputLabelProps={{ shrink: true }}
-                                                                      defaultValue={link}
+                                                                      value={formik.values.links[index]}
+                                                                      onChange={formik.handleChange}
                                                                       fullWidth
-                                                                      name={`link.${index}`}
-                                                                      label={`Opis ${index + 1}`}
+                                                                      name={`links.${index}`}
+                                                                      label={`Link ${index + 1}`}
                                                                       disabled={loading}
                                                                  />
-                                                                 <IconButton onClick={() => arrayHelpers.insert(index + 1, '')}>
+                                                                 <IconButton onClick={() => arrayHelpersLinks.insert(index + 1, '')}>
                                                                       <AddBoxIcon />
                                                                  </IconButton>
-                                                                 <IconButton onClick={() => arrayHelpers.remove(index)}>
+                                                                 <IconButton onClick={() => arrayHelpersLinks.remove(index)}>
                                                                       <DeleteIcon />
                                                                  </IconButton>
                                                             </Box>
                                                        ))
                                                        :
-                                                       <IconButton onClick={() => arrayHelpers.push('')}>
+                                                       <IconButton onClick={() => arrayHelpersLinks.push('')}>
                                                             <AddBoxIcon />
                                                        </IconButton>
                                              )}
                                         />
                                    </Grid>
 
-                                   <Divider />
+                                   <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
                                    <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
                                         <Button
                                              variant="contained"

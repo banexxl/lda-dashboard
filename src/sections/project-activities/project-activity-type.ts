@@ -2,18 +2,16 @@ import * as yup from 'yup';
 
 export type Locale = 'sr' | 'en'
 
-export type ProjectCategory = { key: 'economy', value: 'Economy' }
-     | { key: 'democracy', value: 'Democracy' }
-     | { key: 'eu-integrations', value: 'EU Integrations' }
-     | { key: 'culture', value: 'Culture' }
-     | { key: 'intercultural-dialogue', value: 'Intercultural Dialogue' }
-     | { key: 'migrations', value: 'Migrations' }
-     | { key: 'youth', value: 'Youth' }
-     | { key: 'other', value: 'Other' }
+export type ProjectCategory = 'economy'
+     | 'democracy'
+     | 'eu-integrations'
+     | 'culture'
+     | 'intercultural-dialogue'
+     | 'migrations'
+     | 'youth'
+     | 'other'
 
-export type ProjectStatus = { key: 'completed', value: 'Completed' }
-     | { key: 'in-progress', value: 'In Progress' }
-     | { key: 'to-do', value: 'To Do' }
+export type ProjectStatus = 'completed' | 'in-progress' | 'to-do'
 
 export type ProjectActivity = {
      _id?: string;
@@ -67,8 +65,8 @@ export const projectActivityInitialValues: ProjectActivity = {
      subTitle: '',
      projectSummaryURL: '',
      projectURL: '',
-     category: { key: 'other', value: 'Other' },
-     status: { key: 'to-do', value: 'To Do' },
+     category: 'other',
+     status: 'to-do',
      published: new Date(),
      applicants: [''],
      organizers: [''],

@@ -107,11 +107,12 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                    />
 
                                    <FormControl fullWidth>
-                                        <TextField
-                                             select
+                                        <InputLabel id="project-summary" sx={{ backgroundColor: 'white' }}>Glavni projekat</InputLabel>
+                                        <Select
                                              label="Glavni projekat"
+                                             labelId="project-summary"
                                              name='projectSummaryURL'
-                                             id="demo-simple-select"
+                                             id="project-summary"
                                              value={formik.values.projectSummaryURL}
                                              onChange={formik.handleChange}
                                              error={formik.touched.projectSummaryURL && !!formik.errors.projectSummaryURL}
@@ -127,14 +128,15 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                                        </MenuItem>
                                                   ))
                                              }
-                                        </TextField>
+                                        </Select>
                                    </FormControl>
 
                                    <FormControl fullWidth>
-                                        <TextField
-                                             id="demo-simple-select"
+                                        <InputLabel id="project-summary-status" sx={{ backgroundColor: 'white' }}>Status</InputLabel>
+                                        <Select
+                                             id="project-summary-status-id"
+                                             labelId='project-summary-status'
                                              label="Status"
-                                             select
                                              value={formik.values.status}
                                              onChange={(e) => {
                                                   formik.setFieldValue('status', e.target.value)
@@ -145,14 +147,15 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                              <MenuItem value={'in-progress'}>U toku</MenuItem>
                                              <MenuItem value={'completed'}>Zavrsen</MenuItem>
                                              <MenuItem value={'to-do'}>U planu</MenuItem>
-                                        </TextField>
+                                        </Select>
                                    </FormControl>
 
                                    <FormControl fullWidth>
-                                        <TextField
-                                             id="demo-simple-select"
+                                        <InputLabel id="project-summary-locale" sx={{ backgroundColor: 'white' }}>Jezik</InputLabel>
+                                        <Select
+                                             id="project-summary-locale-id"
+                                             labelId='project-summary-locale'
                                              value={formik.values.locale}
-                                             select
                                              label="Jezik"
                                              disabled
                                              name='locale'
@@ -163,7 +166,7 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                         >
                                              <MenuItem value={'sr'}>sr</MenuItem>
                                              <MenuItem value={'en'}>en</MenuItem>
-                                        </TextField>
+                                        </Select>
                                    </FormControl>
 
                                    <DateField
@@ -174,13 +177,13 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                    />
 
                                    <FormControl fullWidth>
-
-                                        <TextField
+                                        <InputLabel id="project-summary-category" sx={{ backgroundColor: 'white' }}>Kategorija</InputLabel>
+                                        <Select
                                              name='category'
-                                             id="demo-simple-select"
+                                             id="demo-simple-select-id"
+                                             labelId='project-summary-category'
                                              label="Kategorija"
                                              value={formik.values.category}
-                                             select
                                              onChange={formik.handleChange}
                                              error={formik.touched.category && !!formik.errors.category}
                                              sx={{ borderColor: 'white' }}
@@ -194,18 +197,21 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                              <MenuItem value={'migrations'}>Migracije</MenuItem>
                                              <MenuItem value={'youth'}>Omladina</MenuItem>
                                              <MenuItem value={'other'}>Ostalo</MenuItem>
-                                        </TextField>
+                                        </Select>
                                    </FormControl>
 
-                                   <InputLabel id="showProjectDetails">Prikazi detalje projekta</InputLabel>
-                                   <Checkbox
-                                        name="showProjectDetails"
-                                        defaultChecked={formik.values.showProjectDetails}
-                                        onChange={(e) => {
-                                             setListEnabled(e.target.checked)
-                                             formik.handleChange
-                                        }}
-                                   />
+                                   <FormControl sx={{ display: 'flex', flexDirection: 'column', width: '400px', height: '50px' }}>
+                                        <InputLabel id="showProjectDetails">Prikazi detalje projekta</InputLabel>
+                                        <Checkbox
+                                             name="showProjectDetails"
+                                             defaultChecked={formik.values.showProjectDetails}
+                                             sx={{ width: '10px', height: '10px' }}
+                                             onChange={(e) => {
+                                                  setListEnabled(e.target.checked)
+                                                  formik.handleChange
+                                             }}
+                                        />
+                                   </FormControl>
 
                                    <TextField
                                         InputLabelProps={{ shrink: true }}

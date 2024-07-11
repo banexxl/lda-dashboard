@@ -731,7 +731,6 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                              items.map((project: ProjectSummary) => {
                                                   //const isSelected = selected.includes(project._id);
                                                   const isCurrent = project._id === currentProjectID;
-                                                  const statusColor = project.status.key === 'in-progress' ? 'success' : 'info';
 
                                                   return (
                                                        <Fragment key={Math.floor(Math.random() * 1000000)}>
@@ -857,17 +856,17 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                           label="Jezik projekta"
                                                                                           select
                                                                                           disabled
-                                                                                          onBlur={(e: any) =>
-                                                                                               setCurrentProjectObject((previousObject: any) => ({
-                                                                                                    ...previousObject,
-                                                                                                    locale: e.target.value
-                                                                                               }))
-                                                                                          }
+                                                                                     // onBlur={(e: any) =>
+                                                                                     //      setCurrentProjectObject((previousObject: any) => ({
+                                                                                     //           ...previousObject,
+                                                                                     //           locale: e.target.value
+                                                                                     //      }))
+                                                                                     // }
                                                                                      >
                                                                                           {locales.map((option: ProjectLocale) => (
                                                                                                <MenuItem
                                                                                                     key={Math.floor(Math.random() * 1000000)}
-                                                                                                    value={option.value}
+                                                                                                    defaultValue={option.value}
                                                                                                >
                                                                                                     {option.name}
                                                                                                </MenuItem>
@@ -955,7 +954,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                           label="Status projekta"
                                                                                           select
                                                                                           disabled={loading}
-                                                                                          onBlur={(e: any) =>
+                                                                                          onChange={(e: any) =>
                                                                                                setCurrentProjectObject((previousObject: any) => ({
                                                                                                     ...previousObject,
                                                                                                     status: e.target.value

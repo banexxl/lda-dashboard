@@ -1,9 +1,8 @@
 import ChevronRightIcon from '@untitled-ui/icons-react/build/esm/ChevronRight';
 import ChevronDownIcon from '@untitled-ui/icons-react/build/esm/ChevronDown';
 import {
-     Avatar, Box, Button, Card, CardContent, Checkbox, Divider, FormControl, Grid, IconButton, ImageList, ImageListItem, Input, InputAdornment, InputLabel, LinearProgress, MenuItem,
-     Select,
-     Stack, SvgIcon, Switch, Table, TableBody, TableCell, TableHead, TableRow, TextField, TextFieldProps, Typography, useTheme
+     Box, Button, Card, Divider, FormControl, Grid, IconButton, ImageList, ImageListItem, Input, MenuItem,
+     Stack, SvgIcon, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography, useTheme
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import InsertPhotoIcon from '@mui/icons-material/InsertPhoto';
@@ -11,11 +10,10 @@ import Image from 'next/image';
 import numeral from 'numeral';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddBoxIcon from '@mui/icons-material/AddBox';
-import { Fragment, JSXElementConstructor, ReactElement, useCallback, useEffect, useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Scrollbar } from 'src/components/scrollbar';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import Swal from 'sweetalert2';
 import { useRouter } from 'next/navigation';
 import "@uploadthing/react/styles.css";
@@ -24,25 +22,10 @@ import { ProjectActivity, ProjectCategory, ProjectStatus, projectActivityInitial
 import { DateField } from '@mui/x-date-pickers/DateField';
 import moment from 'moment';
 import { ProjectSummary } from '../project-summaries/project-summary-type';
-import { sanitizeString } from '@/utils/url-creator';
 
-const projectStatus: ProjectStatus[] = [
-     { key: 'in-progress', value: 'In Progress' },
-     { key: 'completed', value: 'Completed' },
-     { key: 'to-do', value: 'To Do' }
-];
+const projectStatus: ProjectStatus[] = ['completed', 'in-progress', 'to-do'];
 
-const projectCategory: ProjectCategory[] = [
-     { key: 'economy', value: 'Economy' },
-     { key: 'democracy', value: 'Democracy' },
-     { key: 'eu-integrations', value: 'EU Integrations' },
-     { key: 'culture', value: 'Culture' },
-     { key: 'intercultural-dialogue', value: 'Intercultural Dialogue' },
-     { key: 'migrations', value: 'Migrations' },
-     { key: 'youth', value: 'Youth' },
-     { key: 'other', value: 'Other' },
-
-]
+const projectCategory: ProjectCategory[] = ['economy', 'democracy', 'eu-integrations', 'culture', 'intercultural-dialogue', 'migrations', 'youth', 'other'];
 
 export type ArrayKeys = keyof Pick<ProjectActivity,
      "title" |
@@ -71,12 +54,15 @@ type ProjectLocale = {
      name: string;
 }
 
-const locales = [{ value: 'en', name: 'Engleski' }, { value: 'sr', name: 'Srpski' }]
+const locales: ProjectLocale[] = [{ value: 'en', name: 'Engleski' }, { value: 'sr', name: 'Srpski' }]
 
 export const ProjectActivityTable = (props: any) => {
+
      const { items, projectActivitiesCount, page, rowsPerPage, selected } = props;
      const [currentProjectID, setCurrentProjectID] = useState(null);
      const [currentProjectObject, setCurrentProjectObject] = useState<ProjectActivity | null | undefined>(projectActivityInitialValues);
+     console.log('currentProjectObject', currentProjectObject);
+
      const router = useRouter();
      const theme = useTheme()
      const [loading, setLoading] = useState(false)
@@ -91,6 +77,15 @@ export const ProjectActivityTable = (props: any) => {
           return null;  // Object with the desired ID not found
      }
 
+     const getProjectSummaryByTitle = (title: string, arrayToSearch: any) => {
+          for (const obj of arrayToSearch) {
+               if (obj.title === title) {
+                    return obj;  // Found the object with the desired ID
+               }
+          }
+          return null;  // Object with the desired ID not found
+     }
+
      const handleProjectToggle = (ProjectId: any) => {
           setCurrentProjectID((prevProjectId: any) => {
                if (prevProjectId === ProjectId) {
@@ -98,6 +93,7 @@ export const ProjectActivityTable = (props: any) => {
                     return null;
                }
                setCurrentProjectObject(getObjectById(ProjectId, items))
+
                return ProjectId;
           });
      }
@@ -126,7 +122,6 @@ export const ProjectActivityTable = (props: any) => {
      }
 
      const handleUpdateProject = async (currentProjectObject: any) => {
-          console.log(currentProjectObject);
 
           try {
                //API CALL
@@ -581,7 +576,6 @@ export const ProjectActivityTable = (props: any) => {
                                              items.map((project: ProjectActivity) => {
                                                   //const isSelected = selected.includes(project._id);
                                                   const isCurrent = project._id === currentProjectID;
-                                                  const statusColor = project.status.key === 'in-progress' as string ? 'success' : 'info';
 
                                                   return (
                                                        <Fragment key={Math.floor(Math.random() * 1000000)}>
@@ -646,7 +640,7 @@ export const ProjectActivityTable = (props: any) => {
                                                                                           fullWidth
                                                                                           label="Naziv projekta"
                                                                                           name="name"
-                                                                                          disabled={loading}
+                                                                                          disabled
                                                                                           onBlur={(e: any) =>
                                                                                                setCurrentProjectObject((previousObject: any) => ({
                                                                                                     ...previousObject,
@@ -654,50 +648,6 @@ export const ProjectActivityTable = (props: any) => {
 
                                                                                                }))
                                                                                           }
-                                                                                     />
-                                                                                </Grid>
-                                                                                {/* ------------------------Sub title, main project------------------------ */}
-                                                                                <Grid
-                                                                                     item
-                                                                                     md={6}
-                                                                                     xs={12}
-                                                                                >
-                                                                                     <TextField
-                                                                                          defaultValue={''}
-                                                                                          fullWidth
-                                                                                          label="Glavni projekat"
-                                                                                          select
-                                                                                          disabled={loading}
-                                                                                     >
-                                                                                          {props.projectSummaries.map((projectSummary: ProjectSummary) => (
-                                                                                               <MenuItem
-                                                                                                    key={Math.floor(Math.random() * 1000000)}
-                                                                                                    value={projectSummary.title}
-                                                                                                    onSelect={(e: any) =>
-                                                                                                         setCurrentProjectObject((previousObject: any) => ({
-                                                                                                              ...previousObject,
-                                                                                                              subTitle: e.target.value,
-                                                                                                              projectSummaryURL: '/pregled-projekta/' + sanitizeString(e.target.value)
-                                                                                                         }))
-                                                                                                    }
-                                                                                               >
-                                                                                                    {projectSummary.title}
-                                                                                               </MenuItem>
-                                                                                          ))}
-                                                                                     </TextField>
-                                                                                </Grid>
-                                                                                {/* ------------------------Main project url------------------------ */}
-                                                                                <Grid
-                                                                                     item
-                                                                                     md={6}
-                                                                                     xs={12}
-                                                                                >
-                                                                                     <TextField
-                                                                                          defaultValue={currentProjectObject?.projectSummaryURL}
-                                                                                          fullWidth
-                                                                                          label="Link ka glavno projektu"
-                                                                                          name="projectSummaryURL"
-                                                                                          disabled
                                                                                      />
                                                                                 </Grid>
                                                                                 {/* ------------------------Project activity url------------------------ */}
@@ -711,7 +661,7 @@ export const ProjectActivityTable = (props: any) => {
                                                                                           fullWidth
                                                                                           label="URL projektne aktivnosti"
                                                                                           name="projectURL"
-                                                                                          disabled={loading}
+                                                                                          disabled
                                                                                           onBlur={(e: any) =>
                                                                                                setCurrentProjectObject((previousObject: any) => ({
                                                                                                     ...previousObject,
@@ -721,37 +671,96 @@ export const ProjectActivityTable = (props: any) => {
                                                                                           }
                                                                                      />
                                                                                 </Grid>
+                                                                                {/* ------------------------Sub title, main project------------------------ */}
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <TextField
+                                                                                          fullWidth
+                                                                                          label="Glavni projekat"
+                                                                                          disabled
+                                                                                          defaultValue={currentProjectObject?.subTitle}
+                                                                                     >
+                                                                                     </TextField>
+                                                                                </Grid>
+                                                                                {/* ------------------------Main project url------------------------ */}
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <TextField
+                                                                                          defaultValue={currentProjectObject?.projectSummaryURL}
+                                                                                          fullWidth
+                                                                                          label="Link ka glavnom projektu"
+                                                                                          name="projectSummaryURL"
+                                                                                          disabled
+                                                                                     />
+                                                                                </Grid>
+
                                                                                 {/* ------------------------Category------------------------ */}
                                                                                 <FormControl fullWidth>
-                                                                                     <InputLabel id="demo-simple-select-label">Kategorija</InputLabel>
-                                                                                     <Select
-                                                                                          labelId="category"
+                                                                                     <TextField
                                                                                           id="category"
-                                                                                          value={'culture'}
-                                                                                          label="Category"
+                                                                                          label="Kategorija"
+                                                                                          name='category'
+                                                                                          select
+                                                                                          defaultValue={currentProjectObject?.category}
+                                                                                          onChange={(e: any) =>
+                                                                                               setCurrentProjectObject((previousObject: any) => ({
+                                                                                                    ...previousObject,
+                                                                                                    category: e.target.value
+                                                                                               }))
+                                                                                          }
                                                                                      >
                                                                                           {projectCategory.map((category: ProjectCategory) => (
-                                                                                               <MenuItem key={category.key} value={category.value}>
-                                                                                                    {category.value}
+                                                                                               <MenuItem
+                                                                                                    key={category}
+                                                                                                    value={category}
+                                                                                               >
+                                                                                                    {
+                                                                                                         category == 'economy' ? 'Ekonomija' :
+                                                                                                              category == 'democracy' ? 'Demokratija' :
+                                                                                                                   category == 'eu-integrations' ? 'EU integracije' :
+                                                                                                                        category == 'culture' ? 'Kultura' :
+                                                                                                                             category == 'intercultural-dialogue' ? 'Međukulturni dijalog' :
+                                                                                                                                  category == 'migrations' ? 'Migracije' :
+                                                                                                                                       category == 'youth' ? 'Omladina' :
+                                                                                                                                            category == 'other' ? 'Ostalo' :
+                                                                                                                                                 ' '
+                                                                                                    }
                                                                                                </MenuItem>
                                                                                           ))}
-                                                                                     </Select>
+                                                                                     </TextField>
                                                                                 </FormControl>
                                                                                 {/* ------------------------Status------------------------ */}
                                                                                 <FormControl fullWidth>
-                                                                                     <InputLabel id="demo-simple-select-label">Status</InputLabel>
-                                                                                     <Select
-                                                                                          defaultValue={project.status}
-                                                                                          labelId="status"
-                                                                                          id="status"
+                                                                                     <TextField
+                                                                                          select
                                                                                           label="Status"
+                                                                                          defaultValue={currentProjectObject?.status}
+                                                                                          onChange={(e: any) =>
+                                                                                               setCurrentProjectObject((previousObject: any) => ({
+                                                                                                    ...previousObject,
+                                                                                                    status: e.target.value
+                                                                                               }))
+                                                                                          }
                                                                                      >
                                                                                           {projectStatus.map((status: ProjectStatus) => (
-                                                                                               <MenuItem key={status.key} value={status.value}>
-                                                                                                    {status.value}
+                                                                                               <MenuItem
+                                                                                                    key={status}
+                                                                                                    value={status}
+                                                                                               >
+                                                                                                    {status == 'completed' ? 'Završen' :
+                                                                                                         status == 'in-progress' ? 'U toku' :
+                                                                                                              status == 'to-do' ? 'Za uraditi' :
+                                                                                                                   ''
+                                                                                                    }
                                                                                                </MenuItem>
                                                                                           ))}
-                                                                                     </Select>
+                                                                                     </TextField>
                                                                                 </FormControl>
                                                                                 {/* ------------------------Published date------------------------ */}
                                                                                 <Grid
@@ -779,7 +788,7 @@ export const ProjectActivityTable = (props: any) => {
                                                                                      </LocalizationProvider>
                                                                                 </Grid>
                                                                                 {/* ------------------------Locale------------------------ */}
-                                                                                <Grid
+                                                                                {/* <Grid
                                                                                      item
                                                                                      md={6}
                                                                                      xs={12}
@@ -789,24 +798,24 @@ export const ProjectActivityTable = (props: any) => {
                                                                                           fullWidth
                                                                                           label="Jezik projekta"
                                                                                           select
-                                                                                          disabled={loading}
-                                                                                          onBlur={(e: any) =>
-                                                                                               setCurrentProjectObject((previousObject: any) => ({
-                                                                                                    ...previousObject,
-                                                                                                    locale: e.target.value
-                                                                                               }))
-                                                                                          }
+                                                                                          disabled
+                                                                                     // onBlur={(e: any) =>
+                                                                                     //      setCurrentProjectObject((previousObject: any) => ({
+                                                                                     //           ...previousObject,
+                                                                                     //           locale: e.target.value
+                                                                                     //      }))
+                                                                                     // }
                                                                                      >
                                                                                           {locales.map((option: ProjectLocale) => (
                                                                                                <MenuItem
                                                                                                     key={Math.floor(Math.random() * 1000000)}
-                                                                                                    value={option.value}
+                                                                                                    defaultValue={option.value}
                                                                                                >
                                                                                                     {option.name}
                                                                                                </MenuItem>
                                                                                           ))}
                                                                                      </TextField>
-                                                                                </Grid>
+                                                                                </Grid> */}
                                                                                 {/* ------------------------Locations------------------------ */}
                                                                                 <Grid
                                                                                      item

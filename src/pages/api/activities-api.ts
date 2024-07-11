@@ -1,27 +1,26 @@
 import { MongoClient, ObjectId } from 'mongodb'
 import type { NextApiRequest, NextApiResponse } from 'next/types'
-import moment from 'moment';
 
 export default async function handler(request: NextApiRequest, response: NextApiResponse) {
 
      const mongoClient = await MongoClient.connect(process.env.MONGODB_URI!)
-     const dbProjects = mongoClient.db('LDA_DB').collection('Projects')
+     const dbActivities = mongoClient.db('LDA_DB').collection('Activities')
 
      try {
           if (request.method === 'GET') {
 
-               const allProjects = await dbProjects.find({}).toArray()
-               return response.status(200).json({ message: 'Project s found!', data: allProjects });
+               const allactivitys = await dbActivities.find({}).toArray()
+               return response.status(200).json({ message: 'activity s found!', data: allactivitys });
 
           } else if (request.method === 'POST') {
                try {
-                    const res = await dbProjects.insertOne(
+                    const res = await dbActivities.insertOne(
                          {
                               ...request.body,
                               published: new Date(request.body.published)
                          }
                     )
-                    return response.status(200).json({ message: 'Project successfully added!' });
+                    return response.status(200).json({ message: 'activity successfully added!', data: res });
                } catch (error) {
                     console.log(error);
                }
@@ -29,29 +28,29 @@ export default async function handler(request: NextApiRequest, response: NextApi
           } else if (request.method === 'DELETE') {
                //const idsToDelete = request.body.selected.map((_id: any) => new ObjectId(_id))
                try {
-                    const deleteResponse = await dbProjects.deleteOne({ _id: ObjectId.createFromHexString(request.body) })
-                    return deleteResponse.deletedCount > 0 ? response.status(200).json({ message: 'Projekat uspesno obrisan' }) : response.status(400).json({ message: 'Projekat nije obrisan' });
+                    const deleteResponse = await dbActivities.deleteOne({ _id: ObjectId.createFromHexString(request.body) })
+                    return deleteResponse.deletedCount > 0 ? response.status(200).json({ message: 'Aktivnost uspesno obrisana' }) : response.status(400).json({ message: 'Aktivnost nije obrisana' });
                } catch (error) {
                     alert(error);
                }
           } else if (request.method === 'PUT') {
 
-               const { _id, ...projectWithoutId } = request.body;
+               const { _id, ...activityWithoutId } = request.body;
 
                try {
-                    const mdbResponse = await dbProjects.updateOne({ _id: ObjectId.createFromHexString(request.body._id) },
+                    const mdbResponse = await dbActivities.updateOne({ _id: ObjectId.createFromHexString(request.body._id) },
                          {
                               $set: {
-                                   ...projectWithoutId,
-                                   published: new Date(request.body.published)
+                                   ...activityWithoutId,
+                                   publishedDate: new Date(request.body.published)
                               }
                          }
                     )
 
                     return mdbResponse.modifiedCount > 0 ?
-                         response.status(200).json({ message: 'Project successfully updated!', status: 'OK' })
+                         response.status(200).json({ message: 'Activity successfully updated!', status: 'OK' })
                          :
-                         response.status(400).json({ message: 'Project not updated!', status: 'Bad Request' });
+                         response.status(400).json({ message: 'Activity not updated!', status: 'Bad Request' });
                } catch (error) {
                     alert(error);
                }
