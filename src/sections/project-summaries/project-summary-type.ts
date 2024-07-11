@@ -51,7 +51,7 @@ export interface ProjectSummary {
 export const initialProjectSummary: ProjectSummary = {
      projectSummaryURL: "",
      projectSummaryCoverURL: "",
-     status: { key: 'to-do', value: 'To Do' },
+     status: "to-do",
      gallery: [],
      projectEndDateTime: new Date(),
      projectStartDateTime: new Date(),
