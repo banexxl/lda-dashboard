@@ -1,7 +1,10 @@
 import * as yup from 'yup';
-import { ProjectCategory } from '../project-activities/project-activity-type';
 
-const activityStatusProps: ActivityStatusProps[] = ['completed', 'in-progress', 'to-do'];
+export type ActivityCategory = 'economy' | 'democracy' | 'eu-integrations' | 'culture' | 'intercultural-dialogue' | 'migrations' | 'youth' | 'other'
+export const activityCategoryProps: ActivityCategory[] = ['economy', 'democracy', 'eu-integrations', 'culture', 'intercultural-dialogue', 'migrations', 'youth', 'other']
+
+export type ActivityStatusProps = 'completed' | 'in-progress' | 'to-do'
+export const activityStatusProps: ActivityStatusProps[] = ['completed', 'in-progress', 'to-do'];
 
 export const ActivitySchema = yup.object().shape({
      _id: yup.string().optional(),
@@ -21,12 +24,7 @@ export const ActivitySchema = yup.object().shape({
      listTitle: yup.string(),
 });
 
-export type ActivityCategoryProps = {
-     label: string;
-     path: string;
-};
 
-export type ActivityStatusProps = 'completed' | 'in-progress' | 'to-do'
 
 export type Activity = {
      _id?: string;
@@ -39,7 +37,7 @@ export type Activity = {
      links: string[];
      list: string[];
      listTitle: string;
-     category: ProjectCategory;
+     category: ActivityCategory;
      favorited?: boolean;
      favoritedNumber?: number;
      descriptions: string[];

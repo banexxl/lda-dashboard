@@ -1,55 +1,24 @@
 import ChevronRightIcon from '@untitled-ui/icons-react/build/esm/ChevronRight';
 import ChevronDownIcon from '@untitled-ui/icons-react/build/esm/ChevronDown';
 import {
-     Avatar, Box, Button, Card, CardContent, Checkbox, Divider, Grid, IconButton, ImageList, ImageListItem, Input, InputAdornment, LinearProgress, MenuItem,
-     Stack, SvgIcon, Switch, Table, TableBody, TableCell, TableHead, TableRow, TextField, TextFieldProps, Typography, useTheme
+     Avatar, Box, Button, Card, Divider, Grid, IconButton, ImageList, ImageListItem, Input, MenuItem,
+     Stack, SvgIcon, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography, useTheme
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import InsertPhotoIcon from '@mui/icons-material/InsertPhoto';
-import Image from 'next/image';
-import numeral from 'numeral';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddBoxIcon from '@mui/icons-material/AddBox';
-import { Fragment, JSXElementConstructor, ReactElement, useCallback, useEffect, useState } from 'react';
+import { Fragment, useState } from 'react';
 import { Scrollbar } from 'src/components/scrollbar';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import Swal from 'sweetalert2';
 import { useRouter } from 'next/navigation';
 import "@uploadthing/react/styles.css";
 import dayjs from 'dayjs';
-import { Activity, initialActivity } from './activity-type';
+import { Activity, ActivityCategory, activityCategoryProps, activityStatusProps, ActivityStatusProps, initialActivity } from './activity-type';
 import { DateField } from '@mui/x-date-pickers/DateField';
 import moment from 'moment';
 import { sanitizeString } from '@/utils/url-creator';
-
-type ActivityStatus = {
-     value: string;
-     name: string;
-}
-
-const activityStatus: ActivityStatus[] = [
-     { value: 'in-progress', name: 'U toku' },
-     { value: 'completed', name: 'Zavrsen' },
-     { value: 'to-do', name: 'Za obaviti' }
-];
-
-type ActivityCategory = {
-     value: string;
-     name: string;
-}
-
-const activityCategory: ActivityCategory[] = [
-     { value: 'Ekonomija', name: 'economy' },
-     { value: 'Demokratija', name: 'democracy' },
-     { value: 'EU integracije', name: 'eu-integrations' },
-     { value: 'Kultura', name: 'culture' },
-     { value: 'Interkulturalni dijalog', name: 'intercultural-dialogue' },
-     { value: 'Migracije', name: 'migrations' },
-     { value: 'Mladi', name: 'youth' },
-     { value: 'Ostalo', name: 'other' }
-];
 
 export type ArrayKeys = keyof Pick<Activity,
      'activityURL' | 'author' | 'category' | 'coverURL' | 'descriptions' | 'favorited' | 'favoritedNumber' |
@@ -799,12 +768,54 @@ export const ActivityTable = ({ items }: any) => {
                                                                                                }))
                                                                                           }
                                                                                      >
-                                                                                          {activityStatus.map((option: ActivityStatus) => (
+                                                                                          {activityStatusProps.map((option: ActivityStatusProps) => (
                                                                                                <MenuItem
                                                                                                     key={Math.floor(Math.random() * 1000000)}
-                                                                                                    value={option.value}
+                                                                                                    value={option}
                                                                                                >
-                                                                                                    {option.name}
+                                                                                                    {
+                                                                                                         option == 'completed' ? 'Završen' :
+                                                                                                              option == 'in-progress' ? 'U toku' :
+                                                                                                                   option == 'to-do' ? 'Planiran' : ''
+                                                                                                    }
+                                                                                               </MenuItem>
+                                                                                          ))}
+                                                                                     </TextField>
+                                                                                </Grid>
+                                                                                {/* -------------------------------Category-------------------------- */}
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <TextField
+                                                                                          defaultValue={currentActivityObject?.category}
+                                                                                          fullWidth
+                                                                                          label="Kategorija aktivnosti"
+                                                                                          select
+                                                                                          disabled={loading}
+                                                                                          onBlur={(e: any) =>
+                                                                                               setCurrentActivityObject((previousObject: any) => ({
+                                                                                                    ...previousObject,
+                                                                                                    category: e.target.value
+                                                                                               }))
+                                                                                          }
+                                                                                     >
+                                                                                          {activityCategoryProps.map((option: ActivityCategory) => (
+                                                                                               <MenuItem
+                                                                                                    key={Math.floor(Math.random() * 1000000)}
+                                                                                                    value={option}
+                                                                                               >
+                                                                                                    {
+                                                                                                         option == 'other' ? 'Ostalo' :
+                                                                                                              option == 'eu-integrations' ? 'EU integracije' :
+                                                                                                                   option == 'intercultural-dialogue' ? 'Interkulturalni dijalog' :
+                                                                                                                        option == 'migrations' ? 'Migracije' :
+                                                                                                                             option == 'youth' ? 'Mladi' :
+                                                                                                                                  option == 'culture' ? 'Kultura' :
+                                                                                                                                       option == 'economy' ? 'Ekonomija' :
+                                                                                                                                            option == 'democracy' ? 'Demokratija' : ''
+                                                                                                    }
                                                                                                </MenuItem>
                                                                                           ))}
                                                                                      </TextField>
@@ -829,35 +840,7 @@ export const ActivityTable = ({ items }: any) => {
                                                                                           }
                                                                                      />
                                                                                 </Grid>
-                                                                                {/* -------------------------------Category-------------------------- */}
-                                                                                <Grid
-                                                                                     item
-                                                                                     md={6}
-                                                                                     xs={12}
-                                                                                >
-                                                                                     <TextField
-                                                                                          defaultValue={currentActivityObject?.category}
-                                                                                          fullWidth
-                                                                                          label="Kategorija aktivnosti"
-                                                                                          select
-                                                                                          disabled={loading}
-                                                                                          onBlur={(e: any) =>
-                                                                                               setCurrentActivityObject((previousObject: any) => ({
-                                                                                                    ...previousObject,
-                                                                                                    category: e.target.value
-                                                                                               }))
-                                                                                          }
-                                                                                     >
-                                                                                          {activityCategory.map((option: ActivityStatus) => (
-                                                                                               <MenuItem
-                                                                                                    key={Math.floor(Math.random() * 1000000)}
-                                                                                                    value={option.value}
-                                                                                               >
-                                                                                                    {option.value}
-                                                                                               </MenuItem>
-                                                                                          ))}
-                                                                                     </TextField>
-                                                                                </Grid>
+
                                                                                 <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
                                                                                 {/* -------------------------------Cover url-------------------------- */}
                                                                                 <Grid
