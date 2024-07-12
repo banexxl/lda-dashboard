@@ -803,6 +803,26 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      md={6}
                                                                                      xs={12}
                                                                                 >
+                                                                                     <TextField
+                                                                                          defaultValue={project.projectSummaryURL}
+                                                                                          fullWidth
+                                                                                          label="URL projekta"
+                                                                                          name="name"
+                                                                                          disabled
+                                                                                          onBlur={(e: any) =>
+                                                                                               setCurrentProjectObject((previousObject: any) => ({
+                                                                                                    ...previousObject,
+                                                                                                    projectSummaryURL: e.target.value
+
+                                                                                               }))
+                                                                                          }
+                                                                                     />
+                                                                                </Grid>
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
                                                                                      <LocalizationProvider dateAdapter={AdapterDayjs}>
                                                                                           <DateField
 
@@ -851,104 +871,6 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      xs={12}
                                                                                 >
                                                                                      <TextField
-                                                                                          defaultValue={project.locale}
-                                                                                          fullWidth
-                                                                                          label="Jezik projekta"
-                                                                                          select
-                                                                                          disabled
-                                                                                     // onBlur={(e: any) =>
-                                                                                     //      setCurrentProjectObject((previousObject: any) => ({
-                                                                                     //           ...previousObject,
-                                                                                     //           locale: e.target.value
-                                                                                     //      }))
-                                                                                     // }
-                                                                                     >
-                                                                                          {locales.map((option: ProjectLocale) => (
-                                                                                               <MenuItem
-                                                                                                    key={Math.floor(Math.random() * 1000000)}
-                                                                                                    defaultValue={option.value}
-                                                                                               >
-                                                                                                    {option.name}
-                                                                                               </MenuItem>
-                                                                                          ))}
-                                                                                     </TextField>
-                                                                                </Grid>
-                                                                                <Grid
-                                                                                     item
-                                                                                     md={6}
-                                                                                     xs={12}
-                                                                                >
-                                                                                     <TextField
-                                                                                          defaultValue={project.projectSummaryURL}
-                                                                                          fullWidth
-                                                                                          label="URL projekta"
-                                                                                          name="name"
-                                                                                          disabled
-                                                                                          onBlur={(e: any) =>
-                                                                                               setCurrentProjectObject((previousObject: any) => ({
-                                                                                                    ...previousObject,
-                                                                                                    projectSummaryURL: e.target.value
-
-                                                                                               }))
-                                                                                          }
-                                                                                     />
-                                                                                </Grid>
-                                                                                <Grid
-                                                                                     item
-                                                                                     md={6}
-                                                                                     xs={12}
-                                                                                >
-                                                                                     <Typography sx={{ margin: '10px' }}>Glavna slika projekta:</Typography>
-                                                                                     <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', marginBottom: '30px' }}>
-                                                                                          {/* -------------------------slike------------------------------------------ */}
-                                                                                          {
-                                                                                               currentProjectObject?.projectSummaryCoverURL && (
-                                                                                                    <ImageListItem key={Math.floor(Math.random() * 1000000)}>
-                                                                                                         <img
-                                                                                                              src={`${currentProjectObject?.projectSummaryCoverURL.toString()}`}
-                                                                                                              alt={'image'}
-                                                                                                              loading="lazy"
-                                                                                                              onClick={(e: any) => onCoverImageClick(e)}
-                                                                                                              style={{ cursor: 'pointer', width: '100px', height: '200px', borderRadius: '10px', marginBottom: '10px' }}
-                                                                                                         />
-                                                                                                    </ImageListItem>
-                                                                                               )
-                                                                                          }
-
-                                                                                          <Button component="label"
-                                                                                               variant="contained"
-                                                                                               startIcon={<CloudUploadIcon />}
-                                                                                               sx={{ maxWidth: '200px' }}
-                                                                                          >
-                                                                                               {
-                                                                                                    currentProjectObject?.projectSummaryCoverURL != "" ? 'Promeni sliku' : 'Učitaj sliku'
-                                                                                               }
-                                                                                               <Input
-                                                                                                    type="file"
-                                                                                                    inputProps={{ accept: 'image/*' }}
-                                                                                                    sx={{
-                                                                                                         clip: 'rect(0 0 0 0)',
-                                                                                                         clipPath: 'inset(50%)',
-                                                                                                         height: 1,
-                                                                                                         overflow: 'hidden',
-                                                                                                         position: 'absolute',
-                                                                                                         bottom: 0,
-                                                                                                         left: 0,
-                                                                                                         whiteSpace: 'nowrap',
-                                                                                                         width: 1,
-                                                                                                    }}
-                                                                                                    onChange={async (e: any) => await handleCoverChange(e)}
-                                                                                               />
-                                                                                          </Button>
-
-                                                                                     </Box>
-                                                                                </Grid>
-                                                                                <Grid
-                                                                                     item
-                                                                                     md={6}
-                                                                                     xs={12}
-                                                                                >
-                                                                                     <TextField
                                                                                           defaultValue={project.status}
                                                                                           fullWidth
                                                                                           label="Status projekta"
@@ -971,6 +893,35 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                           ))}
                                                                                      </TextField>
                                                                                 </Grid>
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <TextField
+                                                                                          defaultValue={project.locale}
+                                                                                          fullWidth
+                                                                                          label="Jezik projekta"
+                                                                                          select
+                                                                                          disabled
+                                                                                          onBlur={(e: any) =>
+                                                                                               setCurrentProjectObject((previousObject: any) => ({
+                                                                                                    ...previousObject,
+                                                                                                    locale: e.target.value
+                                                                                               }))
+                                                                                          }
+                                                                                     >
+                                                                                          {locales.map((option: ProjectLocale) => (
+                                                                                               <MenuItem
+                                                                                                    key={Math.floor(Math.random() * 1000000)}
+                                                                                                    value={option.value}
+                                                                                               >
+                                                                                                    {option.name}
+                                                                                               </MenuItem>
+                                                                                          ))}
+                                                                                     </TextField>
+                                                                                </Grid>
+
                                                                                 <Grid
                                                                                      item
                                                                                      md={6}
@@ -1056,162 +1007,60 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                           }}
                                                                                      />
                                                                                 </Grid>
-                                                                                <Divider />
-                                                                                {/* <Grid item md={6} xs={12}>
-                                                                                     <Typography sx={{ margin: '10px' }}>Podnaslovi:</Typography>
-                                                                                     {currentProjectObject?.projectSummarySubtitles.map((subtitle, index) => (
-                                                                                          <Box sx={{ display: 'flex', width: '80%' }} key={index}>
-                                                                                               <TextField
-                                                                                                    InputLabelProps={{ shrink: true }}
-                                                                                                    fullWidth
-                                                                                                    defaultValue={subtitle}
-                                                                                                    name={`projectSummarySubtitles.${index}`}
-                                                                                                    label={`Podnaslov ${index + 1}`}
-                                                                                                    disabled={disabledFields[index] || currentProjectObject?.projectSummarySubtitles[index] != ""} // Disable based on state
-                                                                                                    inputRef={(el: any) => textFieldSubtitleRefs.current[index] = el}
-                                                                                                    InputProps={{
-                                                                                                         endAdornment: (
-                                                                                                              <InputAdornment position="end">
-                                                                                                                   <IconButton
-                                                                                                                        onClick={() => {
-                                                                                                                             const currentValue = getSubtitleInputValue(index);
-                                                                                                                             currentValue === '' ?
-                                                                                                                                  Swal.fire('Greška', 'Morate uneti podnaslov!', 'error')
-                                                                                                                                  :
-                                                                                                                                  handleAddSubtitle(index, currentValue);
-                                                                                                                        }}
-                                                                                                                        disabled={disabledFields[index] || currentProjectObject?.projectSummarySubtitles[index] != ""} // Disable based on state
-                                                                                                                   >
-                                                                                                                        <AddBoxIcon />
-                                                                                                                   </IconButton>
-                                                                                                                                                                    <Grid component="div" sx={{ width: '90%', height: 450 }} cols={theme.breakpoints.down('sm') ? 1 : 4} rowHeight={164}>                       {
-                                                                                                                   typeof item === 'string' && item.split('.').pop().toLowerCase().includes('pdf') ?                                                                 <DeleteIcon />
-                                                                                                                   </IconButton>
-                                                                                                              </InputAdornment>
-                                                                                                         ),
-                                                                                                    }}
-                                                                                               />
-                                                                                          </Box>
-                                                                                     ))}
-                                                                                     <IconButton onClick={insertNewSubtitleField} >
-                                                                                          <AddBoxIcon />
-                                                                                     </IconButton>
-
-                                                                                     <Grid item md={6} xs={12}>
-                                                                                          <Typography sx={{ margin: '10px' }}>URL-ovi podnaslova:</Typography>
-                                                                                          {currentProjectObject?.projectSummarySubtitleURLs.map((projectSummarySubtitleURL, index) => (
-                                                                                               <Box sx={{ display: 'flex' }} key={index}>
-                                                                                                    <TextField
-                                                                                                         InputLabelProps={{ shrink: true }}
-                                                                                                         defaultValue={projectSummarySubtitleURL}
-                                                                                                         fullWidth
-                                                                                                         name={`projectSummarySubtitleURLs.${index}`}
-                                                                                                         label={`URL projekta ${index + 1}`}
-                                                                                                         disabled
-                                                                                                    />
-                                                                                               </Box>
-                                                                                          ))}
-                                                                                     </Grid>
-                                                                                </Grid>
-                                                                                <Divider variant='fullWidth' />
+                                                                                <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
                                                                                 <Grid
                                                                                      item
                                                                                      md={6}
                                                                                      xs={12}
                                                                                 >
-                                                                                     <Typography sx={{ margin: '10px' }}>Pasusi (broj pasusa treba da bude jednak broju podnaslova):</Typography>
-                                                                                     {
-                                                                                          currentProjectObject?.projectSummaryDescriptions.map((description: any, index: any) => (
-                                                                                               <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
-                                                                                                    <TextField
-                                                                                                         InputLabelProps={{ shrink: true }}
-                                                                                                         fullWidth
-                                                                                                         defaultValue={description}
-                                                                                                         name={`projectSummaryDescriptions.${index}`}
-                                                                                                         label={`Prvi pasus iz teksta ${index + 1}`}
-                                                                                                         disabled={disabledDescriptions[index] || currentProjectObject?.projectSummaryDescriptions[index] != ""} // Disable based on state
-                                                                                                         inputRef={(el: any) => textFieldDescriptionRefs.current[index] = el}
-                                                                                                         InputProps={{
-                                                                                                              endAdornment: (
-                                                                                                                   <InputAdornment position="end">
-                                                                                                                        <IconButton
-                                                                                                                             onClick={() => {
-                                                                                                                                  const currentValue = getDescriptionInputValue(index);
-                                                                                                                                  handleAddNewDescription(index, currentValue);
-                                                                                                                             }}
-                                                                                                                             disabled={disabledDescriptions[index] || currentProjectObject?.projectSummaryDescriptions[index] != ""} // Disable based on state
-                                                                                                                        >
-                                                                                                                             <AddBoxIcon />
-                                                                                                                        </IconButton>
-                                                                                                                        <IconButton
-                                                                                                                             onClick={() => handleDeleteDescription(index)}
-                                                                                                                        >
-                                                                                                                             <DeleteIcon />
-                                                                                                                        </IconButton>
-                                                                                                                   </InputAdornment>
-                                                                                                              ),
-                                                                                                         }}
-                                                                                                    />
-                                                                                               </Box>
-                                                                                          ))
-                                                                                     }
-                                                                                     <IconButton onClick={insertNewDescriptionField} >
-                                                                                          <AddBoxIcon />
-                                                                                     </IconButton>
-                                                                                </Grid>
-                                                                                <Grid
-                                                                                     item
-                                                                                     md={6}
-                                                                                     xs={12}
-                                                                                >
-                                                                                     <Typography sx={{ margin: '10px' }}>Vremena odrzavanja projektnih aktivnosti (MM/DD/YYYY):</Typography>
-                                                                                     <Typography sx={{ margin: '10px' }}>Broj vremena treba da bude jednak broju podnaslova</Typography>
-                                                                                     {
-
-                                                                                          currentProjectObject?.projectSummaryDateTime.map((date: any, index: any) => (
-                                                                                               <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
-                                                                                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
-                                                                                                         <DateField
-                                                                                                              format='MM/DD/YYYY'
-                                                                                                              InputLabelProps={{ shrink: true }}
-                                                                                                              fullWidth
-                                                                                                              disabled={disabledDateTime[index] || currentProjectObject?.projectSummaryDateTime[index] != ""}
-                                                                                                              label={`Datum ${index + 1}`}
-                                                                                                              defaultValue={dayjs(currentProjectObject.projectSummaryDateTime[index])}
-                                                                                                              inputRef={(el) => (textFieldDateTimeRefs.current[index] = el)}
-                                                                                                              onBlur={(newValue: any) => {
-                                                                                                                   const date = moment(newValue.target.value).format('MM/DD/YYYY');
-                                                                                                                   onAddNewSubtitleDateTime(index, date)
-                                                                                                              }}
-                                                                                                              InputProps={{
-                                                                                                                   endAdornment: (
-                                                                                                                        <InputAdornment position="end">
-                                                                                                                             <IconButton
-                                                                                                                                  onClick={() => {
-                                                                                                                                       const currentValue = getDateTimeInputValue(index);
-                                                                                                                                       onAddNewSubtitleDateTime(index, currentValue);
-                                                                                                                                  }}
-                                                                                                                                  disabled={disabledDateTime[index] || currentProjectObject?.projectSummaryDateTime[index] != ""} // Disable based on state
-                                                                                                                             >
-                                                                                                                                  <AddBoxIcon />
-                                                                                                                             </IconButton>
-                                                                                                                             <IconButton
-                                                                                                                                  onClick={() => onDeleteSubtitleDateTime(index)}
-                                                                                                                             >
-                                                                                                                                  <DeleteIcon />
-                                                                                                                             </IconButton>
-                                                                                                                        </InputAdornment>
-                                                                                                                   ),
-                                                                                                              }}
+                                                                                     <Tooltip placement='bottom-start' title={'Ovde se dodaje slika koja predstavlja naslovnu sliku aktivnosti. Može biti samo jedna.'}>
+                                                                                          <Typography sx={{ margin: '10px' }}>Glavna slika projekta:</Typography>
+                                                                                     </Tooltip>
+                                                                                     <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', marginBottom: '30px' }}>
+                                                                                          {/* -------------------------slike------------------------------------------ */}
+                                                                                          {
+                                                                                               currentProjectObject?.projectSummaryCoverURL && (
+                                                                                                    <ImageListItem key={Math.floor(Math.random() * 1000000)}>
+                                                                                                         <img
+                                                                                                              src={`${currentProjectObject?.projectSummaryCoverURL.toString()}`}
+                                                                                                              alt={'image'}
+                                                                                                              loading="lazy"
+                                                                                                              onClick={(e: any) => onCoverImageClick(e)}
+                                                                                                              style={{ cursor: 'pointer', width: '100px', height: '200px', borderRadius: '10px', marginBottom: '10px' }}
                                                                                                          />
-                                                                                                    </LocalizationProvider>
-                                                                                               </Box>
-                                                                                          ))}
-                                                                                     <IconButton onClick={insertNewDateTimeField} >
-                                                                                          <AddBoxIcon />
-                                                                                     </IconButton>
+                                                                                                    </ImageListItem>
+                                                                                               )
+                                                                                          }
+
+                                                                                          <Button component="label"
+                                                                                               variant="contained"
+                                                                                               startIcon={<CloudUploadIcon />}
+                                                                                               sx={{ maxWidth: '200px' }}
+                                                                                          >
+                                                                                               {
+                                                                                                    currentProjectObject?.projectSummaryCoverURL != "" ? 'Promeni sliku' : 'Učitaj sliku'
+                                                                                               }
+                                                                                               <Input
+                                                                                                    type="file"
+                                                                                                    inputProps={{ accept: 'image/*' }}
+                                                                                                    sx={{
+                                                                                                         clip: 'rect(0 0 0 0)',
+                                                                                                         clipPath: 'inset(50%)',
+                                                                                                         height: 1,
+                                                                                                         overflow: 'hidden',
+                                                                                                         position: 'absolute',
+                                                                                                         bottom: 0,
+                                                                                                         left: 0,
+                                                                                                         whiteSpace: 'nowrap',
+                                                                                                         width: 1,
+                                                                                                    }}
+                                                                                                    onChange={async (e: any) => await handleCoverChange(e)}
+                                                                                               />
+                                                                                          </Button>
+
+                                                                                     </Box>
                                                                                 </Grid>
-                                                                                <Divider /> */}
+                                                                                <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
                                                                                 <Tooltip placement='bottom-start' title={'Ovde možemo samo da brišemo slike. Nakon brisanja slike, obavezno uraditi izmenu dokumenta!'}>
                                                                                      <Typography sx={{ margin: '10px' }}>Slike:</Typography>
                                                                                 </Tooltip>
@@ -1262,7 +1111,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      </Button>
 
                                                                                 </Box>
-                                                                                <Divider />
+                                                                                <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
                                                                                 <Tooltip placement='bottom-start' title={'Ovde možemo samo da brišemo publikacije za sad. Ako želimo da pregledamo, moramo otići na lda-subotica.org'}>
 
                                                                                      <Typography sx={{ margin: '10px' }}>Publikacije:</Typography>
@@ -1354,7 +1203,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
 
                                                                                 </Box>
 
-                                                                                <Divider />
+                                                                                <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
                                                                                 <Stack
                                                                                      alignItems="center"
                                                                                      direction="row"

@@ -26,6 +26,8 @@ export default async function handler(request: NextApiRequest, response: NextApi
                }
 
           } else if (request.method === 'DELETE') {
+               console.log(request.body);
+
                //const idsToDelete = request.body.selected.map((_id: any) => new ObjectId(_id))
                try {
                     const deleteResponse = await dbActivities.deleteOne({ _id: ObjectId.createFromHexString(request.body) })

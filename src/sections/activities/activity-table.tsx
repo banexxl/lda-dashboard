@@ -146,7 +146,7 @@ export const ActivityTable = ({ items }: any) => {
      const handleDeleteActivity = async () => {
 
           try {
-               const response = await fetch('/api/activity-api', {
+               const response = await fetch('/api/activities-api', {
                     method: 'DELETE',
                     headers: {
                          'Content-Type': 'application/json',
