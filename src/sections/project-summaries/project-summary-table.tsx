@@ -41,6 +41,28 @@ type ProjectLocale = {
      name: string;
 }
 
+export const getThumbnail = (fileName: any) => {
+
+     const fileExtension = fileName ? fileName.split('.').pop().toLowerCase() : '';
+     if (fileExtension === 'pdf') {
+          return 'pdf'
+     } else if (fileExtension === 'doc' || fileExtension === 'docx') {
+          return 'doc'
+     } else {
+          return '';
+     }
+};
+
+export const extractFileName = (url: string) => {
+     // Extract the file name
+     const fileName = url.split('/').pop();
+
+     // Decode the file name
+     const decodedFileName = decodeURIComponent(fileName!);
+
+     return decodedFileName;
+}
+
 const locales = [{ value: 'en', name: 'Engleski' }, { value: 'sr', name: 'Srpski' }]
 
 export const ProjectSummaryTable = ({ items }: any) => {
@@ -52,27 +74,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
      const theme = useTheme()
      const [loading, setLoading] = useState(false)
 
-     const extractFileName = (url: string) => {
-          // Extract the file name
-          const fileName = url.split('/').pop();
 
-          // Decode the file name
-          const decodedFileName = decodeURIComponent(fileName!);
-
-          return decodedFileName;
-     }
-
-     const getThumbnail = (fileName: any) => {
-
-          const fileExtension = fileName ? fileName.split('.').pop().toLowerCase() : '';
-          if (fileExtension === 'pdf') {
-               return 'pdf'
-          } else if (fileExtension === 'doc' || fileExtension === 'docx') {
-               return 'doc'
-          } else {
-               return '';
-          }
-     };
 
      const getObjectById = (_id: any, arrayToSearch: any) => {
           for (const obj of arrayToSearch) {

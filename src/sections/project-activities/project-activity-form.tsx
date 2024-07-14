@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Field, FieldArray } from 'formik';
-import { TextField, Typography, Button, Box, Grid, MenuItem, IconButton, FormControl, InputLabel, Select, Divider, Checkbox } from '@mui/material'
+import { TextField, Typography, Button, Box, Grid, MenuItem, IconButton, FormControl, InputLabel, Select, Divider, Checkbox, useTheme } from '@mui/material'
 import { Form, Formik } from 'formik';
 import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2'
@@ -10,13 +10,18 @@ import "@uploadthing/react/styles.css";
 import { ProjectActivity, ProjectActivitySchema, projectActivityInitialValues } from './project-activity-type';
 import { DateField } from '@mui/x-date-pickers/DateField';
 import { sanitizeString } from '@/utils/url-creator';
-import moment from 'moment';
+import { projectCategory } from './project-activity-table';
+import { ProjectSummary } from '../project-summaries/project-summary-type';
+import { set } from 'nprogress';
 
 export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectSummaries }: any) => {
 
      const router = useRouter();
      const [loading, setLoading] = useState<any>(false)
      const [listEnabled, setListEnabled] = useState<any>(false)
+     const theme = useTheme()
+     const [selectedProjectSummary, setSelectedProjectSummary] = useState<ProjectSummary>()
+     console.log(selectedProjectSummary);
 
      const handleSubmit = async (values: any) => {
 
@@ -75,10 +80,10 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                          (formik) => (
                               <Form style={{ display: 'flex', flexDirection: 'column', gap: '15px', opacity: loading ? .5 : 1 }}>
 
-                                   <Typography>
+                                   {/* <Typography>
                                         {`${JSON.stringify(formik.errors)}`}
-                                   </Typography>
-
+                                   </Typography> */}
+                                   <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
                                    <TextField
                                         InputLabelProps={{ shrink: true }}
                                         label="Naslov projektne aktivnosti"
@@ -101,20 +106,28 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                         disabled
                                         label="URL projektne aktivnosti"
                                         name="projectActivityURL"
-                                        multiline
                                         rows={4}
                                         value={formik.values.projectURL}
                                    />
-
+                                   <Typography>
+                                        {`${JSON.stringify(formik.values.subTitle)}`}
+                                   </Typography>
                                    <FormControl fullWidth>
-                                        <InputLabel id="project-summary" sx={{ backgroundColor: 'white' }}>Glavni projekat</InputLabel>
+                                        <InputLabel id="subtitle-label" sx={{ backgroundColor: 'white' }}>Glavni projekat</InputLabel>
                                         <Select
                                              label="Glavni projekat"
-                                             labelId="project-summary"
-                                             name='projectSummaryURL'
-                                             id="project-summary"
-                                             value={formik.values.projectSummaryURL}
-                                             onChange={formik.handleChange}
+                                             labelId="subtitle-label"
+                                             name='subTitle'
+                                             id="subtitle-id"
+                                             value={formik.values.subTitle}
+                                             onChange={(e) => {
+                                                  const selectedSummary = projectSummaries.find((projectSummary: any) => projectSummary.projectSummaryURL === e.target.value);
+                                                  formik.setFieldValue('projectSummaryURL', '/pregled-projekta/' + e.target.value);
+                                                  setSelectedProjectSummary(selectedSummary);
+                                                  console.log(selectedSummary?.title);
+
+                                                  formik.setFieldValue('subTitle', selectedSummary?.title);
+                                             }}
                                              error={formik.touched.projectSummaryURL && !!formik.errors.projectSummaryURL}
                                              sx={{ borderColor: 'white' }}
                                         >
@@ -125,6 +138,51 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                                             key={projectSummary.projectSummaryURL}
                                                        >
                                                             {projectSummary.title}
+                                                       </MenuItem>
+                                                  ))
+                                             }
+                                        </Select>
+                                   </FormControl>
+
+                                   <FormControl>
+                                        <TextField
+                                             disabled
+                                             label="URL glavnog projekta"
+                                             name="projectSummaryURL"
+                                             value={formik.values.projectSummaryURL}
+                                        />
+                                   </FormControl>
+
+                                   <FormControl fullWidth>
+                                        <InputLabel id="project-summary-category" sx={{ backgroundColor: 'white' }}>Kategorija</InputLabel>
+                                        <Select
+                                             label="Glavni projekat"
+                                             labelId="project-summary-category"
+                                             name='category'
+                                             id="project-summary-category-id"
+                                             value={formik.values.category}
+                                             onChange={(e) => {
+                                                  formik.setFieldValue('category', e.target.value)
+                                             }}
+                                             error={formik.touched.category && !!formik.errors.category}
+                                             sx={{ borderColor: 'white' }}
+                                        >
+                                             {
+                                                  projectCategory.map((category: any) => (
+                                                       <MenuItem
+                                                            value={category}
+                                                            key={category}
+                                                       >
+                                                            {
+                                                                 category == 'other' ? 'Ostalo' :
+                                                                      category == 'eu-integrations' ? 'EU integracije' :
+                                                                           category == 'intercultural-dialogue' ? 'Interkulturalni dijalog' :
+                                                                                category == 'migrations' ? 'Migracije' :
+                                                                                     category == 'youth' ? 'Mladi' :
+                                                                                          category == 'culture' ? 'Kultura' :
+                                                                                               category == 'economy' ? 'Ekonomija' :
+                                                                                                    category == 'democracy' ? 'Demokratija' : ''
+                                                            }
                                                        </MenuItem>
                                                   ))
                                              }
@@ -173,45 +231,27 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                         InputLabelProps={{ shrink: true }}
                                         label="Objavljeno"
                                         name="published"
-                                        onBlur={(e) => formik.setFieldValue('published', e.target.value)}
+                                        onBlur={(e) => {
+                                             formik.setFieldValue('published', e.target.value)
+                                        }}
                                    />
 
-                                   <FormControl fullWidth>
-                                        <InputLabel id="project-summary-category" sx={{ backgroundColor: 'white' }}>Kategorija</InputLabel>
-                                        <Select
-                                             name='category'
-                                             id="demo-simple-select-id"
-                                             labelId='project-summary-category'
-                                             label="Kategorija"
-                                             value={formik.values.category}
-                                             onChange={formik.handleChange}
-                                             error={formik.touched.category && !!formik.errors.category}
-                                             sx={{ borderColor: 'white' }}
-                                        >
-                                             <MenuItem value={''}>Poništi</MenuItem>
-                                             <MenuItem value={'economy'}>Ekonomija</MenuItem>
-                                             <MenuItem value={'democracy'}>Demokratija</MenuItem>
-                                             <MenuItem value={'eu-integrations'}>EU integracije</MenuItem>
-                                             <MenuItem value={'culture'}>Kultura</MenuItem>
-                                             <MenuItem value={'intercultural-dialogue'}>Interkulturalni dijalog</MenuItem>
-                                             <MenuItem value={'migrations'}>Migracije</MenuItem>
-                                             <MenuItem value={'youth'}>Omladina</MenuItem>
-                                             <MenuItem value={'other'}>Ostalo</MenuItem>
-                                        </Select>
-                                   </FormControl>
+                                   <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
 
                                    <FormControl sx={{ display: 'flex', flexDirection: 'column', width: '400px', height: '50px' }}>
-                                        <InputLabel id="showProjectDetails">Prikazi detalje projekta</InputLabel>
+                                        <Typography id="showProjectDetails">Prikazi detalje glavnog projekta</Typography>
                                         <Checkbox
                                              name="showProjectDetails"
                                              defaultChecked={formik.values.showProjectDetails}
                                              sx={{ width: '10px', height: '10px' }}
                                              onChange={(e) => {
-                                                  setListEnabled(e.target.checked)
+                                                  // setListEnabled(e.target.checked)
                                                   formik.handleChange
                                              }}
                                         />
                                    </FormControl>
+
+                                   <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
 
                                    <TextField
                                         InputLabelProps={{ shrink: true }}
@@ -261,6 +301,13 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                              )}
                                         />
                                    </Grid>
+
+                                   <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
+
+
+
+
+                                   <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
 
                                    <Grid
                                         item
@@ -388,7 +435,7 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                         />
                                    </Grid>
 
-                                   <Divider />
+                                   <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
                                    <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
                                         <Button
                                              variant="contained"

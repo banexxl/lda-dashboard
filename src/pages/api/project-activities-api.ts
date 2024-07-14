@@ -14,6 +14,8 @@ export default async function handler(request: NextApiRequest, response: NextApi
                return response.status(200).json({ message: 'Project s found!', data: allProjects });
 
           } else if (request.method === 'POST') {
+
+
                try {
                     const res = await dbProjects.insertOne(
                          {
@@ -21,7 +23,9 @@ export default async function handler(request: NextApiRequest, response: NextApi
                               published: new Date(request.body.published)
                          }
                     )
-                    return response.status(200).json({ message: 'Project successfully added!' });
+                    console.log(res);
+
+                    return response.status(200).json({ message: 'Project successfully added!', data: res });
                } catch (error) {
                     console.log(error);
                }
@@ -30,7 +34,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                //const idsToDelete = request.body.selected.map((_id: any) => new ObjectId(_id))
                try {
                     const deleteResponse = await dbProjects.deleteOne({ _id: ObjectId.createFromHexString(request.body) })
-                    return deleteResponse.deletedCount > 0 ? response.status(200).json({ message: 'Projekat uspesno obrisan' }) : response.status(400).json({ message: 'Projekat nije obrisan' });
+                    return deleteResponse.deletedCount > 0 ? response.status(200).json({ message: 'Projekat uspesno obrisan' }) : response.status(400).json({ message: 'Projekat nije obrisan', data: deleteResponse });
                } catch (error) {
                     alert(error);
                }

@@ -77,11 +77,7 @@ export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
                          (formik) => (
                               <Form style={{ display: 'flex', flexDirection: 'column', gap: '15px', opacity: loading ? .5 : 1 }}>
 
-
-                                   <Typography>
-                                        {`${JSON.stringify(formik.errors)}`}
-                                   </Typography>
-
+                                   <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
 
                                    <TextField
                                         InputLabelProps={{ shrink: true }}
@@ -101,7 +97,6 @@ export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
                                         disabled
                                         label="URL aktivnosti"
                                         name="activityURL"
-                                        multiline
                                         rows={4}
                                         value={formik.values.activityURL}
                                    />

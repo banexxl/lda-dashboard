@@ -1079,11 +1079,11 @@ export const ActivityTable = ({ items }: any) => {
                                                                                 </Grid>
                                                                                 {/* -------------------------------Gallery-------------------------- */}
                                                                                 <Typography sx={{ margin: '10px' }}>Slike:</Typography>
-                                                                                <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', marginBottom: '30px' }}>
+                                                                                <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', marginBottom: '30px', width: '100%' }}>
                                                                                      {/* -------------------------slike------------------------------------------ */}
                                                                                      {
                                                                                           currentActivityObject?.gallery && currentActivityObject.gallery.length > 0 && (
-                                                                                               <ImageList sx={{ width: 500, height: 450 }} cols={3} rowHeight={164}>
+                                                                                               <ImageList sx={{ width: '90%', height: 450 }} cols={4} rowHeight={164}>
                                                                                                     {currentActivityObject.gallery.map((item: any) => (
                                                                                                          <ImageListItem key={Math.floor(Math.random() * 1000000)} sx={{ width: '200px', height: '300px' }}>
                                                                                                               <img
@@ -1091,6 +1091,7 @@ export const ActivityTable = ({ items }: any) => {
                                                                                                                    src={`${item}?w=164&h=164&fit=crop&auto=format`}
                                                                                                                    alt={'image'}
                                                                                                                    loading="lazy"
+                                                                                                                   style={{ cursor: 'pointer', borderRadius: '10px' }}
                                                                                                                    onClick={(e: any) => onGalleryImageClick(e)}
                                                                                                               />
                                                                                                          </ImageListItem>

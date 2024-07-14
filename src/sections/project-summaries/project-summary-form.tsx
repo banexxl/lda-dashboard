@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { TextField, Typography, Button, Box, Grid, MenuItem, IconButton, FormControl, InputLabel, Select, Divider, FormHelperText } from '@mui/material'
+import { TextField, Typography, Button, Box, Grid, MenuItem, IconButton, FormControl, InputLabel, Select, Divider, FormHelperText, useTheme } from '@mui/material'
 import { Form, Formik } from 'formik';
 import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2'
@@ -20,6 +20,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
      const [subtitles, setSubtitles] = useState<string[]>([]);
      const [disabledAddButtons, setDisabledAddButtons] = useState(Array(subtitles.length).fill(false)); // New state variable
      const [error, setError] = useState("");
+     const theme = useTheme()
 
      const handleSubmit = async (values: any) => {
 
@@ -83,6 +84,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                    {/* <Typography>
                                         {`${JSON.stringify(formik.errors)}`}
                                    </Typography> */}
+                                   <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
 
 
                                    <TextField
@@ -107,7 +109,6 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                         disabled
                                         label="URL projekta"
                                         name="projectSummaryURL"
-                                        multiline
                                         rows={4}
                                         value={formik.values.projectSummaryURL}
                                    />
@@ -193,6 +194,8 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                              <MenuItem value={'en'}>en</MenuItem>
                                         </TextField>
                                    </FormControl>
+
+                                   <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
 
                                    <TextField
                                         InputLabelProps={{ shrink: true }}

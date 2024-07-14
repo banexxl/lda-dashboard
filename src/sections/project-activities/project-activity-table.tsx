@@ -2,7 +2,7 @@ import ChevronRightIcon from '@untitled-ui/icons-react/build/esm/ChevronRight';
 import ChevronDownIcon from '@untitled-ui/icons-react/build/esm/ChevronDown';
 import {
      Box, Button, Card, Divider, FormControl, Grid, IconButton, ImageList, ImageListItem, Input, MenuItem,
-     Stack, SvgIcon, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography, useTheme
+     Stack, SvgIcon, Table, TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography, useTheme
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import InsertPhotoIcon from '@mui/icons-material/InsertPhoto';
@@ -21,11 +21,13 @@ import dayjs from 'dayjs';
 import { ProjectActivity, ProjectCategory, ProjectStatus, projectActivityInitialValues } from './project-activity-type';
 import { DateField } from '@mui/x-date-pickers/DateField';
 import moment from 'moment';
-import { ProjectSummary } from '../project-summaries/project-summary-type';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import ArticleIcon from '@mui/icons-material/Article';
+import { extractFileName, getThumbnail } from '../project-summaries/project-summary-table';
 
 const projectStatus: ProjectStatus[] = ['completed', 'in-progress', 'to-do'];
 
-const projectCategory: ProjectCategory[] = ['economy', 'democracy', 'eu-integrations', 'culture', 'intercultural-dialogue', 'migrations', 'youth', 'other'];
+export const projectCategory: ProjectCategory[] = ['economy', 'democracy', 'eu-integrations', 'culture', 'intercultural-dialogue', 'migrations', 'youth', 'other'];
 
 export type ArrayKeys = keyof Pick<ProjectActivity,
      "title" |
@@ -182,7 +184,7 @@ export const ProjectActivityTable = (props: any) => {
      const handleDeleteProject = async () => {
 
           try {
-               const response = await fetch('/api/project-summaries-api', {
+               const response = await fetch('/api/project-activities-api', {
                     method: 'DELETE',
                     headers: {
                          'Content-Type': 'application/json',
@@ -361,11 +363,175 @@ export const ProjectActivityTable = (props: any) => {
           });
      }
 
-     const onAddNewPublication = (index: number, text: string) => {
+     const handlePublicationsChange = async (event: any) => {
+
+          const selectedFile = event.target.files[0];
+
+          if (!selectedFile) {
+               return;
+          }
+
+          // Validate file type
+          const validExtensions = ['pdf', 'docx', 'doc'];
+          const fileExtension = selectedFile.name.split('.').pop().toLowerCase();
+
+          if (!validExtensions.includes(fileExtension)) {
+               Swal.fire({
+                    title: 'Greška',
+                    text: "Dozvoljeni su samo PDF i Word dokumenti!",
+                    icon: 'error',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK',
+               });
+               return;
+          }
+
+          setLoading(true);
+
+          // Assuming you have a title for the publication
+          const title = currentProjectObject?.title;
+
+          const apiUrl = '/api/aws-s3';
+
+          try {
+               const reader = new FileReader();
+
+               reader.readAsDataURL(selectedFile);
+               reader.onloadend = async () => {
+                    const base64Data = reader.result;
+                    const data = {
+                         file: base64Data,
+                         title: title,
+                         extension: fileExtension,
+                         fileName: selectedFile.name
+                    };
+
+                    const response = await fetch(apiUrl, {
+                         method: 'POST',
+                         headers: {
+                              'Content-Type': 'application/json'
+                         },
+                         body: JSON.stringify(data),
+                    });
+
+                    if (!response.ok) {
+                         Swal.fire({
+                              title: 'Greška',
+                              text: "Neuspešan upload publikacije!",
+                              icon: 'error',
+                              confirmButtonColor: '#3085d6',
+                              confirmButtonText: 'OK',
+                         });
+                    } else {
+                         const result = await response.json();
+
+                         onAddNewPublication(result.imageUrl);
+
+                         Swal.fire({
+                              title: 'OK',
+                              text: "Uspešan upload publikacije!",
+                              icon: 'success',
+                              confirmButtonColor: '#3085d6',
+                              confirmButtonText: 'OK',
+                         });
+                    }
+               }
+          } catch (error) {
+               console.error('Error uploading publication:', error);
+               Swal.fire({
+                    title: 'Greška',
+                    text: "Došlo je do greške prilikom učitavanja publikacije!",
+                    icon: 'error',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK',
+               });
+          } finally {
+               setLoading(false);
+          }
+     }
+
+     const handleDeletePublication = async (publicationURL: any) => {
+
+          if (!publicationURL) {
+               return;
+          }
+
+          setLoading(true);
+
+          const apiUrl = '/api/aws-s3';
+
+          try {
+               const response = await fetch(apiUrl, {
+                    method: 'DELETE',
+                    headers: {
+                         'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(publicationURL)
+               });
+
+               if (!response.ok) {
+                    Swal.fire({
+                         title: 'Greška, neuspešno brisanje publikacije!',
+                         text: "Ako niste uploadovali publikaciju, ne možete je ni obrisati!",
+                         icon: 'error',
+                         confirmButtonColor: '#3085d6',
+                         confirmButtonText: 'OK',
+                         // didClose() {
+                         //      handleProjectClose()
+                         // }
+                    })
+               } else {
+                    setCurrentProjectObject((prevProject: ProjectActivity | null | undefined) => {
+                         if (prevProject) {
+                              const newPublications: string[] = prevProject.publications.filter((image: string) => image !== publicationURL); // Remove the specified imageURL from the array
+                              return {
+                                   ...prevProject,
+                                   publications: newPublications,
+                              };
+                         }
+                         return prevProject;
+                    })
+                    Swal.fire({
+                         title: 'OK',
+                         text: "Uspešno brisanje publikacije! Potrebno je sad da se uradi izmena projekta!",
+                         icon: 'success',
+                         confirmButtonColor: '#3085d6',
+                         confirmButtonText: 'OK',
+                    })
+
+               }
+
+          } catch (error) {
+               console.error('Error uploading image:', error);
+          } finally {
+               setLoading(false);
+          }
+     }
+
+     const onPublicationClick = (publicationURL: string) => {
+          Swal.fire({
+               title: 'Da li ste sigurni da želite da obrišete publikaciju?',
+               text: "Možete obrisati samo publikaciju koju ste uploadovali!",
+               icon: 'warning',
+               showCancelButton: true,
+               confirmButtonColor: '#3085d6',
+               cancelButtonColor: '#d33',
+               confirmButtonText: 'Da, obriši!',
+               cancelButtonText: 'Odustani!'
+          }).then((result) => {
+               if (result.isConfirmed) {
+                    handleDeletePublication(publicationURL)
+               } else {
+                    // handleProjectClose()
+               }
+          })
+     }
+
+     const onAddNewPublication = (publicationURL: string) => {
+
           setCurrentProjectObject((prevProject: ProjectActivity | null | undefined) => {
                if (prevProject) {
-                    const newPublications = [...prevProject.publications];
-                    newPublications[index] = text; // Update the subtitle at the clicked index
+                    const newPublications = [...prevProject.publications, publicationURL]; // Adding imageURL to the end of the array
                     return {
                          ...prevProject,
                          publications: newPublications,
@@ -373,26 +539,9 @@ export const ProjectActivityTable = (props: any) => {
                }
                return prevProject;
           });
-     }
-
-     const onDeletePublication = (index: number) => {
-          setCurrentProjectObject((prevProject: ProjectActivity | null | undefined) => {
-               if (prevProject) {
-                    const newPublications = [...prevProject.publications];
-                    newPublications.splice(index, 1); // Remove the subtitle at the specified index
-                    return {
-                         ...prevProject,
-                         publications: newPublications,
-                    };
-               }
-               return prevProject;
-          });
-     }
-
-
+     };
 
      ////////////////////////////////////////////////////////
-
 
      const onAddNewImage = (imageURL: string) => {
           setCurrentProjectObject((prevProject: ProjectActivity | null | undefined) => {
@@ -629,6 +778,7 @@ export const ProjectActivityTable = (props: any) => {
                                                                                      },
                                                                                 }}
                                                                            >
+                                                                                <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
                                                                                 {/* ------------------------Title------------------------ */}
                                                                                 <Grid
                                                                                      item
@@ -701,40 +851,43 @@ export const ProjectActivityTable = (props: any) => {
                                                                                 </Grid>
 
                                                                                 {/* ------------------------Category------------------------ */}
-                                                                                <FormControl fullWidth>
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
                                                                                      <TextField
-                                                                                          id="category"
-                                                                                          label="Kategorija"
-                                                                                          name='category'
-                                                                                          select
                                                                                           defaultValue={currentProjectObject?.category}
-                                                                                          onChange={(e: any) =>
+                                                                                          fullWidth
+                                                                                          label="Kategorija aktivnosti"
+                                                                                          select
+                                                                                          disabled={loading}
+                                                                                          onBlur={(e: any) =>
                                                                                                setCurrentProjectObject((previousObject: any) => ({
                                                                                                     ...previousObject,
                                                                                                     category: e.target.value
                                                                                                }))
                                                                                           }
                                                                                      >
-                                                                                          {projectCategory.map((category: ProjectCategory) => (
+                                                                                          {projectCategory.map((option: ProjectCategory) => (
                                                                                                <MenuItem
-                                                                                                    key={category}
-                                                                                                    value={category}
+                                                                                                    key={Math.floor(Math.random() * 1000000)}
+                                                                                                    value={option}
                                                                                                >
                                                                                                     {
-                                                                                                         category == 'economy' ? 'Ekonomija' :
-                                                                                                              category == 'democracy' ? 'Demokratija' :
-                                                                                                                   category == 'eu-integrations' ? 'EU integracije' :
-                                                                                                                        category == 'culture' ? 'Kultura' :
-                                                                                                                             category == 'intercultural-dialogue' ? 'Međukulturni dijalog' :
-                                                                                                                                  category == 'migrations' ? 'Migracije' :
-                                                                                                                                       category == 'youth' ? 'Omladina' :
-                                                                                                                                            category == 'other' ? 'Ostalo' :
-                                                                                                                                                 ' '
+                                                                                                         option == 'other' ? 'Ostalo' :
+                                                                                                              option == 'eu-integrations' ? 'EU integracije' :
+                                                                                                                   option == 'intercultural-dialogue' ? 'Interkulturalni dijalog' :
+                                                                                                                        option == 'migrations' ? 'Migracije' :
+                                                                                                                             option == 'youth' ? 'Mladi' :
+                                                                                                                                  option == 'culture' ? 'Kultura' :
+                                                                                                                                       option == 'economy' ? 'Ekonomija' :
+                                                                                                                                            option == 'democracy' ? 'Demokratija' : ''
                                                                                                     }
                                                                                                </MenuItem>
                                                                                           ))}
                                                                                      </TextField>
-                                                                                </FormControl>
+                                                                                </Grid>
                                                                                 {/* ------------------------Status------------------------ */}
                                                                                 <FormControl fullWidth>
                                                                                      <TextField
@@ -787,36 +940,8 @@ export const ProjectActivityTable = (props: any) => {
                                                                                           />
                                                                                      </LocalizationProvider>
                                                                                 </Grid>
-                                                                                {/* ------------------------Locale------------------------ */}
-                                                                                {/* <Grid
-                                                                                     item
-                                                                                     md={6}
-                                                                                     xs={12}
-                                                                                >
-                                                                                     <TextField
-                                                                                          defaultValue={project.locale}
-                                                                                          fullWidth
-                                                                                          label="Jezik projekta"
-                                                                                          select
-                                                                                          disabled
-                                                                                     // onBlur={(e: any) =>
-                                                                                     //      setCurrentProjectObject((previousObject: any) => ({
-                                                                                     //           ...previousObject,
-                                                                                     //           locale: e.target.value
-                                                                                     //      }))
-                                                                                     // }
-                                                                                     >
-                                                                                          {locales.map((option: ProjectLocale) => (
-                                                                                               <MenuItem
-                                                                                                    key={Math.floor(Math.random() * 1000000)}
-                                                                                                    defaultValue={option.value}
-                                                                                               >
-                                                                                                    {option.name}
-                                                                                               </MenuItem>
-                                                                                          ))}
-                                                                                     </TextField>
-                                                                                </Grid> */}
                                                                                 {/* ------------------------Locations------------------------ */}
+                                                                                <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
                                                                                 <Grid
                                                                                      item
                                                                                      md={6}
@@ -1031,59 +1156,6 @@ export const ProjectActivityTable = (props: any) => {
                                                                                           )
                                                                                      }
                                                                                 </Grid>
-                                                                                {/* ------------------------Publications------------------------ */}
-                                                                                <Grid
-                                                                                     item
-                                                                                     md={6}
-                                                                                     xs={12}
-                                                                                >
-                                                                                     <Typography sx={{ margin: '10px' }}>Publikacije:</Typography>
-                                                                                     {
-                                                                                          currentProjectObject?.publications.length == 0 &&
-                                                                                          <Box>
-                                                                                               <IconButton onClick={() => onAddNewPublication(0, '')}>
-                                                                                                    <AddBoxIcon />
-                                                                                               </IconButton>
-                                                                                               <IconButton onClick={() => onDeletePublication(0)}>
-                                                                                                    <DeleteIcon />
-                                                                                               </IconButton>
-                                                                                          </Box>
-                                                                                     }
-
-                                                                                     {
-                                                                                          currentProjectObject?.publications.length != 0 &&
-                                                                                          currentProjectObject?.publications?.map((publication: any, index: any) =>
-                                                                                               <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
-                                                                                                    <TextField
-                                                                                                         defaultValue={currentProjectObject.publications[index]}
-                                                                                                         fullWidth
-                                                                                                         label={`Publikacija ${index + 1}`}
-                                                                                                         disabled={loading}
-                                                                                                         // name={activity.description}
-                                                                                                         onBlur={(e: any) => {
-                                                                                                              setCurrentProjectObject((prevProjectActivity: ProjectActivity | null | undefined) => {
-                                                                                                                   if (prevProjectActivity) {
-                                                                                                                        const newPublications = [...prevProjectActivity.publications];
-                                                                                                                        newPublications[index] = e.target.value; // Update the subtitle at the clicked index
-                                                                                                                        return {
-                                                                                                                             ...prevProjectActivity,
-                                                                                                                             publications: newPublications,
-                                                                                                                        };
-                                                                                                                   }
-                                                                                                                   return prevProjectActivity;
-                                                                                                              });
-                                                                                                         }}
-                                                                                                    />
-                                                                                                    <IconButton onClick={() => onAddNewPublication(index + 1, '')}>
-                                                                                                         <AddBoxIcon />
-                                                                                                    </IconButton>
-                                                                                                    <IconButton onClick={() => onDeletePublication(index)}>
-                                                                                                         <DeleteIcon />
-                                                                                                    </IconButton>
-                                                                                               </Box>
-                                                                                          )
-                                                                                     }
-                                                                                </Grid>
                                                                                 {/* ------------------------Paragraphs------------------------ */}
                                                                                 <Grid
                                                                                      item
@@ -1137,6 +1209,96 @@ export const ProjectActivityTable = (props: any) => {
                                                                                           )
                                                                                      }
                                                                                 </Grid>
+                                                                                <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
+                                                                                <Tooltip placement='bottom-start' title={'Ovde možemo samo da brišemo publikacije za sad. Ako želimo da pregledamo, moramo otići na lda-subotica.org'}>
+                                                                                     <Typography sx={{ margin: '10px' }}>Publikacije:</Typography>
+                                                                                </Tooltip>
+                                                                                <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', width: '90%', marginBottom: '20px' }}>
+                                                                                     {/* -------------------------publikacije------------------------------------------ */}
+                                                                                     {
+                                                                                          currentProjectObject?.publications && currentProjectObject.publications.length > 0 && (
+                                                                                               <Box sx={{ width: '90%', display: 'flex' }}
+                                                                                               >
+                                                                                                    {currentProjectObject.publications.map((item: string, index: number) => (
+                                                                                                         <Box
+                                                                                                              key={index}
+                                                                                                              sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-around', marginRight: '40px' }}
+                                                                                                         >
+                                                                                                              {getThumbnail(item) === 'pdf' ? (
+
+
+                                                                                                                   <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', width: '100px' }}>
+                                                                                                                        <PictureAsPdfIcon
+                                                                                                                             sx={{ color: theme.palette.primary.dark, cursor: 'pointer', width: '50px', alignItems: 'center', height: '50px' }}
+                                                                                                                             onClick={() => onPublicationClick(item)}
+                                                                                                                        />
+                                                                                                                        <Tooltip title={extractFileName(item)}>
+                                                                                                                             <Typography
+                                                                                                                                  sx={{
+                                                                                                                                       overflow: 'hidden',
+                                                                                                                                       textOverflow: 'ellipsis',
+                                                                                                                                       whiteSpace: 'nowrap',
+                                                                                                                                       maxWidth: '100px', // Adjust the width as needed
+                                                                                                                                  }}
+                                                                                                                             >
+                                                                                                                                  {extractFileName(item)}
+                                                                                                                             </Typography>
+                                                                                                                        </Tooltip>
+                                                                                                                   </Box>
+
+                                                                                                              ) : getThumbnail(item) === 'doc' ? (
+
+                                                                                                                   <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', width: '100px' }}>
+                                                                                                                        <ArticleIcon
+                                                                                                                             sx={{ color: theme.palette.primary.dark, cursor: 'pointer', width: '50px', height: '50px' }}
+                                                                                                                             onClick={() => onPublicationClick(item)}
+                                                                                                                        />
+                                                                                                                        <Tooltip title={extractFileName(item)}>
+                                                                                                                             <Typography
+                                                                                                                                  sx={{
+                                                                                                                                       overflow: 'hidden',
+                                                                                                                                       textOverflow: 'ellipsis',
+                                                                                                                                       whiteSpace: 'nowrap',
+                                                                                                                                       maxWidth: '100px', // Adjust the width as needed
+                                                                                                                                  }}
+                                                                                                                             >
+                                                                                                                                  {extractFileName(item)}
+                                                                                                                             </Typography>
+                                                                                                                        </Tooltip>
+                                                                                                                   </Box>
+                                                                                                              ) : null}
+                                                                                                         </Box>
+                                                                                                    ))}
+                                                                                               </Box>
+                                                                                          )
+                                                                                     }
+
+
+                                                                                     <Button component="label"
+                                                                                          variant="contained"
+                                                                                          startIcon={<CloudUploadIcon />}
+                                                                                          sx={{ maxWidth: '150px', marginTop: '40px' }}
+                                                                                     >
+                                                                                          Učitaj dokument
+                                                                                          <Input
+                                                                                               type="file"
+                                                                                               inputProps={{ accept: '.pdf, .docx, .doc' }}
+                                                                                               sx={{
+                                                                                                    clip: 'rect(0 0 0 0)',
+                                                                                                    clipPath: 'inset(50%)',
+                                                                                                    height: 1,
+                                                                                                    overflow: 'hidden',
+                                                                                                    position: 'absolute',
+                                                                                                    bottom: 0,
+                                                                                                    left: 0,
+                                                                                                    whiteSpace: 'nowrap',
+                                                                                                    width: 1,
+                                                                                               }}
+                                                                                               onChange={(e: any) => handlePublicationsChange(e)}
+                                                                                          />
+                                                                                     </Button>
+
+                                                                                </Box>
 
                                                                                 {/* ------------------------Gallery------------------------ */}
                                                                                 <Grid
@@ -1149,7 +1311,7 @@ export const ProjectActivityTable = (props: any) => {
                                                                                           {/* -------------------------slike------------------------------------------ */}
                                                                                           {
                                                                                                currentProjectObject?.gallery && currentProjectObject.gallery.length > 0 && (
-                                                                                                    <ImageList sx={{ width: 500, height: 450 }} cols={3} rowHeight={164}>
+                                                                                                    <ImageList sx={{ width: '90%', height: 450 }} cols={4} rowHeight={164}>
                                                                                                          {currentProjectObject.gallery.map((item: any) => (
                                                                                                               <ImageListItem key={Math.floor(Math.random() * 1000000)}>
                                                                                                                    <img
@@ -1157,6 +1319,7 @@ export const ProjectActivityTable = (props: any) => {
                                                                                                                         src={`${item}?w=164&h=164&fit=crop&auto=format`}
                                                                                                                         alt={'image'}
                                                                                                                         loading="lazy"
+                                                                                                                        style={{ cursor: 'pointer', borderRadius: '10px' }}
                                                                                                                         onClick={(e: any) => onImageClick(e)}
                                                                                                                    />
                                                                                                               </ImageListItem>
