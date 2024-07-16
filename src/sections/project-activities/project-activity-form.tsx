@@ -12,7 +12,6 @@ import { DateField } from '@mui/x-date-pickers/DateField';
 import { sanitizeString } from '@/utils/url-creator';
 import { projectCategory } from './project-activity-table';
 import { ProjectSummary } from '../project-summaries/project-summary-type';
-import { set } from 'nprogress';
 
 export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectSummaries }: any) => {
 
@@ -22,6 +21,7 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
      const theme = useTheme()
      const [selectedProjectSummary, setSelectedProjectSummary] = useState<ProjectSummary>()
      console.log(selectedProjectSummary);
+
 
      const handleSubmit = async (values: any) => {
 
@@ -109,23 +109,26 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                         rows={4}
                                         value={formik.values.projectURL}
                                    />
-                                   <Typography>
-                                        {`${JSON.stringify(formik.values.subTitle)}`}
-                                   </Typography>
+
                                    <FormControl fullWidth>
                                         <InputLabel id="subtitle-label" sx={{ backgroundColor: 'white' }}>Glavni projekat</InputLabel>
                                         <Select
                                              label="Glavni projekat"
-                                             labelId="subtitle-label"
-                                             name='subTitle'
-                                             id="subtitle-id"
+                                             labelId="project-summary-label"
+                                             name='projectSummaryURL'
+                                             id="project-summary"
                                              value={formik.values.subTitle}
-                                             onChange={(e) => {
-                                                  const selectedSummary = projectSummaries.find((projectSummary: any) => projectSummary.projectSummaryURL === e.target.value);
-                                                  formik.setFieldValue('projectSummaryURL', '/pregled-projekta/' + e.target.value);
-                                                  setSelectedProjectSummary(selectedSummary);
-                                                  console.log(selectedSummary?.title);
+                                             onChange={async (e) => {
+                                                  // Perform your async operation here
+                                                  const selectedSummary: ProjectSummary = await new Promise(resolve => {
+                                                       const summary = projectSummaries.find((projectSummary: any) => projectSummary.title === e.target.value);
+                                                       resolve(summary);
+                                                  });
 
+                                                  formik.setFieldValue('projectSummaryURL', '/pregled-projekta/' + selectedSummary.projectSummaryURL);
+                                                  setSelectedProjectSummary(selectedSummary);
+
+                                                  // Set the Formik value after the async operation
                                                   formik.setFieldValue('subTitle', selectedSummary?.title);
                                              }}
                                              error={formik.touched.projectSummaryURL && !!formik.errors.projectSummaryURL}
@@ -134,8 +137,8 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                              {
                                                   projectSummaries.map((projectSummary: any) => (
                                                        <MenuItem
-                                                            value={projectSummary.projectSummaryURL}
-                                                            key={projectSummary.projectSummaryURL}
+                                                            value={projectSummary.title}
+                                                            key={projectSummary.title}
                                                        >
                                                             {projectSummary.title}
                                                        </MenuItem>
