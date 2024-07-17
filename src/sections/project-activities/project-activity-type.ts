@@ -40,23 +40,23 @@ export type ProjectActivity = {
 };
 
 export const ProjectActivitySchema = yup.object().shape({
-     title: yup.string().required('Title is required'),
+     title: yup.string().required('Naslov je obavezan'),
      subTitle: yup.string(),
-     projectURL: yup.string().required('Project URL is required'),
-     projectSummaryURL: yup.string().required('Project summary URL is required'),
-     status: yup.string().required('Status is required'),
-     locale: yup.string().required('Locale is required'),
+     projectURL: yup.string().required('URL projektne aktivnost je obavezan'),
+     projectSummaryURL: yup.string().required('URL glavnog projekta je obavezan'),
+     status: yup.string().required('Status je obavezan'),
+     locale: yup.string().required('Jezik je obavezan'),
      list: yup.array().of(yup.string()),
      listTitle: yup.string(),
      links: yup.array().of(yup.string()),
-     paragraphs: yup.array().of(yup.string()),
-     locations: yup.array().of(yup.string().required('Location is required')),
+     paragraphs: yup.array().min(1, 'Bar jedan pasus je obavezan').of(yup.string().required('Bar jedan pasus je obavezan')),
+     locations: yup.array().min(1, 'Bar jedna lokacija je obavezna').of(yup.string().required('Bar jedna lokacija je obavezan')),
      applicants: yup.array().of(yup.string()),
      organizers: yup.array().of(yup.string()),
      subOrganizers: yup.array().of(yup.string()),
      donators: yup.array().of(yup.string()),
-     category: yup.string().required('Category is required'),
-     published: yup.date().required('Published date is required'),
+     category: yup.string().required('Kategorija je obavezna'),
+     published: yup.date().typeError('Datum mora biti u odgovarajućem formatu!').required('Datum za objavu je obavezan!'),
      showProjectDetails: yup.boolean(),
 });
 
@@ -77,7 +77,7 @@ export const projectActivityInitialValues: ProjectActivity = {
      publications: [],
      locations: [],
      gallery: [],
-     showProjectDetails: true,
+     showProjectDetails: false,
      listTitle: '',
      list: [],
      locale: 'sr'

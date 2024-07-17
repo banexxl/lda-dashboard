@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Field, FieldArray } from 'formik';
+import { ErrorMessage, FieldArray, Form, Formik } from 'formik';
 import { TextField, Typography, Button, Box, Grid, MenuItem, IconButton, FormControl, InputLabel, Select, Divider, Checkbox, useTheme } from '@mui/material'
-import { Form, Formik } from 'formik';
 import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2'
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -20,8 +19,6 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
      const [listEnabled, setListEnabled] = useState<any>(false)
      const theme = useTheme()
      const [selectedProjectSummary, setSelectedProjectSummary] = useState<ProjectSummary>()
-     console.log(selectedProjectSummary);
-
 
      const handleSubmit = async (values: any) => {
 
@@ -234,8 +231,22 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                         InputLabelProps={{ shrink: true }}
                                         label="Objavljeno"
                                         name="published"
-                                        onBlur={(e) => {
-                                             formik.setFieldValue('published', e.target.value)
+                                        value={formik.values.published}
+                                        onChange={(value) => formik.setFieldValue('published', value)}
+                                        onBlur={() => formik.setFieldTouched('published', true)}
+                                        helperText={
+                                             formik.touched.published && formik.errors.published ? String(formik.errors.published) : null
+                                        }
+                                        FormHelperTextProps={{
+                                             sx: {
+                                                  color: formik.touched.published && formik.errors.published ? 'red' : 'inherit',
+                                             },
+                                        }}
+                                        // You can use the sx prop directly if available
+                                        sx={{
+                                             '& .MuiFormHelperText-root': {
+                                                  color: formik.touched.published && formik.errors.published ? 'red' : 'inherit',
+                                             },
                                         }}
                                    />
 
@@ -255,6 +266,18 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                    </FormControl>
 
                                    <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
+
+                                   <FormControl sx={{ display: 'flex', flexDirection: 'column', width: '400px', height: '50px' }}>
+                                        <Typography id="showList">Prikaži listu</Typography>
+                                        <Checkbox
+                                             name="showList"
+                                             defaultChecked={false}
+                                             sx={{ width: '10px', height: '10px' }}
+                                             onChange={(e) => {
+                                                  setListEnabled(e.target.checked)
+                                             }}
+                                        />
+                                   </FormControl>
 
                                    <TextField
                                         InputLabelProps={{ shrink: true }}
@@ -286,6 +309,11 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                                                       InputLabelProps={{ shrink: true }}
                                                                       defaultValue={listItem}
                                                                       fullWidth
+                                                                      onBlur={(e) => {
+                                                                           const newList = [...formik.values.list];
+                                                                           newList[index] = e.target.value;
+                                                                           formik.setFieldValue('list', newList);
+                                                                      }}
                                                                       name={`list.${index}`}
                                                                       label={`Stavka ${index + 1}`}
                                                                  />
@@ -307,7 +335,54 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
 
                                    <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
 
+                                   <Grid
+                                        item
+                                        md={6}
+                                        xs={12}
+                                   >
+                                        <Typography sx={{ margin: '10px' }}>
+                                             Pasusi: {
+                                                  formik.errors.paragraphs ?
+                                                       <Typography sx={{ color: 'red' }}>{formik.errors.paragraphs}</Typography>
+                                                       :
+                                                       null
+                                             }
+                                        </Typography>
+                                        <FieldArray
+                                             name={'paragraphs'}
+                                             render={arrayHelpers => (
+                                                  formik.values?.paragraphs.length > 0 ?
+                                                       formik.values?.paragraphs.map((paragraph: any, index: any) => (
+                                                            <Box sx={{ display: 'flex', width: '80%' }}>
+                                                                 <TextField
+                                                                      disabled={loading}
+                                                                      InputLabelProps={{ shrink: true }}
+                                                                      defaultValue={paragraph}
+                                                                      fullWidth
+                                                                      onBlur={(e) => {
+                                                                           const newParagraphs = [...formik.values.paragraphs];
+                                                                           newParagraphs[index] = e.target.value;
+                                                                           formik.setFieldValue('paragraphs', newParagraphs);
+                                                                      }}
+                                                                      name={`paragraph.${index}`}
+                                                                      label={`Paragraf ${index + 1}`}
+                                                                 />
 
+                                                                 <IconButton disabled={loading} onClick={() => arrayHelpers.insert(index + 1, '')}>
+                                                                      <AddBoxIcon />
+                                                                 </IconButton>
+                                                                 <IconButton disabled={loading} onClick={() => arrayHelpers.remove(index)}>
+                                                                      <DeleteIcon />
+                                                                 </IconButton>
+                                                            </Box>
+                                                       ))
+                                                       :
+                                                       < IconButton disabled={loading} onClick={() => arrayHelpers.push('')}>
+                                                            <AddBoxIcon />
+                                                       </IconButton>
+                                             )}
+                                        />
+                                   </Grid>
 
 
                                    <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
