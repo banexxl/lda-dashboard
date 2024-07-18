@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ErrorMessage, FieldArray, Form, Formik } from 'formik';
+import { ErrorMessage, FieldArray, Form, Formik, useFormikContext } from 'formik';
 import { TextField, Typography, Button, Box, Grid, MenuItem, IconButton, FormControl, InputLabel, Select, Divider, Checkbox, useTheme } from '@mui/material'
 import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2'
@@ -11,6 +11,15 @@ import { DateField } from '@mui/x-date-pickers/DateField';
 import { sanitizeString } from '@/utils/url-creator';
 import { projectCategory } from './project-activity-table';
 import { ProjectSummary } from '../project-summaries/project-summary-type';
+import moment from 'moment';
+
+export type DataForProjectSummary = {
+     _id: string;
+     projectSummaryDescriptions: string;
+     projectSummarySubtitleURLs: string;
+     projectSummaryDateTime: Date;
+     projectSummarySubtitles: string;
+}
 
 export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectSummaries }: any) => {
 
@@ -19,11 +28,13 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
      const [listEnabled, setListEnabled] = useState<any>(false)
      const theme = useTheme()
      const [selectedProjectSummary, setSelectedProjectSummary] = useState<ProjectSummary>()
+     const [dataForProjectSummary, setDataForProjectSummary] = useState<DataForProjectSummary>()
+     console.log('dataForProjectSummary', dataForProjectSummary);
 
      const handleSubmit = async (values: any) => {
 
           try {
-               const responseValues: any = await fetch('/api/project-activities-api', {
+               const responseProjectActivity: any = await fetch('/api/project-activities-api', {
                     method: 'POST',
                     headers: {
                          'Content-Type': 'application/json',
@@ -33,16 +44,29 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                     body: JSON.stringify(values),
                });
 
-               if (responseValues.ok) {
+               if (responseProjectActivity.ok) {
 
-                    onSubmitSuccess();
+                    const responseProjectSummary: any = await fetch('/api/project-summaries-api', {
+                         method: 'PUT',
+                         headers: {
+                              'Content-Type': 'application/json',
+                              'Access-Control-Allow-Origin': '*',
+                              'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS' // Set the content type to JSON
+                         },
+                         body: JSON.stringify(dataForProjectSummary),
+                    });
 
-                    Swal.fire({
-                         icon: 'success',
-                         title: 'Jeeej',
-                         text: 'Projekat ubačen uspešno',
-                    })
-                    router.refresh()
+                    if (responseProjectSummary.ok) {
+
+                         onSubmitSuccess();
+
+                         Swal.fire({
+                              icon: 'success',
+                              title: 'Jeeej',
+                              text: 'Projekat ubačen uspešno',
+                         })
+                         router.refresh()
+                    }
                } else {
 
                     onSubmitFail()
@@ -93,6 +117,11 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                                   .replace(/\s+/g, ' ');
                                              formik.setFieldValue('title', sanitizedValue)
                                              formik.setFieldValue('projectURL', sanitizeString(sanitizedValue))
+                                             setDataForProjectSummary((prevData: any) =>
+                                             ({
+                                                  ...prevData,
+                                                  projectSummarySubtitles: e.target.value
+                                             }))
                                         }}
                                         error={formik.touched.title && !!formik.errors.title}
                                         helperText={formik.touched.title && formik.errors.title}
@@ -105,6 +134,13 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                         name="projectActivityURL"
                                         rows={4}
                                         value={formik.values.projectURL}
+                                        onChange={(e) => {
+                                             setDataForProjectSummary((prevData: any) =>
+                                             ({
+                                                  ...prevData,
+                                                  projectSummarySubtitleURLs: e.target.value
+                                             }))
+                                        }}
                                    />
 
                                    <FormControl fullWidth>
@@ -124,7 +160,11 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
 
                                                   formik.setFieldValue('projectSummaryURL', '/pregled-projekta/' + selectedSummary.projectSummaryURL);
                                                   setSelectedProjectSummary(selectedSummary);
-
+                                                  setDataForProjectSummary((prevData: any) =>
+                                                  ({
+                                                       ...prevData,
+                                                       _id: selectedSummary._id,
+                                                  }))
                                                   // Set the Formik value after the async operation
                                                   formik.setFieldValue('subTitle', selectedSummary?.title);
                                              }}
@@ -232,7 +272,14 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                         label="Objavljeno"
                                         name="published"
                                         value={formik.values.published}
-                                        onChange={(value) => formik.setFieldValue('published', value)}
+                                        onChange={(value) => {
+                                             formik.setFieldValue('published', value)
+                                             setDataForProjectSummary((prevData: any) =>
+                                             ({
+                                                  ...prevData,
+                                                  projectSummaryDateTime: moment(value).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+                                             }))
+                                        }}
                                         onBlur={() => formik.setFieldTouched('published', true)}
                                         helperText={
                                              formik.touched.published && formik.errors.published ? String(formik.errors.published) : null
@@ -363,6 +410,11 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                                                            const newParagraphs = [...formik.values.paragraphs];
                                                                            newParagraphs[index] = e.target.value;
                                                                            formik.setFieldValue('paragraphs', newParagraphs);
+                                                                           setDataForProjectSummary((prevData: any) =>
+                                                                           ({
+                                                                                ...prevData,
+                                                                                projectSummaryDescriptions: newParagraphs[0]
+                                                                           }))
                                                                       }}
                                                                       name={`paragraph.${index}`}
                                                                       label={`Paragraf ${index + 1}`}

@@ -23,7 +23,6 @@ export default async function handler(request: NextApiRequest, response: NextApi
                               published: new Date(request.body.published)
                          }
                     )
-                    console.log(res);
 
                     return response.status(200).json({ message: 'Project successfully added!', data: res });
                } catch (error) {

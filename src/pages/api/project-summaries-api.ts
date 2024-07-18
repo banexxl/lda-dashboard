@@ -1,6 +1,5 @@
 import { MongoClient, ObjectId } from 'mongodb'
 import type { NextApiRequest, NextApiResponse } from 'next/types'
-import { UTApi } from 'uploadthing/server';
 import moment from 'moment';
 
 export default async function handler(request: NextApiRequest, response: NextApiResponse) {
@@ -43,40 +42,59 @@ export default async function handler(request: NextApiRequest, response: NextApi
                }
           }
           else if (request.method === 'PUT') {
-               const projectSummarySubtitlesDates = request.body.projectSummaryDateTime.map((date: string) => moment(date).toISOString())
+               const requestBody = request.body;
+               const projectSummarySubtitlesDates = moment(requestBody.projectSummaryDateTime).toISOString();
+
                try {
-                    const mdbResponse = await dbProjectSummaries.updateOne({ _id: ObjectId.createFromHexString(request.body._id) },
-                         {
-                              $set: {
-                                   projectSummaryURL: request.body.projectSummaryURL,
-                                   projectSummaryCoverURL: request.body.projectSummaryCoverURL,
-                                   status: request.body.status,
-                                   gallery: request.body.gallery,
-                                   projectEndDateTime: new Date(request.body.projectEndDateTime),
-                                   projectStartDateTime: new Date(request.body.projectStartDateTime),
-                                   organizers: request.body.organizers,
-                                   locations: request.body.locations,
-                                   applicants: request.body.applicants,
-                                   donators: request.body.donators,
-                                   publications: request.body.publications,
-                                   projectSummaryDescriptions: request.body.projectSummaryDescriptions,
-                                   projectSummarySubtitleURLs: request.body.projectSummarySubtitleURLs,
-                                   projectSummaryDateTime: projectSummarySubtitlesDates,
-                                   projectSummarySubtitles: request.body.projectSummarySubtitles,
-                                   links: request.body.links,
-                                   title: request.body.title,
-                                   locale: request.body.locale,
-                              }
-                         }
-                    )
+                    const projectId = new ObjectId(requestBody._id);
+
+                    const updateFields = {
+                         projectSummaryURL: requestBody.projectSummaryURL,
+                         projectSummaryCoverURL: requestBody.projectSummaryCoverURL,
+                         status: requestBody.status,
+                         gallery: requestBody.gallery,
+                         projectEndDateTime: new Date(requestBody.projectEndDateTime),
+                         projectStartDateTime: new Date(requestBody.projectStartDateTime),
+                         organizers: requestBody.organizers,
+                         locations: requestBody.locations,
+                         applicants: requestBody.applicants,
+                         donators: requestBody.donators,
+                         publications: requestBody.publications,
+                         links: requestBody.links,
+                         title: requestBody.title,
+                         locale: requestBody.locale,
+                    };
+
+                    const updateArrayFields = {
+                         projectSummaryDescriptions: requestBody.projectSummaryDescriptions,
+                         projectSummarySubtitleURLs: requestBody.projectSummarySubtitleURLs,
+                         projectSummaryDateTime: projectSummarySubtitlesDates,
+                         projectSummarySubtitles: requestBody.projectSummarySubtitles,
+                    };
+
+                    const updateOperations: any = {
+                         $set: updateFields,
+                         $push: {
+                              projectSummaryDescriptions: updateArrayFields.projectSummaryDescriptions,
+                              projectSummarySubtitleURLs: updateArrayFields.projectSummarySubtitleURLs,
+                              projectSummaryDateTime: updateArrayFields.projectSummaryDateTime,
+                              projectSummarySubtitles: updateArrayFields.projectSummarySubtitles,
+                         },
+                    };
+
+                    const mdbResponse = await dbProjectSummaries.updateOne(
+                         { _id: projectId },
+                         updateOperations
+                    );
+
                     console.log(mdbResponse);
 
-                    return mdbResponse.modifiedCount > 0 ?
-                         response.status(200).json({ message: 'Project successfully updated!', status: 'OK' })
-                         :
-                         response.status(400).json({ message: 'Project not updated!', status: 'Bad Request' });
+                    return mdbResponse.modifiedCount > 0
+                         ? response.status(200).json({ message: 'Project successfully updated!', status: 'OK' })
+                         : response.status(400).json({ message: 'Project not updated!', status: 'Bad Request' });
                } catch (error) {
-                    alert(error);
+                    console.error(error);
+                    return response.status(500).json({ message: 'Internal Server Error', status: 'Error' });
                }
           }
           else {
