@@ -19,6 +19,7 @@ import { Activity, ActivityCategory, activityCategoryProps, activityStatusProps,
 import { DateField } from '@mui/x-date-pickers/DateField';
 import moment from 'moment';
 import { sanitizeString } from '@/utils/url-creator';
+import { set } from 'nprogress';
 
 export type ArrayKeys = keyof Pick<Activity,
      'activityURL' | 'author' | 'category' | 'coverURL' | 'descriptions' | 'favorited' | 'favoritedNumber' |
@@ -85,8 +86,7 @@ export const ActivityTable = ({ items }: any) => {
      }
 
      const handleUpdateActivity = async (currentActivityObject: any) => {
-          console.log('currentActivityObject', currentActivityObject);
-
+          setLoading(true)
           try {
                //API CALL
                const response = await fetch('/api/activities-api', {

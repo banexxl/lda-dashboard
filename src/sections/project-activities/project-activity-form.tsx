@@ -26,6 +26,7 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
      const router = useRouter();
      const [loading, setLoading] = useState<any>(false)
      const [listEnabled, setListEnabled] = useState<any>(false)
+     const [listOnBottom, setListOnBottom] = useState<any>(false)
      const theme = useTheme()
      const [selectedProjectSummary, setSelectedProjectSummary] = useState<ProjectSummary>()
      const [dataForProjectSummary, setDataForProjectSummary] = useState<DataForProjectSummary>()
@@ -297,29 +298,42 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                         <Typography id="showProjectDetails">Prikazi detalje glavnog projekta</Typography>
                                         <Checkbox
                                              name="showProjectDetails"
-                                             defaultChecked={formik.values.showProjectDetails}
+                                             defaultChecked={false}
                                              sx={{ width: '10px', height: '10px' }}
                                              onChange={(e) => {
-                                                  // setListEnabled(e.target.checked)
-                                                  formik.handleChange
+                                                  formik.setFieldValue('showProjectDetails', e.target.checked)
                                              }}
                                         />
                                    </FormControl>
 
                                    <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
 
-                                   <FormControl sx={{ display: 'flex', flexDirection: 'column', width: '400px', height: '50px' }}>
-                                        <Typography id="showList">Prikaži listu</Typography>
-                                        <Checkbox
-                                             name="showList"
-                                             defaultChecked={false}
-                                             sx={{ width: '10px', height: '10px' }}
-                                             onChange={(e) => {
-                                                  setListEnabled(e.target.checked)
-                                             }}
-                                        />
-                                   </FormControl>
+                                   <Box sx={{ display: 'flex' }}>
+                                        <FormControl sx={{ display: 'flex', flexDirection: 'column', width: '400px', height: '50px' }}>
+                                             <Typography id="showList">Prikaži listu</Typography>
+                                             <Checkbox
+                                                  name="showList"
+                                                  defaultChecked={false}
+                                                  sx={{ width: '10px', height: '10px' }}
+                                                  onChange={(e) => {
+                                                       setListEnabled(e.target.checked)
+                                                       formik.setFieldValue('showList', e.target.checked)
+                                                  }}
+                                             />
+                                        </FormControl>
 
+                                        <FormControl sx={{ display: 'flex', flexDirection: 'column', width: '400px', height: '50px' }}>
+                                             <Typography id="showListOnBottom">Prikaži listu na dnu</Typography>
+                                             <Checkbox
+                                                  name="showListOnBottom"
+                                                  defaultChecked={false}
+                                                  sx={{ width: '10px', height: '10px' }}
+                                                  onChange={(e) => {
+                                                       formik.setFieldValue('showListOnBottom', e.target.checked)
+                                                  }}
+                                             />
+                                        </FormControl>
+                                   </Box>
                                    <TextField
                                         InputLabelProps={{ shrink: true }}
                                         label="Tekst liste"
@@ -573,6 +587,7 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                              variant="contained"
                                              color="primary"
                                              disabled={Object.keys(formik.errors).length != 0 && loading}
+                                             onClick={() => setLoading(true)}
                                         >
                                              Dodaj projekat
                                         </Button>

@@ -4,22 +4,14 @@ import { Form, Formik } from 'formik';
 import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2'
 import "@uploadthing/react/styles.css";
-import ProjectSummarySchema, { initialProjectSummary } from './project-summary-type';
+import { ProjectSummarySchema, initialProjectSummary } from './project-summary-type';
 import { DateField } from '@mui/x-date-pickers/DateField';
 import { sanitizeString } from '@/utils/url-creator';
-import { DatePicker } from '@mui/x-date-pickers/DatePicker';
-import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker/DesktopDatePicker';
-import moment from 'moment';
-import dayjs from 'dayjs';
 
 export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
 
      const router = useRouter();
      const [loading, setLoading] = useState<any>(false)
-     const [projectSummarySubtitleURLs, setProjectSummarySubtitleURLs] = useState<any>([])
-     const [subtitles, setSubtitles] = useState<string[]>([]);
-     const [disabledAddButtons, setDisabledAddButtons] = useState(Array(subtitles.length).fill(false)); // New state variable
-     const [error, setError] = useState("");
      const theme = useTheme()
 
      const handleSubmit = async (values: any) => {
@@ -300,6 +292,7 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                              variant="contained"
                                              color="primary"
                                              disabled={Object.keys(formik.errors).length != 0 && loading}
+                                             onClick={() => setLoading(true)}
                                         >
                                              Dodaj projekat
                                         </Button>

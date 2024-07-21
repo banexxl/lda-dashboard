@@ -323,6 +323,7 @@ export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
                                              variant="contained"
                                              color="primary"
                                              disabled={Object.keys(formik.errors).length != 0 && loading}
+                                             onClick={() => setLoading(true)}
                                         >
                                              Dodaj aktivnost
                                         </Button>

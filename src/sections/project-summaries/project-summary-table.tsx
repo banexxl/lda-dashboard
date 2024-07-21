@@ -132,7 +132,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
      }
 
      const handleUpdateProject = async (currentProjectObject: any) => {
-
+          setLoading(true)
 
           try {
                //API CALL

@@ -1,7 +1,7 @@
 import ChevronRightIcon from '@untitled-ui/icons-react/build/esm/ChevronRight';
 import ChevronDownIcon from '@untitled-ui/icons-react/build/esm/ChevronDown';
 import {
-     Box, Button, Card, Divider, FormControl, Grid, IconButton, ImageList, ImageListItem, Input, MenuItem,
+     Box, Button, Card, Checkbox, Divider, FormControl, Grid, IconButton, ImageList, ImageListItem, Input, MenuItem,
      Stack, SvgIcon, Table, TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography, useTheme
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -24,6 +24,7 @@ import moment from 'moment';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import ArticleIcon from '@mui/icons-material/Article';
 import { extractFileName, getThumbnail } from '../project-summaries/project-summary-table';
+import { set } from 'nprogress';
 
 const projectStatus: ProjectStatus[] = ['completed', 'in-progress', 'to-do'];
 
@@ -63,7 +64,8 @@ export const ProjectActivityTable = (props: any) => {
      const { items, projectActivitiesCount, page, rowsPerPage, selected } = props;
      const [currentProjectID, setCurrentProjectID] = useState(null);
      const [currentProjectObject, setCurrentProjectObject] = useState<ProjectActivity | null | undefined>(projectActivityInitialValues);
-     console.log('currentProjectObject', currentProjectObject);
+     const [listEnabled, setListEnabled] = useState<any>(false)
+     const [listOnBottom, setListOnBottom] = useState<any>(false)
 
      const router = useRouter();
      const theme = useTheme()
@@ -105,6 +107,7 @@ export const ProjectActivityTable = (props: any) => {
      }
 
      const handleProjectUpdateClick = () => {
+
           Swal.fire({
                title: 'Da li ste sigurni?',
                text: "Možete izmeniti pojekat u svakom momentu...",
@@ -124,7 +127,7 @@ export const ProjectActivityTable = (props: any) => {
      }
 
      const handleUpdateProject = async (currentProjectObject: any) => {
-
+          setLoading(true)
           try {
                //API CALL
                const response = await fetch('/api/project-activities-api', {
@@ -541,6 +544,34 @@ export const ProjectActivityTable = (props: any) => {
           });
      };
 
+     const onAddNewList = (index: number, text: string) => {
+          setCurrentProjectObject((prevActivity: ProjectActivity | null | undefined) => {
+               if (prevActivity) {
+                    const newList = [...prevActivity.list];
+                    newList[index] = text; // Update the subtitle at the clicked index
+                    return {
+                         ...prevActivity,
+                         list: newList,
+                    };
+               }
+               return prevActivity;
+          });
+     };
+
+     const onDeleteList = (index: number) => {
+          setCurrentProjectObject((prevActivity: ProjectActivity | null | undefined) => {
+               if (prevActivity) {
+                    const newList = [...prevActivity.list];
+                    newList.splice(index, 1); // Remove the subtitle at the specified index
+                    return {
+                         ...prevActivity,
+                         list: newList,
+                    };
+               }
+               return prevActivity;
+          });
+     };
+
      ////////////////////////////////////////////////////////
 
      const onAddNewImage = (imageURL: string) => {
@@ -940,6 +971,117 @@ export const ProjectActivityTable = (props: any) => {
                                                                                           />
                                                                                      </LocalizationProvider>
                                                                                 </Grid>
+                                                                                <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
+                                                                                {/* ------------------------Lists------------------------ */}
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                     sx={{ padding: '10px' }}
+                                                                                >
+                                                                                     <FormControl sx={{ display: 'flex', flexDirection: 'column', width: '400px', height: '50px' }}>
+                                                                                          <Typography id="showProjectDetails">Prikazi detalje glavnog projekta</Typography>
+                                                                                          <Checkbox
+                                                                                               name="showProjectDetails"
+                                                                                               defaultChecked={currentProjectObject?.showProjectDetails}
+                                                                                               sx={{ width: '10px', height: '10px' }}
+                                                                                               onChange={(e) => {
+                                                                                                    setCurrentProjectObject((previousObject: any) => ({
+                                                                                                         ...previousObject,
+                                                                                                         showProjectDetails: e.target.checked
+                                                                                                    }))
+                                                                                               }}
+                                                                                          />
+                                                                                     </FormControl>
+                                                                                </Grid>
+                                                                                <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
+                                                                                <Box sx={{ display: 'flex', flexDirection: 'column', padding: '10px' }}>
+                                                                                     <Box sx={{ display: 'flex' }}>
+                                                                                          <FormControl sx={{ display: 'flex', flexDirection: 'column', width: '400px', height: '50px' }}>
+                                                                                               <Typography id="showList">Prikaži listu</Typography>
+                                                                                               <Checkbox
+                                                                                                    name="showList"
+                                                                                                    defaultChecked={currentProjectObject?.showList == true || (currentProjectObject?.list?.length ?? 0) > 0}
+                                                                                                    sx={{ width: '10px', height: '10px' }}
+                                                                                                    onChange={(e) => {
+                                                                                                         setCurrentProjectObject((previousObject: any) => ({
+                                                                                                              ...previousObject,
+                                                                                                              showList: e.target.checked
+                                                                                                         }))
+
+                                                                                                    }}
+                                                                                               />
+                                                                                          </FormControl>
+
+                                                                                          <FormControl sx={{ display: 'flex', flexDirection: 'column', width: '400px', height: '50px' }}>
+                                                                                               <Typography id="showListOnBottom">Prikaži listu na dnu</Typography>
+                                                                                               <Checkbox
+                                                                                                    name="showListOnBottom"
+                                                                                                    defaultChecked={currentProjectObject?.showListOnBottom}
+                                                                                                    sx={{ width: '10px', height: '10px' }}
+                                                                                                    onChange={(e) => {
+                                                                                                         setCurrentProjectObject((previousObject: any) => ({
+                                                                                                              ...previousObject,
+                                                                                                              showListOnBottom: e.target.checked
+                                                                                                         }))
+                                                                                                         setListOnBottom(e.target.checked)
+                                                                                                    }}
+                                                                                               />
+                                                                                          </FormControl>
+                                                                                     </Box>
+                                                                                     <FormControl
+
+                                                                                     >
+                                                                                          <Typography sx={{ margin: '10px' }}>Lista:</Typography>
+                                                                                          {
+                                                                                               currentProjectObject?.list.length == 0 && currentProjectObject.showList &&
+                                                                                               <Box >
+                                                                                                    <IconButton onClick={() => onAddNewList(0, '')}>
+                                                                                                         <AddBoxIcon />
+                                                                                                    </IconButton>
+                                                                                                    <IconButton onClick={() => onDeleteList(0)}>
+                                                                                                         <DeleteIcon />
+                                                                                                    </IconButton>
+                                                                                               </Box>
+                                                                                          }
+
+                                                                                          {
+                                                                                               currentProjectObject?.list.length != 0 &&
+                                                                                               currentProjectObject?.list?.map((subtitle: any, index: any) =>
+                                                                                                    <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
+                                                                                                         <TextField
+                                                                                                              defaultValue={currentProjectObject.list[index]}
+                                                                                                              fullWidth
+                                                                                                              label={`List pasus ${index + 1}`}
+                                                                                                              disabled={loading}
+                                                                                                              // name={activity.description}
+                                                                                                              onBlur={(e: any) => {
+                                                                                                                   setCurrentProjectObject((prevActivity: ProjectActivity | null | undefined) => {
+                                                                                                                        if (prevActivity) {
+                                                                                                                             const newList = [...prevActivity.list];
+                                                                                                                             newList[index] = e.target.value; // Update the subtitle at the clicked index
+                                                                                                                             return {
+                                                                                                                                  ...prevActivity,
+                                                                                                                                  list: newList,
+                                                                                                                             };
+                                                                                                                        }
+                                                                                                                        return prevActivity;
+                                                                                                                   });
+                                                                                                              }}
+                                                                                                         />
+                                                                                                         <IconButton onClick={() => onAddNewList(index + 1, '')}>
+                                                                                                              <AddBoxIcon />
+                                                                                                         </IconButton>
+                                                                                                         <IconButton onClick={() => onDeleteList(index)}>
+                                                                                                              <DeleteIcon />
+                                                                                                         </IconButton>
+                                                                                                    </Box>
+                                                                                               )
+                                                                                          }
+
+                                                                                     </FormControl>
+                                                                                </Box>
+
                                                                                 {/* ------------------------Locations------------------------ */}
                                                                                 <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
                                                                                 <Grid
@@ -1372,6 +1514,7 @@ export const ProjectActivityTable = (props: any) => {
                                                                                                type="submit"
                                                                                                variant="contained"
                                                                                                disabled={loading}
+
                                                                                           >
                                                                                                Izmeni
                                                                                           </Button>

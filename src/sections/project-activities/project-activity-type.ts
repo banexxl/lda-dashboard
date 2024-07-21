@@ -34,6 +34,8 @@ export type ProjectActivity = {
      publications: string[];
      gallery: string[];
      showProjectDetails: boolean;
+     showList: boolean;
+     showListOnBottom: boolean;
      listTitle: string;
      list: string[];
      locale: Locale
@@ -58,6 +60,8 @@ export const ProjectActivitySchema = yup.object().shape({
      category: yup.string().required('Kategorija je obavezna'),
      published: yup.date().typeError('Datum mora biti u odgovarajućem formatu!').required('Datum za objavu je obavezan!'),
      showProjectDetails: yup.boolean(),
+     showList: yup.boolean(),
+     showListOnBottom: yup.boolean(),
 });
 
 export const projectActivityInitialValues: ProjectActivity = {
@@ -78,6 +82,8 @@ export const projectActivityInitialValues: ProjectActivity = {
      locations: [],
      gallery: [],
      showProjectDetails: false,
+     showList: false,
+     showListOnBottom: false,
      listTitle: '',
      list: [],
      locale: 'sr'
