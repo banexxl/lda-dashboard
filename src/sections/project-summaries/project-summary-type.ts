@@ -1,5 +1,5 @@
 import * as yup from 'yup';
-import { ProjectStatus } from '../project-activities/project-activity-type';
+import { ProjectCategory, ProjectStatus } from '../project-activities/project-activity-type';
 
 export const ProjectSummarySchema = yup.object().shape({
      projectSummaryURL: yup.string(),
@@ -13,6 +13,7 @@ export const ProjectSummarySchema = yup.object().shape({
      applicants: yup.array().of(yup.string()),
      donators: yup.array().of(yup.string()),
      publications: yup.array().of(yup.string()),
+     category: yup.string(),
      // projectSummaryDescriptions: yup.array().of(yup.string()),
      // projectSummarySubtitleURLs: yup.array().of(yup.string()),
      // projectSummaryDateTime: yup.array().of(yup.date()),
@@ -35,7 +36,7 @@ export interface ProjectSummary {
      donators: string[];
      publications: string[];
      links: string[];
-
+     category: ProjectCategory;
      // projectSummaryDescriptions: string[];
      // projectSummarySubtitleURLs: string[];
      // projectSummaryDateTime: string[];
@@ -58,6 +59,7 @@ export const initialProjectSummary: ProjectSummary = {
      applicants: [],
      donators: [],
      publications: [],
+     category: "other",
      // projectSummaryDescriptions: [],
      // projectSummarySubtitleURLs: [],
      // projectSummaryDateTime: [],

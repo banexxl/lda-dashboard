@@ -7,6 +7,7 @@ import "@uploadthing/react/styles.css";
 import { ProjectSummarySchema, initialProjectSummary } from './project-summary-type';
 import { DateField } from '@mui/x-date-pickers/DateField';
 import { sanitizeString } from '@/utils/url-creator';
+import { projectCategory } from '../project-activities/project-activity-table';
 
 export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
 
@@ -169,6 +170,42 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                              <MenuItem value={'completed'}>Zavrsen</MenuItem>
                                              <MenuItem value={'todo'}>U planu</MenuItem>
                                         </TextField>
+                                   </FormControl>
+
+                                   <FormControl fullWidth>
+                                        <InputLabel id="project-summary-category" sx={{ backgroundColor: 'white' }}>Kategorija</InputLabel>
+                                        <Select
+                                             label="Kategorija"
+                                             labelId="project-summary-category"
+                                             name='category'
+                                             id="project-summary-category-id"
+                                             value={formik.values.category}
+                                             onChange={(e) => {
+                                                  formik.setFieldValue('category', e.target.value)
+                                             }}
+                                             error={formik.touched.category && !!formik.errors.category}
+                                             sx={{ borderColor: 'white' }}
+                                        >
+                                             {
+                                                  projectCategory.map((category: any) => (
+                                                       <MenuItem
+                                                            value={category}
+                                                            key={category}
+                                                       >
+                                                            {
+                                                                 category == 'other' ? 'Ostalo' :
+                                                                      category == 'eu-integrations' ? 'EU integracije' :
+                                                                           category == 'intercultural-dialogue' ? 'Interkulturalni dijalog' :
+                                                                                category == 'migrations' ? 'Migracije' :
+                                                                                     category == 'youth' ? 'Mladi' :
+                                                                                          category == 'culture' ? 'Kultura' :
+                                                                                               category == 'economy' ? 'Ekonomija' :
+                                                                                                    category == 'democracy' ? 'Demokratija' : ''
+                                                            }
+                                                       </MenuItem>
+                                                  ))
+                                             }
+                                        </Select>
                                    </FormControl>
 
                                    <FormControl fullWidth>

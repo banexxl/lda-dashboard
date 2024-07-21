@@ -19,6 +19,8 @@ import moment from 'moment';
 
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import ArticleIcon from '@mui/icons-material/Article';
+import { projectCategory } from '../project-activities/project-activity-table';
+import { ProjectCategory } from '../project-activities/project-activity-type';
 
 
 type ProjectStatus = {
@@ -881,13 +883,51 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                           />
                                                                                      </LocalizationProvider>
                                                                                 </Grid>
+                                                                                {/* ------------------------Category------------------------ */}
                                                                                 <Grid
                                                                                      item
                                                                                      md={6}
                                                                                      xs={12}
                                                                                 >
                                                                                      <TextField
-                                                                                          defaultValue={project.status}
+                                                                                          defaultValue={currentProjectObject?.category}
+                                                                                          fullWidth
+                                                                                          label="Kategorija aktivnosti"
+                                                                                          select
+                                                                                          disabled={loading}
+                                                                                          onBlur={(e: any) =>
+                                                                                               setCurrentProjectObject((previousObject: any) => ({
+                                                                                                    ...previousObject,
+                                                                                                    category: e.target.value
+                                                                                               }))
+                                                                                          }
+                                                                                     >
+                                                                                          {projectCategory.map((option: ProjectCategory) => (
+                                                                                               <MenuItem
+                                                                                                    key={Math.floor(Math.random() * 1000000)}
+                                                                                                    value={option}
+                                                                                               >
+                                                                                                    {
+                                                                                                         option == 'other' ? 'Ostalo' :
+                                                                                                              option == 'eu-integrations' ? 'EU integracije' :
+                                                                                                                   option == 'intercultural-dialogue' ? 'Interkulturalni dijalog' :
+                                                                                                                        option == 'migrations' ? 'Migracije' :
+                                                                                                                             option == 'youth' ? 'Mladi' :
+                                                                                                                                  option == 'culture' ? 'Kultura' :
+                                                                                                                                       option == 'economy' ? 'Ekonomija' :
+                                                                                                                                            option == 'democracy' ? 'Demokratija' : ''
+                                                                                                    }
+                                                                                               </MenuItem>
+                                                                                          ))}
+                                                                                     </TextField>
+                                                                                </Grid>
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <TextField
+                                                                                          defaultValue={currentProjectObject?.status}
                                                                                           fullWidth
                                                                                           label="Status projekta"
                                                                                           select
