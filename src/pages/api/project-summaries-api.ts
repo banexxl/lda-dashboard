@@ -6,6 +6,7 @@ type GeneralProjectSummaryFields = {
      projectSummaryURL?: string;
      projectSummaryCoverURL?: string;
      status?: string;
+     category?: string;
      gallery?: any;
      projectEndDateTime?: Date;
      projectStartDateTime?: Date;
