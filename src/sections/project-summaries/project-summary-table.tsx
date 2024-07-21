@@ -32,8 +32,7 @@ const projectStatus: ProjectStatus[] = [
 
 export type ArrayKeys = keyof Pick<ProjectSummary,
      'gallery' | 'organizers' | 'locations' | 'applicants' | 'donators' |
-     'publications' | 'projectSummaryDescriptions' | 'projectSummarySubtitleURLs' |
-     'projectSummaryDateTime' | 'projectSummarySubtitles' | 'links'
+     'publications' | 'links'
 >;
 
 type ProjectLocale = {
@@ -79,7 +78,17 @@ export const ProjectSummaryTable = ({ items }: any) => {
      const getObjectById = (_id: any, arrayToSearch: any) => {
           for (const obj of arrayToSearch) {
                if (obj._id === _id) {
-                    return obj;  // Found the object with the desired ID
+                    // Destructure to exclude the specified keys
+                    const {
+                         projectSummaryDescriptions,
+                         projectSummarySubtitleURLs,
+                         projectSummaryDateTime,
+                         projectSummarySubtitles,
+                         ...filteredObj
+                    } = obj;
+                    console.log('filteredObj', filteredObj);
+
+                    return filteredObj;
                }
           }
           return null;  // Object with the desired ID not found
@@ -93,7 +102,9 @@ export const ProjectSummaryTable = ({ items }: any) => {
                }
                setCurrentProjectObject(getObjectById(ProjectId, items))
                return ProjectId;
-          });
+          })
+          console.log('currentProjectObject', currentProjectObject);
+
      }
 
      const handleProjectClose = () => {
@@ -101,6 +112,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
      }
 
      const handleProjectUpdateClick = () => {
+          console.log('currentProjectObject', currentProjectObject);
           Swal.fire({
                title: 'Da li ste sigurni?',
                text: "Možete izmeniti pojekat u svakom momentu...",
@@ -120,6 +132,8 @@ export const ProjectSummaryTable = ({ items }: any) => {
      }
 
      const handleUpdateProject = async (currentProjectObject: any) => {
+
+
           try {
                //API CALL
                const response = await fetch('/api/project-summaries-api', {

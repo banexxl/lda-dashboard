@@ -49,7 +49,7 @@ function extractArrayFields(requestBody: any): ProjectActivityFields {
      return {
           projectSummaryDescription: requestBody.projectSummaryDescription,
           projectSummarySubtitleURL: requestBody.projectSummarySubtitleURL,
-          projectSummaryDateTime: moment(requestBody.projectSummaryDateTime).toISOString(),
+          projectSummaryDateTime: requestBody.projectSummaryDateTime,
           projectSummarySubtitle: requestBody.projectSummarySubtitle,
      };
 }
@@ -112,7 +112,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                     console.log('projectId', projectId);
 
                     if (isGeneralFields && isProjectActivityFields) {
-                         return response.status(400).json({ message: 'Request body cannot contain both general and array fields', status: 'Bad Request' });
+                         return response.status(400).json({ message: 'Request body cannot contain both general and project activity fields', status: 'Bad Request' });
                     }
 
                     let updateOperations: any = {};

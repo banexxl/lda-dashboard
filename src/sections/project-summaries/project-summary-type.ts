@@ -13,16 +13,14 @@ export const ProjectSummarySchema = yup.object().shape({
      applicants: yup.array().of(yup.string()),
      donators: yup.array().of(yup.string()),
      publications: yup.array().of(yup.string()),
-     projectSummaryDescriptions: yup.array().of(yup.string()),
-     projectSummarySubtitleURLs: yup.array().of(yup.string()),
-     projectSummaryDateTime: yup.array().of(yup.date()),
-     projectSummarySubtitles: yup.array().of(yup.string()),
+     // projectSummaryDescriptions: yup.array().of(yup.string()),
+     // projectSummarySubtitleURLs: yup.array().of(yup.string()),
+     // projectSummaryDateTime: yup.array().of(yup.date()),
+     // projectSummarySubtitles: yup.array().of(yup.string()),
      links: yup.array().of(yup.string()),
      title: yup.string().required('Naslov projekta je obavezno polje.'),
      locale: yup.string().required('Jezik projekta je obavezno polje.'),
 });
-
-export default ProjectSummarySchema;
 
 export interface ProjectSummary {
      _id?: string;
@@ -38,10 +36,10 @@ export interface ProjectSummary {
      publications: string[];
      links: string[];
 
-     projectSummaryDescriptions: string[];
-     projectSummarySubtitleURLs: string[];
-     projectSummaryDateTime: string[];
-     projectSummarySubtitles: string[];
+     // projectSummaryDescriptions: string[];
+     // projectSummarySubtitleURLs: string[];
+     // projectSummaryDateTime: string[];
+     // projectSummarySubtitles: string[];
 
      gallery: string[];
      projectEndDateTime: Date;
@@ -60,10 +58,10 @@ export const initialProjectSummary: ProjectSummary = {
      applicants: [],
      donators: [],
      publications: [],
-     projectSummaryDescriptions: [],
-     projectSummarySubtitleURLs: [],
-     projectSummaryDateTime: [],
-     projectSummarySubtitles: [],
+     // projectSummaryDescriptions: [],
+     // projectSummarySubtitleURLs: [],
+     // projectSummaryDateTime: [],
+     // projectSummarySubtitles: [],
      links: [],
      title: "",
      locale: "sr"
