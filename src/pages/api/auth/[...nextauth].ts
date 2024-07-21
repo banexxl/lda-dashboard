@@ -41,6 +41,9 @@ export const authOptions = {
                console.log(`[next-auth] Redirecting to "${redirectUrl}" (resolved from url "${url}" and baseUrl "${baseUrl}")`);
                return redirectUrl;
           }
+     },
+     session: {
+          maxAge: 1 * 60 * 60, // 1 hour
      }
 }
 export default NextAuth(authOptions);
