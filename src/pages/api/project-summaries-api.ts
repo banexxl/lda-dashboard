@@ -2,6 +2,58 @@ import { MongoClient, ObjectId } from 'mongodb'
 import type { NextApiRequest, NextApiResponse } from 'next/types'
 import moment from 'moment';
 
+type GeneralProjectSummaryFields = {
+     projectSummaryURL?: string;
+     projectSummaryCoverURL?: string;
+     status?: string;
+     gallery?: any;
+     projectEndDateTime?: Date;
+     projectStartDateTime?: Date;
+     organizers?: any;
+     locations?: any;
+     applicants?: any;
+     donators?: any;
+     publications?: any;
+     links?: any;
+     title?: string;
+     locale?: string;
+};
+
+type ProjectActivityFields = {
+     projectSummaryDescription: string;
+     projectSummarySubtitleURL: string;
+     projectSummaryDateTime: string;
+     projectSummarySubtitle: string;
+};
+
+function extractGeneralFields(requestBody: any): GeneralProjectSummaryFields {
+     return {
+          projectSummaryURL: requestBody.projectSummaryURL,
+          projectSummaryCoverURL: requestBody.projectSummaryCoverURL,
+          status: requestBody.status,
+          gallery: requestBody.gallery,
+          projectEndDateTime: requestBody.projectEndDateTime ? new Date(requestBody.projectEndDateTime) : undefined,
+          projectStartDateTime: requestBody.projectStartDateTime ? new Date(requestBody.projectStartDateTime) : undefined,
+          organizers: requestBody.organizers,
+          locations: requestBody.locations,
+          applicants: requestBody.applicants,
+          donators: requestBody.donators,
+          publications: requestBody.publications,
+          links: requestBody.links,
+          title: requestBody.title,
+          locale: requestBody.locale,
+     };
+}
+
+function extractArrayFields(requestBody: any): ProjectActivityFields {
+     return {
+          projectSummaryDescription: requestBody.projectSummaryDescription,
+          projectSummarySubtitleURL: requestBody.projectSummarySubtitleURL,
+          projectSummaryDateTime: moment(requestBody.projectSummaryDateTime).toISOString(),
+          projectSummarySubtitle: requestBody.projectSummarySubtitle,
+     };
+}
+
 export default async function handler(request: NextApiRequest, response: NextApiResponse) {
 
      const mongoClient = await MongoClient.connect(process.env.MONGODB_URI!)
@@ -31,8 +83,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                     console.log(error);
                }
 
-          }
-          else if (request.method === 'DELETE') {
+          } else if (request.method === 'DELETE') {
                //const idsToDelete = request.body.selected.map((_id: any) => new ObjectId(_id))
                try {
                     const deleteResponse = await dbProjectSummaries.deleteOne({ _id: ObjectId.createFromHexString(request.body) })
@@ -40,47 +91,44 @@ export default async function handler(request: NextApiRequest, response: NextApi
                } catch (error) {
                     alert(error);
                }
-          }
-          else if (request.method === 'PUT') {
+          } else if (request.method === 'PUT') {
                const requestBody = request.body;
-               const projectSummarySubtitlesDates = moment(requestBody.projectSummaryDateTime).toISOString();
+               console.log('requestBody', requestBody);
+
+               const generalFields = extractGeneralFields(requestBody);
+               const arrayFields = extractArrayFields(requestBody);
+               console.log('generalFields', generalFields);
+               console.log('arrayFields', arrayFields);
+
+
+               // Determine if requestBody contains general fields or array fields
+               const isGeneralFields = Object.keys(generalFields).some(key => generalFields[key as keyof GeneralProjectSummaryFields] !== undefined);
+               const isProjectActivityFields = Object.keys(arrayFields).some(key => arrayFields[key as keyof ProjectActivityFields] !== undefined);
+               console.log('isGeneralFields', isGeneralFields);
+               console.log('isArrayFields', isProjectActivityFields);
 
                try {
                     const projectId = new ObjectId(requestBody._id);
+                    console.log('projectId', projectId);
 
-                    const updateFields = {
-                         projectSummaryURL: requestBody.projectSummaryURL,
-                         projectSummaryCoverURL: requestBody.projectSummaryCoverURL,
-                         status: requestBody.status,
-                         gallery: requestBody.gallery,
-                         projectEndDateTime: new Date(requestBody.projectEndDateTime),
-                         projectStartDateTime: new Date(requestBody.projectStartDateTime),
-                         organizers: requestBody.organizers,
-                         locations: requestBody.locations,
-                         applicants: requestBody.applicants,
-                         donators: requestBody.donators,
-                         publications: requestBody.publications,
-                         links: requestBody.links,
-                         title: requestBody.title,
-                         locale: requestBody.locale,
-                    };
+                    if (isGeneralFields && isProjectActivityFields) {
+                         return response.status(400).json({ message: 'Request body cannot contain both general and array fields', status: 'Bad Request' });
+                    }
 
-                    const updateArrayFields = {
-                         projectSummaryDescriptions: requestBody.projectSummaryDescriptions,
-                         projectSummarySubtitleURLs: requestBody.projectSummarySubtitleURLs,
-                         projectSummaryDateTime: projectSummarySubtitlesDates,
-                         projectSummarySubtitles: requestBody.projectSummarySubtitles,
-                    };
+                    let updateOperations: any = {};
 
-                    const updateOperations: any = {
-                         $set: updateFields,
-                         $push: {
-                              projectSummaryDescriptions: updateArrayFields.projectSummaryDescriptions,
-                              projectSummarySubtitleURLs: updateArrayFields.projectSummarySubtitleURLs,
-                              projectSummaryDateTime: updateArrayFields.projectSummaryDateTime,
-                              projectSummarySubtitles: updateArrayFields.projectSummarySubtitles,
-                         },
-                    };
+                    if (isGeneralFields) {
+                         updateOperations.$set = generalFields;
+                    }
+
+                    if (isProjectActivityFields) {
+                         updateOperations.$push = {
+                              projectSummaryDescriptions: arrayFields.projectSummaryDescription,
+                              projectSummarySubtitleURLs: arrayFields.projectSummarySubtitleURL,
+                              projectSummaryDateTime: arrayFields.projectSummaryDateTime,
+                              projectSummarySubtitles: arrayFields.projectSummarySubtitle,
+                         };
+                    }
 
                     const mdbResponse = await dbProjectSummaries.updateOne(
                          { _id: projectId },

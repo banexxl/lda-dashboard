@@ -15,10 +15,10 @@ import moment from 'moment';
 
 export type DataForProjectSummary = {
      _id: string;
-     projectSummaryDescriptions: string;
-     projectSummarySubtitleURLs: string;
+     projectSummaryDescription: string;
+     projectSummarySubtitleURL: string;
      projectSummaryDateTime: Date;
-     projectSummarySubtitles: string;
+     projectSummarySubtitle: string;
 }
 
 export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectSummaries }: any) => {
@@ -120,7 +120,8 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                              setDataForProjectSummary((prevData: any) =>
                                              ({
                                                   ...prevData,
-                                                  projectSummarySubtitles: e.target.value
+                                                  projectSummarySubtitle: e.target.value,
+                                                  projectSummarySubtitleURL: sanitizeString(sanitizedValue)
                                              }))
                                         }}
                                         error={formik.touched.title && !!formik.errors.title}
@@ -134,13 +135,6 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                         name="projectActivityURL"
                                         rows={4}
                                         value={formik.values.projectURL}
-                                        onChange={(e) => {
-                                             setDataForProjectSummary((prevData: any) =>
-                                             ({
-                                                  ...prevData,
-                                                  projectSummarySubtitleURLs: e.target.value
-                                             }))
-                                        }}
                                    />
 
                                    <FormControl fullWidth>
@@ -413,7 +407,7 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                                                            setDataForProjectSummary((prevData: any) =>
                                                                            ({
                                                                                 ...prevData,
-                                                                                projectSummaryDescriptions: newParagraphs[0]
+                                                                                projectSummaryDescription: newParagraphs[0]
                                                                            }))
                                                                       }}
                                                                       name={`paragraph.${index}`}
