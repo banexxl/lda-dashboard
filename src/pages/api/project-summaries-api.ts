@@ -32,6 +32,7 @@ function extractGeneralFields(requestBody: any): GeneralProjectSummaryFields {
           projectSummaryURL: requestBody.projectSummaryURL,
           projectSummaryCoverURL: requestBody.projectSummaryCoverURL,
           status: requestBody.status,
+          category: requestBody.category,
           gallery: requestBody.gallery,
           projectEndDateTime: requestBody.projectEndDateTime ? new Date(requestBody.projectEndDateTime) : undefined,
           projectStartDateTime: requestBody.projectStartDateTime ? new Date(requestBody.projectStartDateTime) : undefined,
