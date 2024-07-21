@@ -61,9 +61,9 @@ const Page = (props: any) => {
                     Swal.fire({
                          icon: 'success',
                          title: 'Success',
-                         text: 'Projekti uspešno poslati! Sačekajte par minuta i osvežite stranicu!',
+                         text: 'Projekti uspešno poslati! Sačekajte desetak minuta i osvežite stranicu!',
                     })
-                    router.push('/')
+                    router.push('/project-activities')
                } else {
                     const errorData = await response.json(); // Parse the error response
 
