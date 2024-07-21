@@ -7,6 +7,11 @@ const s3 = new aws.S3({
      region: process.env.AWS_REGION,
 });
 
+console.log(process.env.AWS_S3_ACCESS_KEY_ID);
+console.log(process.env.AWS_S3_SECRET_KEY);
+console.log(process.env.AWS_REGION);
+
+
 export const config = {
      api: {
           bodyParser: {
