@@ -121,7 +121,7 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                              ({
                                                   ...prevData,
                                                   projectSummarySubtitle: e.target.value,
-                                                  projectSummarySubtitleURL: sanitizeString(sanitizedValue)
+                                                  projectSummarySubtitleURL: '/projektna-aktivnost/' + sanitizeString(sanitizedValue)
                                              }))
                                         }}
                                         error={formik.touched.title && !!formik.errors.title}

@@ -1105,7 +1105,7 @@ export const ActivityTable = ({ items }: any) => {
                                                                                           startIcon={<CloudUploadIcon />}
                                                                                           sx={{ maxWidth: '150px' }}
                                                                                      >
-                                                                                          Ucitaj sliku
+                                                                                          Učitaj sliku
                                                                                           <Input
                                                                                                type="file"
                                                                                                inputProps={{ accept: 'image/*' }}
