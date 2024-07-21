@@ -66,18 +66,20 @@ export default async function handler(request: NextApiRequest, response: NextApi
                return response.status(200).json({ message: 'Projects found!', data: allProjects });
 
           } else if (request.method === 'POST') {
-               const projectStart = moment(request.body.projectStartDateTime)
-               const projectEnd = moment(request.body.projectEndDateTime)
-               const projectSummarySubtitlesDate = request.body.projectSummaryDateTime.map((date: string) => moment(date))
+               console.log('request.body', request.body);
+
+               // const projectStart = moment(request.body.projectStartDateTime)
+               // const projectEnd = moment(request.body.projectEndDateTime)
                const newProjectObject = {
                     ...request.body,
                     projectStartDateTime: new Date(request.body.projectStartDateTime),
                     projectEndDateTime: new Date(request.body.projectEndDateTime),
-                    projectSummaryDateTime: projectSummarySubtitlesDate
                }
 
                try {
-                    await dbProjectSummaries.insertOne(newProjectObject)
+                    const addProjectSummaryResponse = await dbProjectSummaries.insertOne(newProjectObject)
+                    console.log('addProjectSummaryResponse', addProjectSummaryResponse);
+
                     return response.status(200).json({ message: 'Project successfully added!' });
                } catch (error) {
                     console.log(error);
