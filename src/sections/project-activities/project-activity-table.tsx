@@ -1154,10 +1154,10 @@ export const ProjectActivityTable = (props: any) => {
                                                                                                               });
                                                                                                          }}
                                                                                                     />
-                                                                                                    <IconButton onClick={() => onAddNewOrganizer(index + 1, '')}>
+                                                                                                    <IconButton onClick={() => onAddNewLocation(index + 1, '')}>
                                                                                                          <AddBoxIcon />
                                                                                                     </IconButton>
-                                                                                                    <IconButton onClick={() => onDeleteOrganizer(index)}>
+                                                                                                    <IconButton onClick={() => onDeleteLocation(index)}>
                                                                                                          <DeleteIcon />
                                                                                                     </IconButton>
                                                                                                </Box>
