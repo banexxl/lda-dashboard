@@ -572,6 +572,34 @@ export const ProjectActivityTable = (props: any) => {
           });
      };
 
+     const onAddNewLink = (index: number, text: string) => {
+          setCurrentProjectObject((prevProject: ProjectActivity | null | undefined) => {
+               if (prevProject) {
+                    const newLinks = [...prevProject.links];
+                    newLinks[index] = text; // Update the subtitle at the clicked index
+                    return {
+                         ...prevProject,
+                         links: newLinks,
+                    };
+               }
+               return prevProject;
+          });
+     }
+
+     const onDeleteLink = (index: number) => {
+          setCurrentProjectObject((prevProject: ProjectActivity | null | undefined) => {
+               if (prevProject) {
+                    const newLinks = [...prevProject.links];
+                    newLinks.splice(index, 1); // Remove the subtitle at the specified index
+                    return {
+                         ...prevProject,
+                         links: newLinks,
+                    };
+               }
+               return prevProject;
+          });
+     }
+
      ////////////////////////////////////////////////////////
 
      const onAddNewImage = (imageURL: string) => {
@@ -1345,6 +1373,60 @@ export const ProjectActivityTable = (props: any) => {
                                                                                                          <AddBoxIcon />
                                                                                                     </IconButton>
                                                                                                     <IconButton onClick={() => onDeleteParagraph(index)}>
+                                                                                                         <DeleteIcon />
+                                                                                                    </IconButton>
+                                                                                               </Box>
+                                                                                          )
+                                                                                     }
+                                                                                </Grid>
+                                                                                <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
+                                                                                {/* ------------------------Paragraphs------------------------ */}
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                >
+                                                                                     <Typography sx={{ margin: '10px' }}>Linkovi:</Typography>
+                                                                                     {
+                                                                                          currentProjectObject?.links.length == 0 &&
+                                                                                          <Box>
+                                                                                               <IconButton onClick={() => onAddNewLink(0, '')}>
+                                                                                                    <AddBoxIcon />
+                                                                                               </IconButton>
+                                                                                               <IconButton onClick={() => onDeleteLink(0)}>
+                                                                                                    <DeleteIcon />
+                                                                                               </IconButton>
+                                                                                          </Box>
+                                                                                     }
+
+                                                                                     {
+                                                                                          currentProjectObject?.links.length != 0 &&
+                                                                                          currentProjectObject?.links?.map((link: any, index: any) =>
+                                                                                               <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
+                                                                                                    <TextField
+                                                                                                         defaultValue={currentProjectObject.links[index]}
+                                                                                                         fullWidth
+                                                                                                         label={`Link ${index + 1}`}
+                                                                                                         disabled={loading}
+                                                                                                         // name={activity.description}
+                                                                                                         onBlur={(e: any) => {
+                                                                                                              setCurrentProjectObject((prevProjectActivity: ProjectActivity | null | undefined) => {
+                                                                                                                   if (prevProjectActivity) {
+                                                                                                                        const newLinks = [...prevProjectActivity.links];
+                                                                                                                        newLinks[index] = e.target.value; // Update the subtitle at the clicked index
+                                                                                                                        return {
+                                                                                                                             ...prevProjectActivity,
+                                                                                                                             links: newLinks,
+                                                                                                                        };
+                                                                                                                   }
+                                                                                                                   return prevProjectActivity;
+                                                                                                              });
+                                                                                                         }}
+                                                                                                    />
+                                                                                                    <IconButton onClick={() => onAddNewLink(index + 1, '')}>
+                                                                                                         <AddBoxIcon />
+                                                                                                    </IconButton>
+                                                                                                    <IconButton onClick={() => onDeleteLink(index)}>
                                                                                                          <DeleteIcon />
                                                                                                     </IconButton>
                                                                                                </Box>
