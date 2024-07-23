@@ -7,16 +7,22 @@ import {
      Avatar,
      Badge,
      Box,
+     Button,
      IconButton,
      Stack,
      SvgIcon,
      Tooltip,
+     Typography,
      useMediaQuery
 } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { usePopover } from 'src/hooks/use-popover';
 import { AccountPopover } from './account-popover';
 import { useSession } from 'next-auth/react';
+import Swal from 'sweetalert2';
+import PlusIcon from '@heroicons/react/24/solid/GlobeAltIcon';
+import { useState } from 'react';
+import { useRouter } from 'next/router';
 
 const SIDE_NAV_WIDTH = 280;
 const TOP_NAV_HEIGHT = 64;
@@ -25,7 +31,43 @@ export const TopNav = (props: any) => {
      const { onNavOpen } = props;
      const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up('lg'));
      const accountPopover = usePopover();
+     const router = useRouter();
      const auth = useSession()
+     const [loading, setLoading] = useState(false)
+
+     const handleRebuild = async () => {
+
+          try {
+               const response = await fetch('https://api.vercel.com/v1/integrations/deploy/prj_kIxJglN591xV8HcSkVOzbL6T3oLj/grTojSC3fc', {
+                    method: 'POST'
+               })
+
+               if (response.ok) {
+
+                    Swal.fire({
+                         icon: 'success',
+                         title: 'Success',
+                         text: 'Projekti uspešno poslati! Sačekajte desetak minuta i osvežite stranicu!',
+                    })
+                    router.push('/activities')
+               } else {
+                    const errorData = await response.json(); // Parse the error response
+
+                    Swal.fire({
+                         icon: 'error',
+                         title: 'Oops...',
+                         text: 'Something went wrong! Error: ' + errorData,
+                    })
+               }
+          } catch (error) {
+               Swal.fire({
+                    icon: 'error',
+                    title: 'Oops...',
+                    text: 'Something went wrong! Error: ' + error,
+               })
+          }
+     }
+
      return (
           <>
                <Box
@@ -80,11 +122,27 @@ export const TopNav = (props: any) => {
                               spacing={2}
                          >
                               <Tooltip title="Contacts">
-                                   <IconButton>
-                                        <SvgIcon fontSize="small">
-                                             <UsersIcon />
-                                        </SvgIcon>
-                                   </IconButton>
+                                   <Button
+                                        sx={{ padding: '10px', height: '50px' }}
+                                        startIcon={(
+                                             <SvgIcon fontSize="small">
+                                                  <PlusIcon />
+                                             </SvgIcon>
+                                        )}
+                                        variant="contained"
+                                        onClick={handleRebuild}
+                                        disabled={loading}
+                                   >
+                                        {loading ?
+                                             <Typography>
+                                                  Šaljem
+                                             </Typography>
+                                             :
+                                             <Typography>
+                                                  Pošalji izmene na sajt
+                                             </Typography>
+                                        }
+                                   </Button>
                               </Tooltip>
                               <Tooltip title="Notifications">
                                    <IconButton>

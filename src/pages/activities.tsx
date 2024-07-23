@@ -48,39 +48,6 @@ const Page = (props: any) => {
           router.push(`/activities?page=${newPage}&limit=${props.limit || 5}`);
      }
 
-     const handleRebuild = async () => {
-
-          try {
-               const response = await fetch('https://api.vercel.com/v1/integrations/deploy/prj_kIxJglN591xV8HcSkVOzbL6T3oLj/grTojSC3fc', {
-                    method: 'POST'
-               })
-
-               if (response.ok) {
-
-                    Swal.fire({
-                         icon: 'success',
-                         title: 'Success',
-                         text: 'Projekti uspešno poslati! Sačekajte desetak minuta i osvežite stranicu!',
-                    })
-                    router.push('/activities')
-               } else {
-                    const errorData = await response.json(); // Parse the error response
-
-                    Swal.fire({
-                         icon: 'error',
-                         title: 'Oops...',
-                         text: 'Something went wrong! Error: ' + errorData,
-                    })
-               }
-          } catch (error) {
-               Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Something went wrong! Error: ' + error,
-               })
-          }
-     }
-
      return (
           <Box>
                <Head>
@@ -125,27 +92,7 @@ const Page = (props: any) => {
                                                   Dodaj aktivnost
                                              </Typography>
                                         </Button>
-                                        <Button
-                                             sx={{ padding: '10px', height: '50px' }}
-                                             startIcon={(
-                                                  <SvgIcon fontSize="small">
-                                                       <PlusIcon />
-                                                  </SvgIcon>
-                                             )}
-                                             variant="contained"
-                                             onClick={handleRebuild}
-                                             disabled={loading}
-                                        >
-                                             {loading ?
-                                                  <Typography>
-                                                       Šaljem
-                                                  </Typography>
-                                                  :
-                                                  <Typography>
-                                                       Pošalji aktivnost na sajt
-                                                  </Typography>
-                                             }
-                                        </Button>
+
                                    </Box>
                               </Stack>
                               <ActivitySearch />

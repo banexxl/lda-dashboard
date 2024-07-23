@@ -55,39 +55,6 @@ const Page = (props: PageProps) => {
           router.push(`/project-summaries?page=${newPage}&limit=${props.limit || 5}`);
      }
 
-     const handleRebuild = async () => {
-
-          try {
-               const response = await fetch('https://api.vercel.com/v1/integrations/deploy/prj_kIxJglN591xV8HcSkVOzbL6T3oLj/grTojSC3fc', {
-                    method: 'POST'
-               })
-
-               if (response.ok) {
-
-                    Swal.fire({
-                         icon: 'success',
-                         title: 'Success',
-                         text: 'Projekti uspešno poslati! Sačekajte desetak minuta i osvežite stranicu!',
-                    })
-                    router.push('/project-summaries')
-               } else {
-                    const errorData = await response.json(); // Parse the error response
-
-                    Swal.fire({
-                         icon: 'error',
-                         title: 'Oops...',
-                         text: 'Something went wrong! Error: ' + errorData,
-                    })
-               }
-          } catch (error) {
-               Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Something went wrong! Error: ' + error,
-               })
-          }
-     }
-
      return (
           <Box>
                <Head>
@@ -132,27 +99,7 @@ const Page = (props: PageProps) => {
                                                   Dodaj projekat
                                              </Typography>
                                         </Button>
-                                        <Button
-                                             sx={{ padding: '10px', height: '50px' }}
-                                             startIcon={(
-                                                  <SvgIcon fontSize="small">
-                                                       <PlusIcon />
-                                                  </SvgIcon>
-                                             )}
-                                             variant="contained"
-                                             onClick={handleRebuild}
-                                             disabled={loading}
-                                        >
-                                             {loading ?
-                                                  <Typography>
-                                                       Šaljem
-                                                  </Typography>
-                                                  :
-                                                  <Typography>
-                                                       Pošalji projekat na sajt
-                                                  </Typography>
-                                             }
-                                        </Button>
+
                                    </Box>
                               </Stack>
                               <ProjectsSearch />
