@@ -16,6 +16,8 @@ import { projectSummaryServices } from '../utils/project-summary-services'
 import { AddProjectActivityForm } from '../sections/project-activities/project-activity-form'
 import { useRouter } from 'next/navigation';
 import { TablePagination } from '@mui/material'
+import { Session } from 'inspector';
+import { SessionProvider } from 'next-auth/react';
 
 
 const Page = (props: any) => {
@@ -50,94 +52,96 @@ const Page = (props: any) => {
      }
 
      return (
-          <Box>
-               <Head>
-                    <title>
-                         Projektne aktivnosti
-                    </title>
-               </Head>
-               <Box
-                    component="main"
-                    sx={{
-                         flexGrow: 1,
-                         py: 8
-                    }}
-               >
-                    <Container maxWidth="xl">
-                         <Stack spacing={3}>
-                              <Stack
-                                   direction="row"
-                                   justifyContent="space-between"
-                                   spacing={4}
-                              >
-                                   <Stack spacing={1}>
-                                        <Typography variant="h4">
-                                             Projektne aktivnosti
-                                        </Typography>
-                                   </Stack>
-
-                                   <Box sx={{ display: 'flex', justifyContent: 'space-between', height: '40px', width: '40%', gap: '10px' }}>
-                                        <Button
-                                             sx={{ padding: '10px', height: '50px' }}
-                                             startIcon={(
-                                                  <SvgIcon fontSize="small">
-                                                       <PlusIcon />
-                                                  </SvgIcon>
-                                             )}
-                                             variant="contained"
-                                             onClick={() => {
-                                                  setOpen(true)
-                                             }}
-                                        >
-                                             <Typography>
-                                                  Dodaj projektnu aktivnost
+          <SessionProvider>
+               <Box>
+                    <Head>
+                         <title>
+                              Projektne aktivnosti
+                         </title>
+                    </Head>
+                    <Box
+                         component="main"
+                         sx={{
+                              flexGrow: 1,
+                              py: 8
+                         }}
+                    >
+                         <Container maxWidth="xl">
+                              <Stack spacing={3}>
+                                   <Stack
+                                        direction="row"
+                                        justifyContent="space-between"
+                                        spacing={4}
+                                   >
+                                        <Stack spacing={1}>
+                                             <Typography variant="h4">
+                                                  Projektne aktivnosti
                                              </Typography>
-                                        </Button>
+                                        </Stack>
 
-                                   </Box>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', height: '40px', width: '40%', gap: '10px' }}>
+                                             <Button
+                                                  sx={{ padding: '10px', height: '50px' }}
+                                                  startIcon={(
+                                                       <SvgIcon fontSize="small">
+                                                            <PlusIcon />
+                                                       </SvgIcon>
+                                                  )}
+                                                  variant="contained"
+                                                  onClick={() => {
+                                                       setOpen(true)
+                                                  }}
+                                             >
+                                                  <Typography>
+                                                       Dodaj projektnu aktivnost
+                                                  </Typography>
+                                             </Button>
+
+                                        </Box>
+                                   </Stack>
+                                   <ProjectsActivitySearch />
+                                   <ProjectActivityTable
+                                        projectActivitiesCount={props.projectActivities.length || 0}
+                                        items={props.projectActivities}
+                                        page={props.page}
+                                        rowsPerPage={props.limit}
+                                        selected={ProjectsSelection.selected}
+                                        projectSummaries={props.projectSummaries}
+                                   />
+                                   <TablePagination
+                                        component="div"
+                                        count={props.projectActivitiesCount}
+                                        onPageChange={handlePageChange}
+                                        onRowsPerPageChange={handleRowsPerPageChange}
+                                        page={props.page}
+                                        rowsPerPage={props.limit || 5}
+                                        rowsPerPageOptions={[5, 10, 25]}
+                                        showFirstButton
+                                        showLastButton
+                                        labelRowsPerPage={'Broj po stranici'}
+                                   //labelDisplayedRows={({ from, to, count }) => { return `${ from }–${ to } od ${ count !== -1 ? count : `više od ${ to }` }`; }}
+                                   />
                               </Stack>
-                              <ProjectsActivitySearch />
-                              <ProjectActivityTable
-                                   projectActivitiesCount={props.projectActivities.length || 0}
-                                   items={props.projectActivities}
-                                   page={props.page}
-                                   rowsPerPage={props.limit}
-                                   selected={ProjectsSelection.selected}
+                         </Container>
+                    </Box>
+                    <Dialog open={open}
+                         PaperProps={{
+                              sx: {
+                                   width: '600px'
+                              }
+                         }}
+                    >
+                         <DialogTitle>Dodaj projektnu aktivnost</DialogTitle>
+                         <DialogContent dividers >
+                              <AddProjectActivityForm
+                                   onSubmitSuccess={handleSubmitSuccess}
+                                   onSubmitFail={handleSubmitFail}
                                    projectSummaries={props.projectSummaries}
                               />
-                              <TablePagination
-                                   component="div"
-                                   count={props.projectActivitiesCount}
-                                   onPageChange={handlePageChange}
-                                   onRowsPerPageChange={handleRowsPerPageChange}
-                                   page={props.page}
-                                   rowsPerPage={props.limit || 5}
-                                   rowsPerPageOptions={[5, 10, 25]}
-                                   showFirstButton
-                                   showLastButton
-                                   labelRowsPerPage={'Broj po stranici'}
-                              //labelDisplayedRows={({ from, to, count }) => { return `${ from }–${ to } od ${ count !== -1 ? count : `više od ${ to }` }`; }}
-                              />
-                         </Stack>
-                    </Container>
-               </Box>
-               <Dialog open={open}
-                    PaperProps={{
-                         sx: {
-                              width: '600px'
-                         }
-                    }}
-               >
-                    <DialogTitle>Dodaj projektnu aktivnost</DialogTitle>
-                    <DialogContent dividers >
-                         <AddProjectActivityForm
-                              onSubmitSuccess={handleSubmitSuccess}
-                              onSubmitFail={handleSubmitFail}
-                              projectSummaries={props.projectSummaries}
-                         />
-                    </DialogContent>
-               </Dialog>
-          </Box >
+                         </DialogContent>
+                    </Dialog>
+               </Box >
+          </SessionProvider>
      );
 };
 

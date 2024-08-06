@@ -16,6 +16,7 @@ import { AddProjectSummaryForm } from '../sections/project-summaries/project-sum
 import { useRouter } from 'next/navigation';
 import { TablePagination } from '@mui/material'
 import { ProjectSummary } from '@/sections/project-summaries/project-summary-type';
+import { SessionProvider } from 'next-auth/react';
 
 type PageProps = {
      projects: ProjectSummary[];
@@ -56,87 +57,89 @@ const Page = (props: PageProps) => {
      }
 
      return (
-          <Box>
-               <Head>
-                    <title>
-                         Projekti
-                    </title>
-               </Head>
-               <Box
-                    component="main"
-                    sx={{
-                         flexGrow: 1,
-                         py: 8
-                    }}
-               >
-                    <Container maxWidth="xl">
-                         <Stack spacing={3}>
-                              <Stack
-                                   direction="row"
-                                   justifyContent="space-between"
-                                   spacing={4}
-                              >
-                                   <Stack spacing={1}>
-                                        <Typography variant="h4">
-                                             Projekti
-                                        </Typography>
-                                   </Stack>
-
-                                   <Box sx={{ display: 'flex', justifyContent: 'space-between', height: '40px', width: '40%', gap: '10px' }}>
-                                        <Button
-                                             sx={{ padding: '10px', height: '50px' }}
-                                             startIcon={(
-                                                  <SvgIcon fontSize="small">
-                                                       <PlusIcon />
-                                                  </SvgIcon>
-                                             )}
-                                             variant="contained"
-                                             onClick={() => {
-                                                  setOpen(true)
-                                             }}
-                                        >
-                                             <Typography>
-                                                  Dodaj projekat
+          <SessionProvider>
+               <Box>
+                    <Head>
+                         <title>
+                              Projekti
+                         </title>
+                    </Head>
+                    <Box
+                         component="main"
+                         sx={{
+                              flexGrow: 1,
+                              py: 8
+                         }}
+                    >
+                         <Container maxWidth="xl">
+                              <Stack spacing={3}>
+                                   <Stack
+                                        direction="row"
+                                        justifyContent="space-between"
+                                        spacing={4}
+                                   >
+                                        <Stack spacing={1}>
+                                             <Typography variant="h4">
+                                                  Projekti
                                              </Typography>
-                                        </Button>
+                                        </Stack>
 
-                                   </Box>
+                                        <Box sx={{ display: 'flex', justifyContent: 'space-between', height: '40px', width: '40%', gap: '10px' }}>
+                                             <Button
+                                                  sx={{ padding: '10px', height: '50px' }}
+                                                  startIcon={(
+                                                       <SvgIcon fontSize="small">
+                                                            <PlusIcon />
+                                                       </SvgIcon>
+                                                  )}
+                                                  variant="contained"
+                                                  onClick={() => {
+                                                       setOpen(true)
+                                                  }}
+                                             >
+                                                  <Typography>
+                                                       Dodaj projekat
+                                                  </Typography>
+                                             </Button>
+
+                                        </Box>
+                                   </Stack>
+                                   <ProjectsSearch />
+                                   <ProjectSummaryTable
+                                        items={props.projects}
+                                   />
+                                   <TablePagination
+                                        component="div"
+                                        count={props.projectSummariesCount}
+                                        onPageChange={handlePageChange}
+                                        onRowsPerPageChange={handleRowsPerPageChange}
+                                        page={props.page}
+                                        rowsPerPage={props.limit || 5}
+                                        rowsPerPageOptions={[5, 10, 25]}
+                                        showFirstButton
+                                        showLastButton
+                                        labelRowsPerPage={'Broj po stranici'}
+                                   //labelDisplayedRows={({ from, to, count }) => { return `${ from }–${ to } od ${ count !== -1 ? count : `više od ${ to }` }`; }}
+                                   />
                               </Stack>
-                              <ProjectsSearch />
-                              <ProjectSummaryTable
-                                   items={props.projects}
-                              />
-                              <TablePagination
-                                   component="div"
-                                   count={props.projectSummariesCount}
-                                   onPageChange={handlePageChange}
-                                   onRowsPerPageChange={handleRowsPerPageChange}
-                                   page={props.page}
-                                   rowsPerPage={props.limit || 5}
-                                   rowsPerPageOptions={[5, 10, 25]}
-                                   showFirstButton
-                                   showLastButton
-                                   labelRowsPerPage={'Broj po stranici'}
-                              //labelDisplayedRows={({ from, to, count }) => { return `${ from }–${ to } od ${ count !== -1 ? count : `više od ${ to }` }`; }}
-                              />
-                         </Stack>
-                    </Container>
-               </Box>
-               <Dialog open={open}
-                    PaperProps={{
-                         sx: {
-                              width: '600px'
-                         }
-                    }}
-               >
-                    <DialogTitle>Dodaj projekat</DialogTitle>
-                    <DialogContent dividers >
-                         <AddProjectSummaryForm
-                              onSubmitSuccess={handleSubmitSuccess}
-                              onSubmitFail={handleSubmitFail} />
-                    </DialogContent>
-               </Dialog>
-          </Box >
+                         </Container>
+                    </Box>
+                    <Dialog open={open}
+                         PaperProps={{
+                              sx: {
+                                   width: '600px'
+                              }
+                         }}
+                    >
+                         <DialogTitle>Dodaj projekat</DialogTitle>
+                         <DialogContent dividers >
+                              <AddProjectSummaryForm
+                                   onSubmitSuccess={handleSubmitSuccess}
+                                   onSubmitFail={handleSubmitFail} />
+                         </DialogContent>
+                    </Dialog>
+               </Box >
+          </SessionProvider>
      );
 };
 
