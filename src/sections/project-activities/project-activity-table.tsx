@@ -5,9 +5,6 @@ import {
      Stack, SvgIcon, Table, TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography, useTheme
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import InsertPhotoIcon from '@mui/icons-material/InsertPhoto';
-import Image from 'next/image';
-import numeral from 'numeral';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddBoxIcon from '@mui/icons-material/AddBox';
 import { Fragment, useState } from 'react';
