@@ -1,6 +1,5 @@
-import { log } from "console";
 import { MongoClient } from "mongodb"
-import { ObjectId } from "mongodb"
+
 
 export const projectActivitiesServices = () => {
 

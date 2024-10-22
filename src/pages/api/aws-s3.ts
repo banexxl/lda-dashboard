@@ -10,7 +10,7 @@ const s3 = new aws.S3({
 export const config = {
      api: {
           bodyParser: {
-               sizeLimit: '2mb' // Set desired value here
+               sizeLimit: '3mb' // Set desired value here
           }
      }
 }
