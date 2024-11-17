@@ -1557,7 +1557,7 @@ export const ProjectActivityTable = (props: any) => {
                                                                                                Učitaj sliku
                                                                                                <Input
                                                                                                     type="file"
-                                                                                                    inputProps={{ accept: 'image/*' }}
+                                                                                                    inputProps={{ accept: ['image/*', 'video/*'] }}
                                                                                                     sx={{
                                                                                                          clip: 'rect(0 0 0 0)',
                                                                                                          clipPath: 'inset(50%)',

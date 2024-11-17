@@ -32,7 +32,6 @@ export default async (req: any, res: any) => {
 
 
      if (req.method === 'POST') {
-
           try {
                const { file, title, extension, fileName } = req.body;
 
@@ -40,8 +39,25 @@ export default async (req: any, res: any) => {
                     return res.status(400).json({ error: 'Missing file, title, or extension' });
                }
 
-               // Decode base64 data
-               const decodedFile = Buffer.from(file.replace(/^data:image\/\w+;base64,/, ""), 'base64');
+               // Determine the content type based on the file extension
+               let contentType: string;
+               const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'webp'];
+               const videoExtensions = ['mp4', 'webm', 'mov', 'avi'];
+
+               if (imageExtensions.includes(extension.toLowerCase())) {
+                    contentType = `image/${extension}`;
+               } else if (videoExtensions.includes(extension.toLowerCase())) {
+                    contentType = `video/${extension}`;
+               } else {
+                    return res.status(400).json({ error: 'Unsupported file type' });
+               }
+
+               // Decode base64 data, removing the correct prefix
+               const base64Prefix = contentType.startsWith('image')
+                    ? /^data:image\/\w+;base64,/
+                    : /^data:video\/\w+;base64,/;
+
+               const decodedFile = Buffer.from(file.replace(base64Prefix, ''), 'base64');
 
                // Adjust key to desired structure
                const key = `${year}/${month}/${day}/${title}/${fileName.split('.')[0]}.${extension}`;
@@ -49,18 +65,19 @@ export default async (req: any, res: any) => {
                const params: aws.S3.PutObjectRequest = {
                     Bucket: process.env.AWS_S3_BUCKET_NAME!,
                     Key: key,
-                    Body: decodedFile, // Use decoded file
-                    ACL: 'public-read', // Make uploaded file publicly accessible
-                    ContentType: 'image/png'
+                    Body: decodedFile,
+                    ACL: 'public-read',
+                    ContentType: contentType, // Use dynamic content type
                };
 
-               const uploadedImage = await s3.upload(params).promise();
-               return res.status(200).json({ imageUrl: uploadedImage.Location });
+               const uploadedFile = await s3.upload(params).promise();
+               return res.status(200).json({ fileUrl: uploadedFile.Location });
           } catch (error) {
-               console.error('Error uploading image:', error);
-               return res.status(500).json({ error: 'Failed to upload image to S3' });
+               console.error('Error uploading file:', error);
+               return res.status(500).json({ error: 'Failed to upload file to S3' });
           }
-     } else if (req.method === 'DELETE') {
+     }
+     else if (req.method === 'DELETE') {
 
           let awsUrl = extractInfoFromUrl(req.body);
           try {
