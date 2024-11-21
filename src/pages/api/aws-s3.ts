@@ -71,7 +71,7 @@ export default async (req: any, res: any) => {
                };
 
                const uploadedFile = await s3.upload(params).promise();
-               return res.status(200).json({ fileUrl: uploadedFile.Location });
+               return res.status(200).json({ imageUrl: uploadedFile.Location });
           } catch (error) {
                console.error('Error uploading file:', error);
                return res.status(500).json({ error: 'Failed to upload file to S3' });
