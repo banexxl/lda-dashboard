@@ -413,39 +413,44 @@ export const ActivityTable = ({ items }: any) => {
      }
 
      const handleGalleryChange = async (event: any) => {
+          const selectedFiles = event.target.files;
 
-          const selectedFile = event.target.files[0];
-
-          if (!selectedFile) {
+          if (!selectedFiles || selectedFiles.length === 0) {
                return;
           }
 
           setLoading(true);
 
-          // Extract file extension
-          const fileExtension = selectedFile.name.split('.')[1]
-
-          // Assuming you have a title for the image
-          const title = currentActivityObject?.title!
+          // Assuming you have a title for the images
+          const title = currentActivityObject?.title!;
 
           const apiUrl = '/api/aws-s3';
 
           try {
-               const reader = new FileReader();
-               reader.readAsDataURL(selectedFile);
-               reader.onloadend = async () => {
-                    const base64Data = reader.result;
+               for (const file of selectedFiles) {
+                    // Extract file extension
+                    const fileExtension = file.name.split('.').pop();
+
+                    const reader = new FileReader();
+                    reader.readAsDataURL(file);
+
+                    // Wrap the file reader in a Promise
+                    const base64Data: string = await new Promise((resolve, reject) => {
+                         reader.onloadend = () => resolve(reader.result as string);
+                         reader.onerror = (error) => reject(error);
+                    });
+
                     const data = {
                          file: base64Data,
                          title: title,
                          extension: fileExtension,
-                         fileName: selectedFile.name
+                         fileName: file.name
                     };
 
                     const response = await fetch(apiUrl, {
                          method: 'POST',
                          headers: {
-                              'Content-Type': 'application/json'
+                              'Content-Type': 'application/json',
                          },
                          body: JSON.stringify(data),
                     });
@@ -453,30 +458,39 @@ export const ActivityTable = ({ items }: any) => {
                     if (!response.ok) {
                          Swal.fire({
                               title: 'Greška',
-                              text: "Neuspešan upload slike!",
+                              text: `Neuspešan upload slike za ${file.name}!`,
                               icon: 'error',
                               confirmButtonColor: '#3085d6',
                               confirmButtonText: 'OK',
-                         })
+                         });
                     } else {
-                         Swal.fire({
-                              title: 'OK',
-                              text: "Uspešan upload slike!",
-                              icon: 'success',
-                              confirmButtonColor: '#3085d6',
-                              confirmButtonText: 'OK',
-                         })
                          const result = await response.json();
                          const imageUrl = result.imageUrl;
                          onAddNewGalleryImage(imageUrl);
                     }
                }
+
+               Swal.fire({
+                    title: 'OK',
+                    text: 'Sve slike su uspešno uploadovane!',
+                    icon: 'success',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK',
+               });
           } catch (error) {
-               console.error('Error uploading image:', error);
+               console.error('Error uploading images:', error);
+               Swal.fire({
+                    title: 'Greška',
+                    text: 'Došlo je do greške tokom upload-a!',
+                    icon: 'error',
+                    confirmButtonColor: '#3085d6',
+                    confirmButtonText: 'OK',
+               });
           } finally {
                setLoading(false);
           }
      };
+
 
      const handleCoverChange = async (event: any) => {
 
@@ -1100,15 +1114,16 @@ export const ActivityTable = ({ items }: any) => {
                                                                                           )
                                                                                      }
 
-                                                                                     <Button component="label"
+                                                                                     <Button
+                                                                                          component="label"
                                                                                           variant="contained"
                                                                                           startIcon={<CloudUploadIcon />}
                                                                                           sx={{ maxWidth: '150px' }}
                                                                                      >
-                                                                                          Učitaj sliku
+                                                                                          Učitaj slike
                                                                                           <Input
                                                                                                type="file"
-                                                                                               inputProps={{ accept: 'image/*' }}
+                                                                                               inputProps={{ accept: 'image/*', multiple: true }}
                                                                                                sx={{
                                                                                                     clip: 'rect(0 0 0 0)',
                                                                                                     clipPath: 'inset(50%)',
@@ -1120,9 +1135,10 @@ export const ActivityTable = ({ items }: any) => {
                                                                                                     whiteSpace: 'nowrap',
                                                                                                     width: 1,
                                                                                                }}
-                                                                                               onChange={async (e: any) => await handleGalleryChange(e)}
+                                                                                               onChange={handleGalleryChange}
                                                                                           />
                                                                                      </Button>
+
 
                                                                                 </Box>
                                                                                 {/* ------------------------------------------------------------------------ */}

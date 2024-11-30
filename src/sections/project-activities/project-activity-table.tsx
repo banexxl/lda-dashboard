@@ -673,71 +673,93 @@ export const ProjectActivityTable = (props: any) => {
      }
 
      const handleFileChange = async (event: any) => {
+          const selectedFiles = event.target.files;
 
-          const selectedFile = event.target.files[0];
-
-          if (!selectedFile) {
+          if (!selectedFiles || selectedFiles.length === 0) {
                return;
           }
 
           setLoading(true);
-          setSelectedImage(selectedFile);
-
-          // Extract file extension
-          const fileExtension = selectedFile.name.split('.')[1]
-
-          // Assuming you have a title for the image
-          const title = currentProjectObject?.title!
 
           const apiUrl = '/api/aws-s3';
+          const title = currentProjectObject?.title!; // Assuming you have a title for the images
+          const fileUploadPromises = [];
 
           try {
-               const reader = new FileReader();
-               reader.readAsDataURL(selectedFile);
-               reader.onloadend = async () => {
-                    const base64Data = reader.result;
-                    const data = {
-                         file: base64Data,
-                         title: title,
-                         extension: fileExtension,
-                         fileName: selectedFile.name
-                    };
+               for (const file of selectedFiles) {
+                    const fileExtension = file.name.split('.').pop();
 
-                    const response = await fetch(apiUrl, {
-                         method: 'POST',
-                         headers: {
-                              'Content-Type': 'application/json'
-                         },
-                         body: JSON.stringify(data),
-                    });
-
-                    if (!response.ok) {
-                         Swal.fire({
-                              title: 'Greška',
-                              text: "Neuspešan upload slike!",
-                              icon: 'error',
-                              confirmButtonColor: '#3085d6',
-                              confirmButtonText: 'OK',
-                         })
-                    } else {
-                         Swal.fire({
-                              title: 'OK',
-                              text: "Uspešan upload slike!",
-                              icon: 'success',
-                              confirmButtonColor: '#3085d6',
-                              confirmButtonText: 'OK',
-                         })
-                         const result = await response.json();
-                         const imageUrl = result.imageUrl;
-                         onAddNewImage(imageUrl);
+                    if (!fileExtension) {
+                         console.error(`Skipping file without extension: ${file.name}`);
+                         continue;
                     }
+
+                    const reader = new FileReader();
+
+                    fileUploadPromises.push(
+                         new Promise((resolve, reject) => {
+                              reader.readAsDataURL(file);
+                              reader.onloadend = async () => {
+                                   try {
+                                        const base64Data = reader.result;
+                                        const data = {
+                                             file: base64Data,
+                                             title,
+                                             extension: fileExtension,
+                                             fileName: file.name
+                                        };
+
+                                        const response = await fetch(apiUrl, {
+                                             method: 'POST',
+                                             headers: {
+                                                  'Content-Type': 'application/json'
+                                             },
+                                             body: JSON.stringify(data),
+                                        });
+
+                                        if (!response.ok) {
+                                             Swal.fire({
+                                                  title: 'Greška',
+                                                  text: `Neuspešan upload slike: ${file.name}!`,
+                                                  icon: 'error',
+                                                  confirmButtonColor: '#3085d6',
+                                                  confirmButtonText: 'OK',
+                                             });
+                                             reject(`Failed to upload: ${file.name}`);
+                                        } else {
+                                             const result = await response.json();
+                                             const imageUrl = result.imageUrl;
+                                             onAddNewImage(imageUrl); // Add image to your gallery or state
+                                             resolve(imageUrl);
+                                        }
+                                   } catch (error) {
+                                        console.error('Error uploading image:', error);
+                                        reject(error);
+                                   }
+                              };
+                         })
+                    );
+               }
+
+               // Wait for all uploads to finish
+               const uploadedImages = await Promise.all(fileUploadPromises);
+
+               if (uploadedImages.length > 0) {
+                    Swal.fire({
+                         title: 'OK',
+                         text: 'Uspešan upload svih slika!',
+                         icon: 'success',
+                         confirmButtonColor: '#3085d6',
+                         confirmButtonText: 'OK',
+                    });
                }
           } catch (error) {
-               console.error('Error uploading image:', error);
+               console.error('Error uploading files:', error);
           } finally {
                setLoading(false);
           }
      };
+
 
      const onImageClick = (imageURL: any) => {
 
@@ -1549,15 +1571,16 @@ export const ProjectActivityTable = (props: any) => {
                                                                                                )
                                                                                           }
 
-                                                                                          <Button component="label"
+                                                                                          <Button
+                                                                                               component="label"
                                                                                                variant="contained"
                                                                                                startIcon={<CloudUploadIcon />}
                                                                                                sx={{ maxWidth: '150px' }}
                                                                                           >
-                                                                                               Učitaj sliku
+                                                                                               Učitaj slike
                                                                                                <Input
                                                                                                     type="file"
-                                                                                                    inputProps={{ accept: ['image/*', 'video/*'] }}
+                                                                                                    inputProps={{ accept: 'image/*,video/*', multiple: true }} // Accept both images and videos, and allow multiple files
                                                                                                     sx={{
                                                                                                          clip: 'rect(0 0 0 0)',
                                                                                                          clipPath: 'inset(50%)',
@@ -1572,6 +1595,7 @@ export const ProjectActivityTable = (props: any) => {
                                                                                                     onChange={async (e: any) => await handleFileChange(e)}
                                                                                                />
                                                                                           </Button>
+
 
                                                                                      </Box>
                                                                                 </Grid>
