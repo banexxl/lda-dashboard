@@ -1,4 +1,6 @@
-import DocIcon from '@heroicons/react/24/solid/DocumentIcon';
+import SourceIcon from '@mui/icons-material/Source';
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import PostAddIcon from '@mui/icons-material/PostAdd';
 import { SvgIcon } from '@mui/material';
 
 export const items = [
@@ -7,7 +9,7 @@ export const items = [
           path: '/project-summaries',
           icon: (
                <SvgIcon fontSize="small">
-                    <DocIcon />
+                    <SourceIcon />
                </SvgIcon>
           )
      },
@@ -16,7 +18,7 @@ export const items = [
           path: '/project-activities',
           icon: (
                <SvgIcon fontSize="small">
-                    <DocIcon />
+                    <AssignmentIcon />
                </SvgIcon>
           )
      },
@@ -25,7 +27,7 @@ export const items = [
           path: '/activities',
           icon: (
                <SvgIcon fontSize="small">
-                    <DocIcon />
+                    <PostAddIcon />
                </SvgIcon>
           )
      }
