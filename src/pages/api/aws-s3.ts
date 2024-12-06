@@ -1,3 +1,4 @@
+import { projectActivitiesServices } from '@/utils/project-activity-services';
 import aws from 'aws-sdk';
 import moment from 'moment';
 
@@ -102,6 +103,57 @@ export default async (req: any, res: any) => {
                return res.status(500).json({ error: 'Failed to delete image from S3' });
           }
      }
+     else if (req.method === 'PUT') {
+          try {
+               const { file, title, extension, fileName } = req.body;
+
+               if (!file || !title || !extension) {
+                    return res.status(400).json({ error: 'Missing file, title, or extension' });
+               }
+
+               // Decode the base64 file content
+               const base64FileContent = file.split(';base64,').pop();
+               if (!base64FileContent) {
+                    return res.status(400).json({ error: 'Invalid file format' });
+               }
+
+               const fileBuffer = Buffer.from(base64FileContent, 'base64');
+
+               // Determine the content type based on the file extension
+               let contentType: string;
+               const docExtensions = ['pdf', 'doc', 'docx'];
+
+               if (docExtensions.includes(extension.toLowerCase())) {
+                    contentType = `application/${extension}`;
+               } else {
+                    return res.status(400).json({ error: 'Unsupported file type' });
+               }
+
+               // Adjust key to desired structure
+               const date = new Date();
+               const year = date.getFullYear();
+               const month = (date.getMonth() + 1).toString().padStart(2, '0');
+               const day = date.getDate().toString().padStart(2, '0');
+               const key = `${year}/${month}/${day}/${title}/${fileName.split('.')[0]}.${extension}`;
+
+               const params: aws.S3.PutObjectRequest = {
+                    Bucket: process.env.AWS_S3_BUCKET_NAME!,
+                    Key: key,
+                    Body: fileBuffer, // Upload decoded buffer
+                    ACL: 'public-read',
+                    ContentType: contentType,
+               };
+
+               const uploadedFile = await s3.upload(params).promise()
+               await projectActivitiesServices().addPublicationToPublicationsDB(title, uploadedFile.Location)
+
+               return res.status(200).json({ imageUrl: uploadedFile.Location });
+          } catch (error) {
+               console.error('Error uploading file:', error);
+               return res.status(500).json({ error: 'Failed to upload file to S3' });
+          }
+     }
+
      else {
           res.status(405).end(); // Method Not Allowed
      }

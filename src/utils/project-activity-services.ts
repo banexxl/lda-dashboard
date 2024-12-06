@@ -61,9 +61,31 @@ export const projectActivitiesServices = () => {
           }
      }
 
+     const addPublicationToPublicationsDB = async (title: string, uploadedFile: any) => {
+          console.log('uploadedFile', uploadedFile);
+          console.log('title', title);
+
+          const client = new MongoClient(process.env.MONGODB_URI!);
+          await client.connect();
+          const database = client.db('LDA_DB');
+          const publicationsCollection = database.collection('Publications');
+
+          const publicationData = {
+               publicationTitle: title,
+               publicationURL: uploadedFile,
+               publicationImageURL: '',
+               publicationUploadedDateTime: new Date(),
+          };
+
+          const result = await publicationsCollection.insertOne(publicationData);
+
+          await client.close();
+     }
+
      return {
           getProjectActivitiesByPage,
           getProjectActivitiesCount,
-          getAllProjectActivities
+          getAllProjectActivities,
+          addPublicationToPublicationsDB
      }
 }

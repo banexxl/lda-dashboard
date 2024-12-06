@@ -1,6 +1,5 @@
 import { MongoClient, ObjectId } from 'mongodb'
 import type { NextApiRequest, NextApiResponse } from 'next/types'
-import moment from 'moment';
 
 export default async function handler(request: NextApiRequest, response: NextApiResponse) {
 

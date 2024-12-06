@@ -407,7 +407,7 @@ export const ProjectActivityTable = (props: any) => {
                     };
 
                     const response = await fetch(apiUrl, {
-                         method: 'POST',
+                         method: 'PUT',
                          headers: {
                               'Content-Type': 'application/json'
                          },
@@ -424,6 +424,7 @@ export const ProjectActivityTable = (props: any) => {
                          });
                     } else {
                          const result = await response.json();
+                         console.log(result);
 
                          onAddNewPublication(result.imageUrl);
 
