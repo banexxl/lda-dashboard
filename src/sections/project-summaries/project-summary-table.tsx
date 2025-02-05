@@ -871,7 +871,7 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                                InputLabelProps={{ shrink: true }}
                                                                                                fullWidth
                                                                                                disabled={loading}
-                                                                                               label={`Datum pocetka projekta`}
+                                                                                               label={`Datum kraja projekta`}
                                                                                                defaultValue={dayjs(currentProjectObject?.projectEndDateTime)}
                                                                                                onBlur={(newValue: any) => {
                                                                                                     const date = moment(newValue.target.value).format('MM/DD/YYYY');
