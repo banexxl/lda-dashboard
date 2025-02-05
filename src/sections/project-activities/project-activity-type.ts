@@ -71,7 +71,7 @@ export const projectActivityInitialValues: ProjectActivity = {
      projectURL: '',
      category: 'other',
      status: 'to-do',
-     published: new Date('2000-01-01'),
+     published: new Date(),
      applicants: [],
      organizers: [],
      subOrganizers: [],
