@@ -17,7 +17,7 @@ export type DataForProjectSummary = {
      _id: string;
      projectSummaryDescription: string;
      projectSummarySubtitleURL: string;
-     projectSummaryDateTime: Date;
+     projectSummaryDateTime: string;
      projectSummarySubtitle: string;
 }
 
@@ -26,11 +26,15 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
      const router = useRouter();
      const [loading, setLoading] = useState<any>(false)
      const [listEnabled, setListEnabled] = useState<any>(false)
-     const [listOnBottom, setListOnBottom] = useState<any>(false)
      const theme = useTheme()
      const [selectedProjectSummary, setSelectedProjectSummary] = useState<ProjectSummary>()
-     const [dataForProjectSummary, setDataForProjectSummary] = useState<DataForProjectSummary>()
-     console.log('dataForProjectSummary', dataForProjectSummary);
+     const [dataForProjectSummary, setDataForProjectSummary] = useState<DataForProjectSummary>({
+          _id: '',
+          projectSummaryDescription: '',
+          projectSummarySubtitleURL: '',
+          projectSummaryDateTime: new Date(Date.now()).toISOString(),
+          projectSummarySubtitle: ''
+     })
 
      const handleSubmit = async (values: any) => {
 
@@ -66,7 +70,7 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                               title: 'Jeeej',
                               text: 'Projekat ubačen uspešno',
                          })
-                         router.refresh()
+                         // router.refresh()
                     }
                } else {
 

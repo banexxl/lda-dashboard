@@ -68,8 +68,6 @@ export default async function handler(request: NextApiRequest, response: NextApi
                return response.status(200).json({ message: 'Projects found!', data: allProjects });
 
           } else if (request.method === 'POST') {
-               console.log('request.body', request.body);
-
                // const projectStart = moment(request.body.projectStartDateTime)
                // const projectEnd = moment(request.body.projectEndDateTime)
                const newProjectObject = {
@@ -79,8 +77,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                }
 
                try {
-                    const addProjectSummaryResponse = await dbProjectSummaries.insertOne(newProjectObject)
-                    console.log('addProjectSummaryResponse', addProjectSummaryResponse);
+                    await dbProjectSummaries.insertOne(newProjectObject)
 
                     return response.status(200).json({ message: 'Project successfully added!' });
                } catch (error) {
@@ -97,24 +94,13 @@ export default async function handler(request: NextApiRequest, response: NextApi
                }
           } else if (request.method === 'PUT') {
                const requestBody = request.body;
-               console.log('requestBody', requestBody);
-
                const generalFields = extractGeneralFields(requestBody);
                const arrayFields = extractArrayFields(requestBody);
-               console.log('generalFields', generalFields);
-               console.log('arrayFields', arrayFields);
-
-
                // Determine if requestBody contains general fields or array fields
                const isGeneralFields = Object.keys(generalFields).some(key => generalFields[key as keyof GeneralProjectSummaryFields] !== undefined);
                const isProjectActivityFields = Object.keys(arrayFields).some(key => arrayFields[key as keyof ProjectActivityFields] !== undefined);
-               console.log('isGeneralFields', isGeneralFields);
-               console.log('isArrayFields', isProjectActivityFields);
-
                try {
                     const projectId = new ObjectId(requestBody._id);
-                    console.log('projectId', projectId);
-
                     if (isGeneralFields && isProjectActivityFields) {
                          return response.status(400).json({ message: 'Request body cannot contain both general and project activity fields', status: 'Bad Request' });
                     }
@@ -129,7 +115,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
                          updateOperations.$push = {
                               projectSummaryDescriptions: arrayFields.projectSummaryDescription,
                               projectSummarySubtitleURLs: arrayFields.projectSummarySubtitleURL,
-                              projectSummaryDateTime: arrayFields.projectSummaryDateTime,
+                              projectSummaryDateTime: moment(arrayFields.projectSummaryDateTime).utcOffset('+01:00').format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
                               projectSummarySubtitles: arrayFields.projectSummarySubtitle,
                          };
                     }
@@ -139,13 +125,10 @@ export default async function handler(request: NextApiRequest, response: NextApi
                          updateOperations
                     );
 
-                    console.log(mdbResponse);
-
                     return mdbResponse.modifiedCount > 0
                          ? response.status(200).json({ message: 'Project successfully updated!', status: 'OK' })
                          : response.status(400).json({ message: 'Project not updated!', status: 'Bad Request' });
                } catch (error) {
-                    console.error(error);
                     return response.status(500).json({ message: 'Internal Server Error', status: 'Error' });
                }
           }
