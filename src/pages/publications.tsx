@@ -88,8 +88,9 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
           const result = await response.json();
           if (result.message === 'Publication added successfully') {
                alert('Publication added successfully');
-               // Optionally, add the new publication to the table without re-fetching
+               // Add the newly created publication with the correct data (including _id) to the table
                setEditableRows([...editableRows, result.publication]);
+
                // Clear the form for adding a new publication
                setNewPublication({
                     _id: '',
@@ -102,6 +103,7 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                alert('Failed to add publication');
           }
      };
+
 
      return (
           <>
@@ -205,7 +207,7 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
 
                {/* Pagination Controls */}
                <Pagination
-                    count={Math.ceil(publicationsCount / limit)} // Total pages
+                    count={Math.ceil(publicationsCount / limit - 1)} // Total pages
                     page={page}
                     onChange={(event, value) => window.location.href = `/publications?page=${value}&limit=${limit}`} // Navigate to the selected page
                     variant="outlined"

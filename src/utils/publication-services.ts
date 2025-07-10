@@ -106,8 +106,15 @@ export const PublicationsServices = () => {
                await client.connect();
                const database = client.db('LDA_DB');
                const collection = database.collection('Publications');
+
+               // Insert the publication into the collection
                const result = await collection.insertOne(publication);
-               return result.insertedId;
+
+               // Fetch the full publication object using the inserted _id
+               const newPublication = await collection.findOne({ _id: result.insertedId });
+
+               // Return the full publication object
+               return newPublication;  // This will include the inserted _id and other fields
           } catch (error: any) {
                console.error('Error while adding publication:', error);
                return null;
@@ -115,6 +122,7 @@ export const PublicationsServices = () => {
                await client.close();
           }
      };
+
 
      return {
           getAllPublications,
