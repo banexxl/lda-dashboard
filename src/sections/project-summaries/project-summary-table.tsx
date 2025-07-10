@@ -47,7 +47,7 @@ export const getThumbnail = (fileName: any) => {
      const fileExtension = fileName ? fileName.split('.').pop().toLowerCase() : '';
      if (fileExtension === 'pdf') {
           return 'pdf'
-     } else if (fileExtension === 'doc' || fileExtension === 'docx') {
+     } else if (fileExtension === 'doc' || fileExtension === 'docx' || fileExtension === 'xls' || fileExtension === 'xlsx') {
           return 'doc'
      } else {
           return '';
