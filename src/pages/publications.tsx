@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GetServerSideProps } from 'next';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Button, Paper, Pagination } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Button, Paper, Pagination, Box, Typography } from '@mui/material';
 import { Publication } from '@/utils/publication-services';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 
@@ -105,7 +105,7 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
 
      return (
           <>
-               <TableContainer component={Paper}>
+               <TableContainer component={Paper} sx={{ mt: 3 }}>
                     <Table>
                          <TableHead>
                               <TableRow>
@@ -178,8 +178,8 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                </TableContainer>
 
                {/* Add New Publication Form */}
-               <div>
-                    <h3>Add New Publication</h3>
+               <Box sx={{ m: 4, gap: 2, display: 'flex', flexDirection: 'column' }}>
+                    <Typography variant="h6" gutterBottom   >Add New Publication</Typography>
                     <TextField
                          label="Title"
                          fullWidth
@@ -201,7 +201,7 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                     <Button onClick={handleAddPublication} variant="contained" color="primary">
                          Add Publication
                     </Button>
-               </div>
+               </Box>
 
                {/* Pagination Controls */}
                <Pagination
