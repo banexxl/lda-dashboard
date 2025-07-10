@@ -372,13 +372,13 @@ export const ProjectActivityTable = (props: any) => {
           }
 
           // Validate file type
-          const validExtensions = ['pdf', 'docx', 'doc'];
+          const validExtensions = ['pdf', 'docx', 'doc', 'xlsx', 'xls'];
           const fileExtension = selectedFile.name.split('.').pop().toLowerCase();
 
           if (!validExtensions.includes(fileExtension)) {
                Swal.fire({
                     title: 'Greška',
-                    text: "Dozvoljeni su samo PDF i Word dokumenti!",
+                    text: "Dozvoljeni su samo PDF, Word i Excel dokumenti!",
                     icon: 'error',
                     confirmButtonColor: '#3085d6',
                     confirmButtonText: 'OK',

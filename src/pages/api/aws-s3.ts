@@ -121,7 +121,7 @@ export default async (req: any, res: any) => {
 
                // Determine the content type based on the file extension
                let contentType: string;
-               const docExtensions = ['pdf', 'doc', 'docx'];
+               const docExtensions = ['pdf', 'doc', 'docx', 'xlsx', 'xls'];
 
                if (docExtensions.includes(extension.toLowerCase())) {
                     contentType = `application/${extension}`;

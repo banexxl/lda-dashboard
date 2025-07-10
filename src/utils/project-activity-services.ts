@@ -62,8 +62,6 @@ export const projectActivitiesServices = () => {
      }
 
      const addPublicationToPublicationsDB = async (title: string, uploadedFile: any) => {
-          console.log('uploadedFile', uploadedFile);
-          console.log('title', title);
 
           const client = new MongoClient(process.env.MONGODB_URI!);
           await client.connect();
