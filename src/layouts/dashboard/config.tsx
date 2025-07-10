@@ -30,5 +30,14 @@ export const items = [
                     <PostAddIcon />
                </SvgIcon>
           )
+     },
+     {
+          title: 'Publications',
+          path: '/publications',
+          icon: (
+               <SvgIcon fontSize="small">
+                    <PostAddIcon />
+               </SvgIcon>
+          )
      }
 ];

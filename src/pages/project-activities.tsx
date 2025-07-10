@@ -1,22 +1,19 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Head from 'next/head';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-import Swal from 'sweetalert2'
 import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
 import { Box, Button, Container, Stack, SvgIcon, Typography } from '@mui/material';
 import { useSelection } from 'src/hooks/use-selection';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { ProjectActivityTable } from '@/sections/project-activities/project-activity-table';
 import { ProjectsActivitySearch } from '@/sections/project-activities/project-activity-search';
-import { applyPagination } from 'src/utils/apply-pagination';
 import { projectActivitiesServices } from '../utils/project-activity-services'
 import { projectSummaryServices } from '../utils/project-summary-services'
 import { AddProjectActivityForm } from '../sections/project-activities/project-activity-form'
 import { useRouter } from 'next/navigation';
 import { TablePagination } from '@mui/material'
-import { Session } from 'inspector';
 import { SessionProvider } from 'next-auth/react';
 
 

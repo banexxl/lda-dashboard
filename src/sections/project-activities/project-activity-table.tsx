@@ -21,7 +21,6 @@ import moment from 'moment';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import ArticleIcon from '@mui/icons-material/Article';
 import { extractFileName, getThumbnail } from '../project-summaries/project-summary-table';
-import { set } from 'nprogress';
 
 const projectStatus: ProjectStatus[] = ['completed', 'in-progress', 'to-do'];
 
