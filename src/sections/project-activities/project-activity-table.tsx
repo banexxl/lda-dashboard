@@ -1048,7 +1048,7 @@ export const ProjectActivityTable = (props: any) => {
                                                                                                <Typography id="showList">Prikaži listu</Typography>
                                                                                                <Checkbox
                                                                                                     name="showList"
-                                                                                                    defaultChecked={currentProjectObject?.showList == true || (currentProjectObject?.list?.length ?? 0) > 0}
+                                                                                                    defaultChecked={currentProjectObject?.showList}
                                                                                                     sx={{ width: '10px', height: '10px' }}
                                                                                                     onChange={(e) => {
                                                                                                          setCurrentProjectObject((previousObject: any) => ({
@@ -1076,9 +1076,26 @@ export const ProjectActivityTable = (props: any) => {
                                                                                                />
                                                                                           </FormControl>
                                                                                      </Box>
-                                                                                     <FormControl
-
-                                                                                     >
+                                                                                     <Box sx={{ width: '70%', display: currentProjectObject?.showList ? 'block' : 'none' }} >
+                                                                                          <Typography sx={{ ml: '10px' }}>Naslov Liste:</Typography>
+                                                                                          <TextField
+                                                                                               value={currentProjectObject?.listTitle}
+                                                                                               label="Naslov Liste"
+                                                                                               fullWidth
+                                                                                               disabled={loading}
+                                                                                               // name={activity.description}
+                                                                                               onChange={(e: any) => {
+                                                                                                    setCurrentProjectObject((prevActivity: ProjectActivity | null | undefined) => {
+                                                                                                         if (prevActivity) {
+                                                                                                              return {
+                                                                                                                   ...prevActivity,
+                                                                                                                   listTitle: e.target.value,
+                                                                                                              };
+                                                                                                         }
+                                                                                                         return prevActivity;
+                                                                                                    });
+                                                                                               }}
+                                                                                          />
                                                                                           <Typography sx={{ margin: '10px' }}>Lista:</Typography>
                                                                                           {
                                                                                                currentProjectObject?.list.length == 0 && currentProjectObject.showList &&
@@ -1125,8 +1142,7 @@ export const ProjectActivityTable = (props: any) => {
                                                                                                     </Box>
                                                                                                )
                                                                                           }
-
-                                                                                     </FormControl>
+                                                                                     </Box>
                                                                                 </Box>
 
                                                                                 {/* ------------------------Locations------------------------ */}
