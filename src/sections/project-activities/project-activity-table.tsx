@@ -26,28 +26,6 @@ const projectStatus: ProjectStatus[] = ['completed', 'in-progress', 'to-do'];
 
 export const projectCategory: ProjectCategory[] = ['economy', 'democracy', 'eu-integrations', 'culture', 'intercultural-dialogue', 'migrations', 'youth', 'other'];
 
-export type ArrayKeys = keyof Pick<ProjectActivity,
-     "title" |
-     "projectSummaryURL" |
-     "projectURL" |
-     "links" |
-     "subTitle" |
-     "paragraphs" |
-     "category" |
-     "gallery" |
-     "locations" |
-     "published" |
-     "organizers" |
-     "applicants" |
-     "donators" |
-     "publications" |
-     "status" |
-     "showProjectDetails" |
-     "listTitle" |
-     "list" |
-     "locale"
->;
-
 type ProjectLocale = {
      value: string;
      name: string;
@@ -209,19 +187,6 @@ export const ProjectActivityTable = (props: any) => {
           }
      }
 
-     // const handleAddToProjectObjectArray = (arrayName: ArrayKeys, newArray: string[]) => {
-     //      setCurrentProjectObject(prevProject => {
-     //           if (!prevProject) {
-     //                console.error('Project object is null.');
-     //                return null;
-     //           }
-
-     //           const updatedProject: ProjectActivity = { ...prevProject };
-     //           updatedProject[arrayName] = newArray;
-     //           return updatedProject;
-     //      });
-     // };
-
      const onAddNewOrganizer = (index: number, text: string) => {
           setCurrentProjectObject((prevProject: ProjectActivity | null | undefined) => {
                if (prevProject) {
@@ -257,7 +222,21 @@ export const ProjectActivityTable = (props: any) => {
                     newParagraphs[index] = text; // Update the subtitle at the clicked index
                     return {
                          ...prevProject,
-                         paragraphs: newParagraphs,
+                         paragraphs_eng: newParagraphs,
+                    };
+               }
+               return prevProject;
+          });
+     }
+
+     const onAddNewTranslatedParagraph = (index: number, text: string) => {
+          setCurrentProjectObject((prevProject: ProjectActivity | null | undefined) => {
+               if (prevProject) {
+                    const newParagraphs = [...prevProject.paragraphs_eng];
+                    newParagraphs[index] = text; // Update the subtitle at the clicked index
+                    return {
+                         ...prevProject,
+                         paragraphs_eng: newParagraphs,
                     };
                }
                return prevProject;
@@ -272,6 +251,20 @@ export const ProjectActivityTable = (props: any) => {
                     return {
                          ...prevProject,
                          paragraphs: newParagraphs,
+                    };
+               }
+               return prevProject;
+          });
+     }
+
+     const onDeleteTranslatedParagraph = (index: number) => {
+          setCurrentProjectObject((prevProject: ProjectActivity | null | undefined) => {
+               if (prevProject) {
+                    const newParagraphs = [...prevProject.paragraphs_eng];
+                    newParagraphs.splice(index, 1); // Remove the subtitle at the specified index
+                    return {
+                         ...prevProject,
+                         paragraphs_eng: newParagraphs,
                     };
                }
                return prevProject;
@@ -1415,7 +1408,122 @@ export const ProjectActivityTable = (props: any) => {
                                                                                      }
                                                                                 </Grid>
                                                                                 <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
-                                                                                {/* ------------------------Paragraphs------------------------ */}
+                                                                                {/* ------------------------Paragraphs Translations------------------------ */}
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                     sx={{ padding: '10px' }}
+                                                                                >
+                                                                                     <FormControl sx={{ display: 'flex', flexDirection: 'column', width: '400px', height: '50px' }}>
+                                                                                          <Typography id="hasTranslation">Prikazi Prevod</Typography>
+                                                                                          <Checkbox
+                                                                                               name="hasTranslation"
+                                                                                               defaultChecked={currentProjectObject?.hasTranslation}
+                                                                                               sx={{ width: '10px', height: '10px' }}
+                                                                                               onChange={(e) => {
+                                                                                                    setCurrentProjectObject((previousObject: any) => ({
+                                                                                                         ...previousObject,
+                                                                                                         hasTranslation: e.target.checked
+                                                                                                    }))
+                                                                                               }}
+                                                                                          />
+                                                                                     </FormControl>
+                                                                                </Grid>
+                                                                                <Grid
+                                                                                     item
+                                                                                     md={6}
+                                                                                     xs={12}
+                                                                                     display={currentProjectObject?.hasTranslation ? 'block' : 'none'}
+                                                                                     sx={{ width: '80%' }}
+                                                                                >
+                                                                                     <Grid
+                                                                                          item
+                                                                                          md={6}
+                                                                                          xs={12}
+                                                                                     >
+                                                                                          <TextField
+                                                                                               defaultValue={currentProjectObject?.title_eng}
+                                                                                               fullWidth
+                                                                                               label="Prevod Naslova Projekta"
+                                                                                               name="title_eng"
+                                                                                               onBlur={(e: any) =>
+                                                                                                    setCurrentProjectObject((previousObject: any) => ({
+                                                                                                         ...previousObject,
+                                                                                                         title_eng: e.target.value
+
+                                                                                                    }))
+                                                                                               }
+                                                                                          />
+                                                                                     </Grid>
+                                                                                     <Grid
+                                                                                          item
+                                                                                          md={6}
+                                                                                          xs={12}
+                                                                                     >
+                                                                                          <TextField
+                                                                                               defaultValue={currentProjectObject?.subTitle_eng}
+                                                                                               fullWidth
+                                                                                               label="Prevod Podnaslova Projekta"
+                                                                                               name="subTitle_eng"
+                                                                                               onBlur={(e: any) =>
+                                                                                                    setCurrentProjectObject((previousObject: any) => ({
+                                                                                                         ...previousObject,
+                                                                                                         subTitle_eng: e.target.value
+
+                                                                                                    }))
+                                                                                               }
+                                                                                          />
+                                                                                     </Grid>
+                                                                                     <Typography sx={{ margin: '10px' }}>Pasusi Prevedeni:</Typography>
+                                                                                     {
+                                                                                          currentProjectObject?.paragraphs_eng.length == 0 &&
+                                                                                          <Box>
+                                                                                               <IconButton onClick={() => onAddNewTranslatedParagraph(0, '')}>
+                                                                                                    <AddBoxIcon />
+                                                                                               </IconButton>
+                                                                                               <IconButton onClick={() => onDeleteTranslatedParagraph(0)}>
+                                                                                                    <DeleteIcon />
+                                                                                               </IconButton>
+                                                                                          </Box>
+                                                                                     }
+
+                                                                                     {
+                                                                                          currentProjectObject?.paragraphs_eng.length != 0 &&
+                                                                                          currentProjectObject?.paragraphs_eng?.map((paragraph_eng: any, index: any) =>
+                                                                                               <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
+                                                                                                    <TextField
+                                                                                                         defaultValue={currentProjectObject.paragraphs_eng[index]}
+                                                                                                         fullWidth
+                                                                                                         label={`Pasus ${index + 1}`}
+                                                                                                         disabled={loading}
+                                                                                                         // name={activity.description}
+                                                                                                         onBlur={(e: any) => {
+                                                                                                              setCurrentProjectObject((prevProjectActivity: ProjectActivity | null | undefined) => {
+                                                                                                                   if (prevProjectActivity) {
+                                                                                                                        const newParagraphs = [...prevProjectActivity.paragraphs_eng];
+                                                                                                                        newParagraphs[index] = e.target.value; // Update the subtitle at the clicked index
+                                                                                                                        return {
+                                                                                                                             ...prevProjectActivity,
+                                                                                                                             paragraphs_eng: newParagraphs,
+                                                                                                                        };
+                                                                                                                   }
+                                                                                                                   return prevProjectActivity;
+                                                                                                              });
+                                                                                                         }}
+                                                                                                    />
+                                                                                                    <IconButton onClick={() => onAddNewTranslatedParagraph(index + 1, '')}>
+                                                                                                         <AddBoxIcon />
+                                                                                                    </IconButton>
+                                                                                                    <IconButton onClick={() => onDeleteTranslatedParagraph(index)}>
+                                                                                                         <DeleteIcon />
+                                                                                                    </IconButton>
+                                                                                               </Box>
+                                                                                          )
+                                                                                     }
+                                                                                </Grid>
+                                                                                <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
+                                                                                {/* ------------------------Links------------------------ */}
                                                                                 <Grid
                                                                                      item
                                                                                      md={6}
@@ -1468,12 +1576,12 @@ export const ProjectActivityTable = (props: any) => {
                                                                                           )
                                                                                      }
                                                                                 </Grid>
+                                                                                {/* -------------------------publikacije------------------------------------------ */}
                                                                                 <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
                                                                                 <Tooltip placement='bottom-start' title={'Ovde možemo samo da brišemo publikacije za sad. Ako želimo da pregledamo, moramo otići na lda-subotica.org'}>
                                                                                      <Typography sx={{ margin: '10px' }}>Publikacije:</Typography>
                                                                                 </Tooltip>
                                                                                 <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', width: '90%', marginBottom: '20px' }}>
-                                                                                     {/* -------------------------publikacije------------------------------------------ */}
                                                                                      {
                                                                                           currentProjectObject?.publications && currentProjectObject.publications.length > 0 && (
                                                                                                <Box sx={{ width: '90%', display: 'flex' }}

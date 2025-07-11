@@ -21,6 +21,10 @@ export type ProjectActivity = {
      title: string;
      subTitle: string,
      paragraphs: string[];
+     hasTranslation: boolean;
+     title_eng: string;
+     subTitle_eng: string,
+     paragraphs_eng: string[];
      category: ProjectCategory;
      status: ProjectStatus;
      locations: string[];
@@ -65,6 +69,10 @@ export const ProjectActivitySchema = yup.object().shape({
 });
 
 export const projectActivityInitialValues: ProjectActivity = {
+     title_eng: '',
+     subTitle_eng: '',
+     paragraphs_eng: [],
+     hasTranslation: false,
      title: '',
      subTitle: '',
      projectSummaryURL: '',
