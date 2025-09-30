@@ -38,9 +38,11 @@ export const TopNav = (props: any) => {
      const handleRebuild = async () => {
 
           try {
-               const response = await fetch('https://api.vercel.com/v1/integrations/deploy/prj_kIxJglN591xV8HcSkVOzbL6T3oLj/grTojSC3fc', {
+               const response = await fetch('https://api.vercel.com/v1/integrations/deploy/prj_kIxJglN591xV8HcSkVOzbL6T3oLj/n4Q0gSb4Wk', {
                     method: 'POST'
                })
+               const res = await response.json()
+               console.log('response', res);
 
                if (response.ok) {
 
