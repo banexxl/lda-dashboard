@@ -40,7 +40,7 @@
     "mongodb": "^5.0.0",
     "multer": "^2.0.2",
     "next": "^14.2.25",
-    "next-auth": "^4.24.7",
+    "next-auth": "^4.24.11",
     "nprogress": "0.2.0",
     "numeral": "^2.0.6",
     "prop-types": "15.8.1",
