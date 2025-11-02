@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Field, FieldArray } from 'formik';
-import { TextField, Typography, Button, Box, Grid, MenuItem, IconButton, FormControl, InputLabel, Select, Divider, useTheme } from '@mui/material'
+import { TextField, Typography, Button, Box, Grid, MenuItem, IconButton, FormControl, InputLabel, Select, Divider, useTheme, Switch, FormControlLabel } from '@mui/material'
 import { Form, Formik } from 'formik';
 import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2'
@@ -11,12 +11,16 @@ import { ActivitySchema, initialActivity } from './activity-type';
 import { DateField } from '@mui/x-date-pickers/DateField';
 import { sanitizeString } from '@/utils/url-creator';
 import moment from 'moment';
+import QuillEditor from '@/components/quill-editor'
 
 export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
 
      const router = useRouter();
      const [loading, setLoading] = useState<any>(false)
      const theme = useTheme();
+     const [useRichText, setUseRichText] = useState<boolean>(false)
+     const [editorHtml, setEditorHtml] = useState<string>('')
+     const [quillEditorData, setQuillEditorData] = useState<string>('')
 
      const handleSubmit = async (values: any) => {
           console.log('values', values);
@@ -29,7 +33,10 @@ export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
                          'Access-Control-Allow-Origin': '*',
                          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS' // Set the content type to JSON
                     },
-                    body: JSON.stringify(values),
+                    body: JSON.stringify({
+                         ...values,
+                         quillEditorData,
+                    }),
                });
 
                if (responseValues.ok) {
@@ -240,36 +247,70 @@ export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
                                         md={6}
                                         xs={12}
                                    >
-                                        <Typography sx={{ margin: '10px' }}>Pasusi:</Typography>
-                                        <FieldArray
-                                             name={'descriptions'}
-                                             render={arrayHelpers => (
-                                                  formik.values?.descriptions.length > 0 ?
-                                                       formik.values?.descriptions.map((description: any, index: any) => (
-                                                            <Box key={index} sx={{ display: 'flex', width: '80%', alignItems: 'center' }}>
-                                                                 <TextField
-                                                                      InputLabelProps={{ shrink: true }}
-                                                                      value={formik.values.descriptions[index]}
-                                                                      onChange={formik.handleChange}
-                                                                      fullWidth
-                                                                      name={`descriptions.${index}`}
-                                                                      label={`Opis ${index + 1}`}
-                                                                      disabled={loading}
-                                                                 />
-                                                                 <IconButton onClick={() => arrayHelpers.insert(index + 1, '')}>
-                                                                      <AddBoxIcon />
-                                                                 </IconButton>
-                                                                 <IconButton onClick={() => arrayHelpers.remove(index)}>
-                                                                      <DeleteIcon />
-                                                                 </IconButton>
-                                                            </Box>
-                                                       ))
-                                                       :
-                                                       <IconButton onClick={() => arrayHelpers.push('')}>
-                                                            <AddBoxIcon />
-                                                       </IconButton>
-                                             )}
-                                        />
+                                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pr: 2 }}>
+                                             <Typography sx={{ margin: '10px' }}>Opisi (pasusi):</Typography>
+                                             <FormControlLabel
+                                                  control={
+                                                       <Switch
+                                                            checked={useRichText}
+                                                            onChange={(e) => {
+                                                                 const checked = e.target.checked
+                                                                 setUseRichText(checked)
+                                                                 if (checked) {
+                                                                      const html = (formik.values.descriptions || []).map((p: string) => `<p>${p}</p>`).join('')
+                                                                      setEditorHtml(html)
+                                                                      setQuillEditorData(html)
+                                                                      formik.setFieldValue('quillEditorData', html)
+                                                                 }
+                                                            }}
+                                                            disabled={loading}
+                                                       />
+                                                  }
+                                                  label={useRichText ? 'Editor' : 'Lista'}
+                                             />
+                                        </Box>
+
+                                        {useRichText ? (
+                                             <QuillEditor
+                                                  value={editorHtml}
+                                                  commitMode="onChange"
+                                                  onChange={(value) => {
+                                                       setEditorHtml(value)
+                                                       setQuillEditorData(value)
+                                                       formik.setFieldValue('quillEditorData', value)
+                                                  }}
+                                             />
+                                        ) : (
+                                             <FieldArray
+                                                  name={'descriptions'}
+                                                  render={arrayHelpers => (
+                                                       formik.values?.descriptions.length > 0 ?
+                                                            formik.values?.descriptions.map((description: any, index: any) => (
+                                                                 <Box key={index} sx={{ display: 'flex', width: '80%', alignItems: 'center' }}>
+                                                                      <TextField
+                                                                           InputLabelProps={{ shrink: true }}
+                                                                           value={formik.values.descriptions[index]}
+                                                                           onChange={formik.handleChange}
+                                                                           fullWidth
+                                                                           name={`descriptions.${index}`}
+                                                                           label={`Opis ${index + 1}`}
+                                                                           disabled={loading}
+                                                                      />
+                                                                      <IconButton onClick={() => arrayHelpers.insert(index + 1, '')}>
+                                                                           <AddBoxIcon />
+                                                                      </IconButton>
+                                                                      <IconButton onClick={() => arrayHelpers.remove(index)}>
+                                                                           <DeleteIcon />
+                                                                      </IconButton>
+                                                                 </Box>
+                                                            ))
+                                                            :
+                                                            <IconButton onClick={() => arrayHelpers.push('')}>
+                                                                 <AddBoxIcon />
+                                                            </IconButton>
+                                                  )}
+                                             />
+                                        )}
                                    </Grid>
 
                                    <Grid

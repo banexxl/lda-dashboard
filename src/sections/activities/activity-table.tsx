@@ -2,12 +2,12 @@ import ChevronRightIcon from '@untitled-ui/icons-react/build/esm/ChevronRight';
 import ChevronDownIcon from '@untitled-ui/icons-react/build/esm/ChevronDown';
 import {
      Avatar, Box, Button, Card, Divider, Grid, IconButton, ImageList, ImageListItem, Input, MenuItem,
-     Stack, SvgIcon, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography, useTheme
+     Stack, SvgIcon, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography, useTheme, Switch, FormControlLabel
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddBoxIcon from '@mui/icons-material/AddBox';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Scrollbar } from 'src/components/scrollbar';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -19,7 +19,7 @@ import { Activity, ActivityCategory, activityCategoryProps, activityStatusProps,
 import { DateField } from '@mui/x-date-pickers/DateField';
 import moment from 'moment';
 import { sanitizeString } from '@/utils/url-creator';
-import { set } from 'nprogress';
+import QuillEditor from '@/components/quill-editor';
 
 export type ArrayKeys = keyof Pick<Activity,
      'activityURL' | 'author' | 'category' | 'coverURL' | 'descriptions' | 'favorited' | 'favoritedNumber' |
@@ -40,7 +40,31 @@ export const ActivityTable = ({ items }: any) => {
      const router = useRouter();
      const theme = useTheme()
      const [loading, setLoading] = useState(false)
-     const [selectedImage, setSelectedImage] = useState(null);
+     // Initialize editor when a row opens
+     useEffect(() => {
+          if (!currentActivityID) {
+               setUseRichText(false)
+               setEditorHtml('')
+               setQuillEditorData('')
+               return
+          }
+          const obj: any = getObjectById(currentActivityID, items)
+          if (!obj) return
+          const savedHtml: string | undefined = obj.quillEditorData as any
+          const hasSavedHtml = typeof savedHtml === 'string' && savedHtml.trim().length > 0
+          setUseRichText(!!hasSavedHtml)
+          if (hasSavedHtml) {
+               setEditorHtml(savedHtml)
+               setQuillEditorData(savedHtml)
+          } else {
+               const html = (obj.descriptions || []).map((p: string) => `<p>${p}</p>`).join('')
+               setEditorHtml(html)
+          }
+     }, [currentActivityID])
+     const [useRichText, setUseRichText] = useState<boolean>(false)
+     const [editorHtml, setEditorHtml] = useState<string>('')
+     const [quillEditorData, setQuillEditorData] = useState<string>('')
+
 
      const getObjectById = (_id: any, arrayToSearch: any) => {
           for (const obj of arrayToSearch) {
@@ -96,7 +120,7 @@ export const ActivityTable = ({ items }: any) => {
                          'Access-Control-Allow-Origin': 'https://lda-dashboard.vercel.app/api/activity-api, http://localhost:3000/api/activity-api',
                          'Access-Control-Allow-Methods': 'PUT' // Set the content type to JSON
                     },
-                    body: JSON.stringify(currentActivityObject)
+                    body: JSON.stringify({ ...currentActivityObject, quillEditorData })
                });
 
                if (response.ok) {
@@ -1044,9 +1068,53 @@ export const ActivityTable = ({ items }: any) => {
                                                                                      md={6}
                                                                                      xs={12}
                                                                                 >
-                                                                                     <Typography sx={{ margin: '10px' }}>Opisi (pasusi):</Typography>
+                                                                                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 2, pr: 2 }}>
+                                                                                          <FormControlLabel
+                                                                                               control={
+                                                                                                    <Switch
+                                                                                                         checked={useRichText}
+                                                                                                         onChange={(e) => {
+                                                                                                              const checked = e.target.checked
+                                                                                                              setUseRichText(checked)
+                                                                                                              if (checked && currentActivityObject) {
+                                                                                                                   const savedHtml = (currentActivityObject as any).quillEditorData as string | undefined
+                                                                                                                   if (typeof savedHtml === 'string' && savedHtml.trim().length > 0) {
+                                                                                                                        setEditorHtml(savedHtml)
+                                                                                                                        setQuillEditorData(savedHtml)
+                                                                                                                   } else {
+                                                                                                                        const html = (currentActivityObject.descriptions || []).map((p: string) => `<p>${p}</p>`).join('')
+                                                                                                                        setEditorHtml(html)
+                                                                                                                        setQuillEditorData(html)
+                                                                                                                   }
+                                                                                                              }
+                                                                                                         }}
+                                                                                                         disabled={loading}
+                                                                                                    />
+                                                                                               }
+                                                                                               label={useRichText ? 'Editor' : 'Lista'}
+                                                                                          />
+                                                                                          <Typography sx={{ margin: '10px' }}>Opisi (pasusi):</Typography>
+                                                                                     </Box>
+
+                                                                                     {useRichText && (
+                                                                                          <Box sx={{ position: 'relative', width: '100%' }}>
+                                                                                               <QuillEditor
+                                                                                                    initialValue={editorHtml}
+                                                                                                    commitMode="onBlur"
+                                                                                                    onBlur={(html) => {
+                                                                                                         const val = html || ''
+                                                                                                         setEditorHtml(val)
+                                                                                                         setQuillEditorData(val)
+                                                                                                    }}
+                                                                                               />
+                                                                                               {loading && (
+                                                                                                    <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(255,255,255,0.4)', cursor: 'not-allowed' }} />
+                                                                                               )}
+                                                                                          </Box>
+                                                                                     )}
+
                                                                                      {
-                                                                                          currentActivityObject?.descriptions.length == 0 &&
+                                                                                          !useRichText && currentActivityObject?.descriptions.length == 0 &&
                                                                                           <Box>
                                                                                                <IconButton onClick={() => onAddNewDescription(0, '')}>
                                                                                                     <AddBoxIcon />
@@ -1058,7 +1126,7 @@ export const ActivityTable = ({ items }: any) => {
                                                                                      }
 
                                                                                      {
-                                                                                          currentActivityObject?.descriptions.map((description: any, index: any) =>
+                                                                                          !useRichText && currentActivityObject?.descriptions.map((description: any, index: any) =>
                                                                                                <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
                                                                                                     <TextField
                                                                                                          defaultValue={description}
