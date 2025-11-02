@@ -1,5 +1,6 @@
 import React, { forwardRef, useImperativeHandle, useEffect, useRef } from 'react'
 import { useQuill } from 'react-quilljs'
+import Quill from 'quill'
 import 'quill/dist/quill.snow.css'
 import Box from '@mui/material/Box'
 
@@ -19,18 +20,37 @@ export interface QuillEditorRef {
 
 // Removed StyledQuillWrapper; using Box with sx instead.
 
+// Register font family and size whitelists
+const Font: any = Quill.import('attributors/style/font')
+Font.whitelist = [
+     'Inter',
+     'Arial',
+     'Times New Roman',
+     'Georgia',
+     'Courier New',
+     'Monospace',
+     'Sans Serif',
+     'Serif',
+]
+Quill.register(Font, true)
+
+const Size: any = Quill.import('attributors/style/size')
+Size.whitelist = ['12px', '14px', '16px', '18px', '24px', '32px']
+Quill.register(Size, true)
+
 const QuillEditor = forwardRef<QuillEditorRef, QuillEditorProps>(
      ({ placeholder, onChange, onBlur, value, initialValue, commitMode = 'onChange' }, ref) => {
           const { quill, quillRef } = useQuill({
                modules: {
                     toolbar: [
+                         [{ font: [] }, { size: [] }],
                          ['bold', 'italic', 'underline', 'strike'],
                          [{ list: 'ordered' }, { list: 'bullet' }],
                          ['link'],
                          ['clean'],
                     ],
                },
-               placeholder: 'Start typing...',
+               placeholder: placeholder || 'Start typing...',
           })
 
           useImperativeHandle(ref, () => ({
