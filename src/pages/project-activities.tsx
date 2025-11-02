@@ -129,7 +129,7 @@ const Page = (props: any) => {
                          }}
                     >
                          <DialogTitle>Dodaj projektnu aktivnost</DialogTitle>
-                         <DialogContent dividers >
+                         <DialogContent dividers sx={{ overflowX: 'hidden', px: 2 }}>
                               <AddProjectActivityForm
                                    onSubmitSuccess={handleSubmitSuccess}
                                    onSubmitFail={handleSubmitFail}

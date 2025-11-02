@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { ErrorMessage, FieldArray, Form, Formik, useFormikContext } from 'formik';
-import { TextField, Typography, Button, Box, Grid, MenuItem, IconButton, FormControl, InputLabel, Select, Divider, Checkbox, useTheme } from '@mui/material'
-import { useRouter } from 'next/navigation';
+import { FieldArray, Form, Formik } from 'formik';
+import { TextField, Typography, Button, Box, Grid, MenuItem, IconButton, FormControl, InputLabel, Select, Divider, Checkbox, useTheme, Switch, FormControlLabel } from '@mui/material'
 import Swal from 'sweetalert2'
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddBoxIcon from '@mui/icons-material/AddBox';
@@ -12,6 +11,7 @@ import { sanitizeString } from '@/utils/url-creator';
 import { projectCategory } from './project-activity-table';
 import { ProjectSummary } from '../project-summaries/project-summary-type';
 import moment from 'moment';
+import QuillEditor from '@/components/quill-editor'
 
 export type DataForProjectSummary = {
      _id: string;
@@ -23,11 +23,13 @@ export type DataForProjectSummary = {
 
 export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectSummaries }: any) => {
 
-     const router = useRouter();
      const [loading, setLoading] = useState<any>(false)
      const [listEnabled, setListEnabled] = useState<any>(false)
      const theme = useTheme()
      const [selectedProjectSummary, setSelectedProjectSummary] = useState<ProjectSummary>()
+     const [useRichText, setUseRichText] = useState<boolean>(false)
+     const [editorHtml, setEditorHtml] = useState<string>('')
+     const [quillEditorData, setQuillEditorData] = useState<string>('')
      const [dataForProjectSummary, setDataForProjectSummary] = useState<DataForProjectSummary>({
           _id: '',
           projectSummaryDescription: '',
@@ -37,7 +39,7 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
      })
 
      const handleSubmit = async (values: any) => {
-
+          setLoading(true)
           try {
                const responseProjectActivity: any = await fetch('/api/project-activities-api', {
                     method: 'POST',
@@ -46,7 +48,10 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                          'Access-Control-Allow-Origin': '*',
                          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS' // Set the content type to JSON
                     },
-                    body: JSON.stringify(values),
+                    body: JSON.stringify({
+                         ...values,
+                         quillEditorData,
+                    }),
                });
 
                if (responseProjectActivity.ok) {
@@ -90,511 +95,596 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                     title: 'Oops...',
                     text: 'Nešto ne valja :(',
                })
+          } finally {
+               setLoading(false)
           }
 
      }
 
+     const paragraphsToHtml = (paras: string[]) => (paras && paras.length ? paras.map((p) => `<p>${p}</p>`).join('') : '')
+     const htmlToFirstText = (html: string) => {
+          if (typeof document === 'undefined') return ''
+          const div = document.createElement('div')
+          div.innerHTML = html || ''
+          const first = div.querySelector('p, li')
+          const txt = (first?.textContent || '').trim()
+          return txt
+     }
+
      return (
-          <Box >
+          <Box sx={{ width: '100%' }}>
                <Formik
                     initialValues={projectActivityInitialValues}
-                    onSubmit={(values) => {
-                         handleSubmit(values)
+                    onSubmit={async (values) => {
+                         await handleSubmit(values)
                     }}
                     validationSchema={ProjectActivitySchema}>
                     {
                          (formik) => (
-                              <Form style={{ display: 'flex', flexDirection: 'column', gap: '15px', opacity: loading ? .5 : 1 }}>
+                              <Form style={{ display: 'flex', flexDirection: 'column', gap: '15px', opacity: loading ? .5 : 1 }} aria-busy={loading || formik.isSubmitting}>
+                                   <fieldset disabled={loading || formik.isSubmitting} style={{ border: 0, padding: 0, margin: 0, gap: 2 }}>
+                                        <Grid container rowSpacing={2} columnSpacing={0}>
+                                             <Grid item xs={12} md={8} >
+                                                  <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
+                                             </Grid>
+                                             <Grid item xs={12} md={8}>
+                                                  <TextField
+                                                       InputLabelProps={{ shrink: true }}
+                                                       label="Naslov projektne aktivnosti"
+                                                       name="title"
+                                                       // value={formik.values.title}
+                                                       disabled={loading}
+                                                       fullWidth
+                                                       onBlur={(e: any) => {
+                                                            const sanitizedValue = e.target.value
+                                                                 .replace(/[^a-zA-Z0-9čćžšđČĆŽŠĐ\s]/g, '') // Keep alphanumeric, Serbian Latinic letters and spaces
+                                                                 .replace(/\s+/g, ' ');
+                                                            formik.setFieldValue('title', sanitizedValue)
+                                                            formik.setFieldValue('projectURL', sanitizeString(sanitizedValue))
+                                                            setDataForProjectSummary((prevData: any) =>
+                                                            ({
+                                                                 ...prevData,
+                                                                 projectSummarySubtitle: e.target.value,
+                                                                 projectSummarySubtitleURL: '/projektna-aktivnost/' + sanitizeString(sanitizedValue)
+                                                            }))
+                                                       }}
+                                                       error={formik.touched.title && !!formik.errors.title}
+                                                       helperText={formik.touched.title && formik.errors.title}
+                                                  />
+                                             </Grid>
 
-                                   {/* <Typography>
-                                        {`${JSON.stringify(formik.errors)}`}
-                                   </Typography> */}
-                                   <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
-                                   <TextField
-                                        InputLabelProps={{ shrink: true }}
-                                        label="Naslov projektne aktivnosti"
-                                        name="title"
-                                        // value={formik.values.title}
-                                        disabled={loading}
-                                        onBlur={(e: any) => {
-                                             const sanitizedValue = e.target.value
-                                                  .replace(/[^a-zA-Z0-9čćžšđČĆŽŠĐ\s]/g, '') // Keep alphanumeric, Serbian Latinic letters and spaces
-                                                  .replace(/\s+/g, ' ');
-                                             formik.setFieldValue('title', sanitizedValue)
-                                             formik.setFieldValue('projectURL', sanitizeString(sanitizedValue))
-                                             setDataForProjectSummary((prevData: any) =>
-                                             ({
-                                                  ...prevData,
-                                                  projectSummarySubtitle: e.target.value,
-                                                  projectSummarySubtitleURL: '/projektna-aktivnost/' + sanitizeString(sanitizedValue)
-                                             }))
-                                        }}
-                                        error={formik.touched.title && !!formik.errors.title}
-                                        helperText={formik.touched.title && formik.errors.title}
-                                   />
+                                             <Grid item xs={12} md={8}>
+                                                  <TextField
+                                                       InputLabelProps={{ shrink: true }}
+                                                       disabled
+                                                       label="URL projektne aktivnosti"
+                                                       name="projectActivityURL"
+                                                       rows={4}
+                                                       value={formik.values.projectURL}
+                                                       fullWidth
+                                                  />
+                                             </Grid>
 
-                                   <TextField
-                                        InputLabelProps={{ shrink: true }}
-                                        disabled
-                                        label="URL projektne aktivnosti"
-                                        name="projectActivityURL"
-                                        rows={4}
-                                        value={formik.values.projectURL}
-                                   />
+                                             <Grid item xs={12} md={8}>
+                                                  <FormControl fullWidth>
+                                                       <InputLabel id="subtitle-label" sx={{ backgroundColor: 'white' }}>Glavni projekat</InputLabel>
+                                                       <Select
+                                                            label="Glavni projekat"
+                                                            labelId="project-summary-label"
+                                                            name='projectSummaryURL'
+                                                            id="project-summary"
+                                                            value={formik.values.subTitle}
+                                                            onChange={async (e) => {
+                                                                 // Perform your async operation here
+                                                                 const selectedSummary: ProjectSummary = await new Promise(resolve => {
+                                                                      const summary = projectSummaries.find((projectSummary: any) => projectSummary.title === e.target.value);
+                                                                      resolve(summary);
+                                                                 });
 
-                                   <FormControl fullWidth>
-                                        <InputLabel id="subtitle-label" sx={{ backgroundColor: 'white' }}>Glavni projekat</InputLabel>
-                                        <Select
-                                             label="Glavni projekat"
-                                             labelId="project-summary-label"
-                                             name='projectSummaryURL'
-                                             id="project-summary"
-                                             value={formik.values.subTitle}
-                                             onChange={async (e) => {
-                                                  // Perform your async operation here
-                                                  const selectedSummary: ProjectSummary = await new Promise(resolve => {
-                                                       const summary = projectSummaries.find((projectSummary: any) => projectSummary.title === e.target.value);
-                                                       resolve(summary);
-                                                  });
-
-                                                  formik.setFieldValue('projectSummaryURL', '/pregled-projekta/' + selectedSummary.projectSummaryURL);
-                                                  setSelectedProjectSummary(selectedSummary);
-                                                  setDataForProjectSummary((prevData: any) =>
-                                                  ({
-                                                       ...prevData,
-                                                       _id: selectedSummary._id,
-                                                  }))
-                                                  // Set the Formik value after the async operation
-                                                  formik.setFieldValue('subTitle', selectedSummary?.title);
-                                             }}
-                                             error={formik.touched.projectSummaryURL && !!formik.errors.projectSummaryURL}
-                                             sx={{ borderColor: 'white' }}
-                                        >
-                                             {
-                                                  projectSummaries.map((projectSummary: any) => (
-                                                       <MenuItem
-                                                            value={projectSummary.title}
-                                                            key={projectSummary.title}
-                                                       >
-                                                            {projectSummary.title}
-                                                       </MenuItem>
-                                                  ))
-                                             }
-                                        </Select>
-                                   </FormControl>
-
-                                   <FormControl>
-                                        <TextField
-                                             disabled
-                                             label="URL glavnog projekta"
-                                             name="projectSummaryURL"
-                                             value={formik.values.projectSummaryURL}
-                                        />
-                                   </FormControl>
-
-                                   <FormControl fullWidth>
-                                        <InputLabel id="project-summary-category" sx={{ backgroundColor: 'white' }}>Kategorija</InputLabel>
-                                        <Select
-                                             label="Glavni projekat"
-                                             labelId="project-summary-category"
-                                             name='category'
-                                             id="project-summary-category-id"
-                                             value={formik.values.category}
-                                             onChange={(e) => {
-                                                  formik.setFieldValue('category', e.target.value)
-                                             }}
-                                             error={formik.touched.category && !!formik.errors.category}
-                                             sx={{ borderColor: 'white' }}
-                                        >
-                                             {
-                                                  projectCategory.map((category: any) => (
-                                                       <MenuItem
-                                                            value={category}
-                                                            key={category}
+                                                                 formik.setFieldValue('projectSummaryURL', '/pregled-projekta/' + selectedSummary.projectSummaryURL);
+                                                                 setSelectedProjectSummary(selectedSummary);
+                                                                 setDataForProjectSummary((prevData: any) =>
+                                                                 ({
+                                                                      ...prevData,
+                                                                      _id: selectedSummary._id,
+                                                                 }))
+                                                                 // Set the Formik value after the async operation
+                                                                 formik.setFieldValue('subTitle', selectedSummary?.title);
+                                                            }}
+                                                            error={formik.touched.projectSummaryURL && !!formik.errors.projectSummaryURL}
+                                                            sx={{ borderColor: 'white' }}
                                                        >
                                                             {
-                                                                 category == 'other' ? 'Ostalo' :
-                                                                      category == 'eu-integrations' ? 'EU integracije' :
-                                                                           category == 'intercultural-dialogue' ? 'Interkulturalni dijalog' :
-                                                                                category == 'migrations' ? 'Migracije' :
-                                                                                     category == 'youth' ? 'Mladi' :
-                                                                                          category == 'culture' ? 'Kultura' :
-                                                                                               category == 'economy' ? 'Ekonomija' :
-                                                                                                    category == 'democracy' ? 'Demokratija' : ''
+                                                                 projectSummaries.map((projectSummary: any) => (
+                                                                      <MenuItem
+                                                                           value={projectSummary.title}
+                                                                           key={projectSummary.title}
+                                                                      >
+                                                                           {projectSummary.title}
+                                                                      </MenuItem>
+                                                                 ))
                                                             }
-                                                       </MenuItem>
-                                                  ))
-                                             }
-                                        </Select>
-                                   </FormControl>
+                                                       </Select>
+                                                  </FormControl>
+                                             </Grid>
 
-                                   <FormControl fullWidth>
-                                        <InputLabel id="project-summary-status" sx={{ backgroundColor: 'white' }}>Status</InputLabel>
-                                        <Select
-                                             id="project-summary-status-id"
-                                             labelId='project-summary-status'
-                                             label="Status"
-                                             value={formik.values.status}
-                                             onChange={(e) => {
-                                                  formik.setFieldValue('status', e.target.value)
-                                             }}
-                                             error={formik.touched.status && !!formik.errors.status}
-                                        >
-                                             <MenuItem value={''}>Ponisti</MenuItem>
-                                             <MenuItem value={'in-progress'}>U toku</MenuItem>
-                                             <MenuItem value={'completed'}>Zavrsen</MenuItem>
-                                             <MenuItem value={'to-do'}>U planu</MenuItem>
-                                        </Select>
-                                   </FormControl>
+                                             <Grid item xs={12} md={8}>
+                                                  <FormControl fullWidth>
+                                                       <TextField
+                                                            disabled
+                                                            label="URL glavnog projekta"
+                                                            name="projectSummaryURL"
+                                                            value={formik.values.projectSummaryURL}
+                                                       />
+                                                  </FormControl>
+                                             </Grid>
 
-                                   <FormControl fullWidth>
-                                        <InputLabel id="project-summary-locale" sx={{ backgroundColor: 'white' }}>Jezik</InputLabel>
-                                        <Select
-                                             id="project-summary-locale-id"
-                                             labelId='project-summary-locale'
-                                             value={formik.values.locale}
-                                             label="Jezik"
-                                             disabled
-                                             name='locale'
-                                             onChange={(e) => {
-                                                  formik.setFieldValue('locale', e.target.value)
-                                             }}
-                                             error={formik.touched.locale && !!formik.errors.locale}
-                                        >
-                                             <MenuItem value={'sr'}>sr</MenuItem>
-                                             <MenuItem value={'en'}>en</MenuItem>
-                                        </Select>
-                                   </FormControl>
+                                             <Grid item xs={12} md={8}>
+                                                  <FormControl fullWidth>
+                                                       <InputLabel id="project-summary-category" sx={{ backgroundColor: 'white' }}>Kategorija</InputLabel>
+                                                       <Select
+                                                            label="Glavni projekat"
+                                                            labelId="project-summary-category"
+                                                            name='category'
+                                                            id="project-summary-category-id"
+                                                            value={formik.values.category}
+                                                            onChange={(e) => {
+                                                                 formik.setFieldValue('category', e.target.value)
+                                                            }}
+                                                            error={formik.touched.category && !!formik.errors.category}
+                                                            sx={{ borderColor: 'white' }}
+                                                       >
+                                                            {
+                                                                 projectCategory.map((category: any) => (
+                                                                      <MenuItem
+                                                                           value={category}
+                                                                           key={category}
+                                                                      >
+                                                                           {
+                                                                                category == 'other' ? 'Ostalo' :
+                                                                                     category == 'eu-integrations' ? 'EU integracije' :
+                                                                                          category == 'intercultural-dialogue' ? 'Interkulturalni dijalog' :
+                                                                                               category == 'migrations' ? 'Migracije' :
+                                                                                                    category == 'youth' ? 'Mladi' :
+                                                                                                         category == 'culture' ? 'Kultura' :
+                                                                                                              category == 'economy' ? 'Ekonomija' :
+                                                                                                                   category == 'democracy' ? 'Demokratija' : ''
+                                                                           }
+                                                                      </MenuItem>
+                                                                 ))
+                                                            }
+                                                       </Select>
+                                                  </FormControl>
+                                             </Grid>
 
-                                   <DateField
-                                        InputLabelProps={{ shrink: true }}
-                                        label="Objavljeno"
-                                        name="published"
-                                        value={formik.values.published}
-                                        onChange={(value) => {
-                                             formik.setFieldValue('published', value)
-                                             setDataForProjectSummary((prevData: any) =>
-                                             ({
-                                                  ...prevData,
-                                                  projectSummaryDateTime: moment(value).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
-                                             }))
-                                        }}
-                                        onBlur={() => formik.setFieldTouched('published', true)}
-                                        helperText={
-                                             formik.touched.published && formik.errors.published ? String(formik.errors.published) : null
-                                        }
-                                        FormHelperTextProps={{
-                                             sx: {
-                                                  color: formik.touched.published && formik.errors.published ? 'red' : 'inherit',
-                                             },
-                                        }}
-                                        // You can use the sx prop directly if available
-                                        sx={{
-                                             '& .MuiFormHelperText-root': {
-                                                  color: formik.touched.published && formik.errors.published ? 'red' : 'inherit',
-                                             },
-                                        }}
-                                   />
+                                             <Grid item xs={12} md={8}>
+                                                  <FormControl fullWidth>
+                                                       <InputLabel id="project-summary-status" sx={{ backgroundColor: 'white' }}>Status</InputLabel>
+                                                       <Select
+                                                            id="project-summary-status-id"
+                                                            labelId='project-summary-status'
+                                                            label="Status"
+                                                            value={formik.values.status}
+                                                            onChange={(e) => {
+                                                                 formik.setFieldValue('status', e.target.value)
+                                                            }}
+                                                            error={formik.touched.status && !!formik.errors.status}
+                                                       >
+                                                            <MenuItem value={''}>Ponisti</MenuItem>
+                                                            <MenuItem value={'in-progress'}>U toku</MenuItem>
+                                                            <MenuItem value={'completed'}>Zavrsen</MenuItem>
+                                                            <MenuItem value={'to-do'}>U planu</MenuItem>
+                                                       </Select>
+                                                  </FormControl>
+                                             </Grid>
 
-                                   <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
+                                             <Grid item xs={12} md={8}>
+                                                  <FormControl fullWidth>
+                                                       <InputLabel id="project-summary-locale" sx={{ backgroundColor: 'white' }}>Jezik</InputLabel>
+                                                       <Select
+                                                            id="project-summary-locale-id"
+                                                            labelId='project-summary-locale'
+                                                            value={formik.values.locale}
+                                                            label="Jezik"
+                                                            disabled
+                                                            name='locale'
+                                                            onChange={(e) => {
+                                                                 formik.setFieldValue('locale', e.target.value)
+                                                            }}
+                                                            error={formik.touched.locale && !!formik.errors.locale}
+                                                       >
+                                                            <MenuItem value={'sr'}>sr</MenuItem>
+                                                            <MenuItem value={'en'}>en</MenuItem>
+                                                       </Select>
+                                                  </FormControl>
+                                             </Grid>
 
-                                   <FormControl sx={{ display: 'flex', flexDirection: 'column', width: '400px', height: '50px' }}>
-                                        <Typography id="showProjectDetails">Prikazi detalje glavnog projekta</Typography>
-                                        <Checkbox
-                                             name="showProjectDetails"
-                                             defaultChecked={false}
-                                             sx={{ width: '10px', height: '10px' }}
-                                             onChange={(e) => {
-                                                  formik.setFieldValue('showProjectDetails', e.target.checked)
-                                             }}
-                                        />
-                                   </FormControl>
+                                             <Grid item xs={12} md={8}>
+                                                  <DateField
+                                                       InputLabelProps={{ shrink: true }}
+                                                       label="Objavljeno"
+                                                       name="published"
+                                                       value={formik.values.published}
+                                                       onChange={(value) => {
+                                                            formik.setFieldValue('published', value)
+                                                            setDataForProjectSummary((prevData: any) =>
+                                                            ({
+                                                                 ...prevData,
+                                                                 projectSummaryDateTime: moment(value).format('YYYY-MM-DDTHH:mm:ss.SSSZ')
+                                                            }))
+                                                       }}
+                                                       onBlur={() => formik.setFieldTouched('published', true)}
+                                                       helperText={
+                                                            formik.touched.published && formik.errors.published ? String(formik.errors.published) : null
+                                                       }
+                                                       FormHelperTextProps={{
+                                                            sx: {
+                                                                 color: formik.touched.published && formik.errors.published ? 'red' : 'inherit',
+                                                            },
+                                                       }}
+                                                       // You can use the sx prop directly if available
+                                                       sx={{
+                                                            '& .MuiFormHelperText-root': {
+                                                                 color: formik.touched.published && formik.errors.published ? 'red' : 'inherit',
+                                                            },
+                                                       }}
+                                                  />
+                                             </Grid>
 
-                                   <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
+                                             <Grid item xs={12} md={8}><Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} /></Grid>
 
-                                   <Box sx={{ display: 'flex' }}>
-                                        <FormControl sx={{ display: 'flex', flexDirection: 'column', width: '400px', height: '50px' }}>
-                                             <Typography id="showList">Prikaži listu</Typography>
-                                             <Checkbox
-                                                  name="showList"
-                                                  defaultChecked={false}
-                                                  sx={{ width: '10px', height: '10px' }}
-                                                  onChange={(e) => {
-                                                       setListEnabled(e.target.checked)
-                                                       formik.setFieldValue('showList', e.target.checked)
-                                                  }}
-                                             />
-                                        </FormControl>
+                                             <Grid item xs={12} md={8}>
+                                                  <FormControl sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+                                                       <Typography id="showProjectDetails">Prikazi detalje glavnog projekta</Typography>
+                                                       <Checkbox
+                                                            name="showProjectDetails"
+                                                            defaultChecked={false}
+                                                            sx={{ width: '10px', height: '10px' }}
+                                                            onChange={(e) => {
+                                                                 formik.setFieldValue('showProjectDetails', e.target.checked)
+                                                            }}
+                                                       />
+                                                  </FormControl>
+                                             </Grid>
 
-                                        <FormControl sx={{ display: 'flex', flexDirection: 'column', width: '400px', height: '50px' }}>
-                                             <Typography id="showListOnBottom">Prikaži listu na dnu</Typography>
-                                             <Checkbox
-                                                  name="showListOnBottom"
-                                                  defaultChecked={false}
-                                                  sx={{ width: '10px', height: '10px' }}
-                                                  onChange={(e) => {
-                                                       formik.setFieldValue('showListOnBottom', e.target.checked)
-                                                  }}
-                                             />
-                                        </FormControl>
-                                   </Box>
-                                   <TextField
-                                        InputLabelProps={{ shrink: true }}
-                                        label="Tekst liste"
-                                        name="title"
-                                        // value={formik.values.title}
-                                        disabled={loading || !listEnabled}
-                                        onBlur={(e: any) => {
-                                             formik.setFieldValue('listTitle', e.target.value)
-                                        }}
-                                        error={formik.touched.listTitle && !!formik.errors.listTitle}
-                                        helperText={formik.touched.listTitle && formik.errors.listTitle}
-                                   />
+                                             <Grid item xs={12} md={8}><Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} /></Grid>
 
-                                   <Grid
-                                        item
-                                        md={6}
-                                        xs={12}
-                                   >
-                                        <Typography sx={{ margin: '10px' }}>Lista:</Typography>
-                                        <FieldArray
-                                             name={'list'}
-                                             render={arrayHelpers => (
-                                                  formik.values?.list.length > 0 ?
-                                                       formik.values?.list.map((listItem: any, index: any) => (
-                                                            <Box sx={{ display: 'flex', width: '80%' }}>
-                                                                 <TextField
-                                                                      disabled={loading || !listEnabled}
-                                                                      InputLabelProps={{ shrink: true }}
-                                                                      defaultValue={listItem}
-                                                                      fullWidth
-                                                                      onBlur={(e) => {
-                                                                           const newList = [...formik.values.list];
-                                                                           newList[index] = e.target.value;
-                                                                           formik.setFieldValue('list', newList);
-                                                                      }}
-                                                                      name={`list.${index}`}
-                                                                      label={`Stavka ${index + 1}`}
-                                                                 />
-                                                                 <IconButton disabled={loading || !listEnabled} onClick={() => arrayHelpers.insert(index + 1, '')}>
+                                             <Grid item xs={12} md={8}>
+                                                  <Box sx={{ display: 'flex', width: '100%' }}>
+                                                       <FormControl sx={{ display: 'flex', flexDirection: 'column', width: '400px', height: '50px' }}>
+                                                            <Typography id="showList">Prikaži listu</Typography>
+                                                            <Checkbox
+                                                                 name="showList"
+                                                                 defaultChecked={false}
+                                                                 sx={{ width: '10px', height: '10px' }}
+                                                                 onChange={(e) => {
+                                                                      setListEnabled(e.target.checked)
+                                                                      formik.setFieldValue('showList', e.target.checked)
+                                                                 }}
+                                                            />
+                                                       </FormControl>
+
+                                                       <FormControl sx={{ display: 'flex', flexDirection: 'column', width: '400px', height: '50px' }}>
+                                                            <Typography id="showListOnBottom">Prikaži listu na dnu</Typography>
+                                                            <Checkbox
+                                                                 name="showListOnBottom"
+                                                                 defaultChecked={false}
+                                                                 sx={{ width: '10px', height: '10px' }}
+                                                                 onChange={(e) => {
+                                                                      formik.setFieldValue('showListOnBottom', e.target.checked)
+                                                                 }}
+                                                            />
+                                                       </FormControl>
+                                                  </Box>
+                                             </Grid>
+                                             <Grid item xs={12} md={8}>
+                                                  <TextField
+                                                       InputLabelProps={{ shrink: true }}
+                                                       label="Tekst liste"
+                                                       name="title"
+                                                       // value={formik.values.title}
+                                                       disabled={loading || !listEnabled}
+                                                       fullWidth
+                                                       onBlur={(e: any) => {
+                                                            formik.setFieldValue('listTitle', e.target.value)
+                                                       }}
+                                                       error={formik.touched.listTitle && !!formik.errors.listTitle}
+                                                       helperText={formik.touched.listTitle && formik.errors.listTitle}
+                                                  />
+                                             </Grid>
+
+                                             <Grid
+                                                  item
+                                                  md={8}
+                                                  xs={12}
+                                             >
+                                                  <Typography sx={{ margin: '10px' }}>Lista:</Typography>
+                                                  <FieldArray
+                                                       name={'list'}
+                                                       render={arrayHelpers => (
+                                                            formik.values?.list.length > 0 ?
+                                                                 formik.values?.list.map((listItem: any, index: any) => (
+                                                                      <Box sx={{ display: 'flex', width: '100%' }}>
+                                                                           <TextField
+                                                                                disabled={loading || !listEnabled}
+                                                                                InputLabelProps={{ shrink: true }}
+                                                                                defaultValue={listItem}
+                                                                                fullWidth
+                                                                                onBlur={(e) => {
+                                                                                     const newList = [...formik.values.list];
+                                                                                     newList[index] = e.target.value;
+                                                                                     formik.setFieldValue('list', newList);
+                                                                                }}
+                                                                                name={`list.${index}`}
+                                                                                label={`Stavka ${index + 1}`}
+                                                                           />
+                                                                           <IconButton disabled={loading || !listEnabled} onClick={() => arrayHelpers.insert(index + 1, '')}>
+                                                                                <AddBoxIcon />
+                                                                           </IconButton>
+                                                                           <IconButton disabled={loading || !listEnabled} onClick={() => arrayHelpers.remove(index)}>
+                                                                                <DeleteIcon />
+                                                                           </IconButton>
+                                                                      </Box>
+                                                                 ))
+                                                                 :
+                                                                 < IconButton disabled={loading || !listEnabled} onClick={() => arrayHelpers.push('')}>
                                                                       <AddBoxIcon />
                                                                  </IconButton>
-                                                                 <IconButton disabled={loading || !listEnabled} onClick={() => arrayHelpers.remove(index)}>
-                                                                      <DeleteIcon />
-                                                                 </IconButton>
-                                                            </Box>
-                                                       ))
-                                                       :
-                                                       < IconButton disabled={loading || !listEnabled} onClick={() => arrayHelpers.push('')}>
-                                                            <AddBoxIcon />
-                                                       </IconButton>
-                                             )}
-                                        />
-                                   </Grid>
+                                                       )}
+                                                  />
+                                             </Grid>
 
-                                   <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
+                                             <Grid item xs={12} md={8}><Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} /></Grid>
 
-                                   <Grid
-                                        item
-                                        md={6}
-                                        xs={12}
-                                   >
-                                        <Typography sx={{ margin: '10px' }}>
-                                             Pasusi: {
-                                                  formik.errors.paragraphs ?
-                                                       <Typography sx={{ color: 'red' }}>{formik.errors.paragraphs}</Typography>
-                                                       :
-                                                       null
-                                             }
-                                        </Typography>
-                                        <FieldArray
-                                             name={'paragraphs'}
-                                             render={arrayHelpers => (
-                                                  formik.values?.paragraphs.length > 0 ?
-                                                       formik.values?.paragraphs.map((paragraph: any, index: any) => (
-                                                            <Box sx={{ display: 'flex', width: '80%' }}>
-                                                                 <TextField
+                                             <Grid
+                                                  item
+                                                  md={8}
+                                                  xs={12}
+                                             >
+                                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pr: 2 }}>
+                                                       <Typography sx={{ margin: '10px' }}>
+                                                            Pasusi: <br />
+
+                                                       </Typography>
+                                                       <FormControlLabel
+                                                            control={
+                                                                 <Switch
+                                                                      checked={useRichText}
+                                                                      onChange={(e) => {
+                                                                           const checked = e.target.checked
+                                                                           setUseRichText(checked)
+                                                                           if (checked) {
+                                                                                const html = paragraphsToHtml(formik.values.paragraphs || [])
+                                                                                setEditorHtml(html)
+                                                                                setQuillEditorData(html)
+                                                                                formik.setFieldValue('quillEditorData', html)
+                                                                           }
+                                                                      }}
                                                                       disabled={loading}
-                                                                      InputLabelProps={{ shrink: true }}
-                                                                      defaultValue={paragraph}
-                                                                      fullWidth
-                                                                      onBlur={(e) => {
-                                                                           const newParagraphs = [...formik.values.paragraphs];
-                                                                           newParagraphs[index] = e.target.value;
-                                                                           formik.setFieldValue('paragraphs', newParagraphs);
-                                                                           setDataForProjectSummary((prevData: any) =>
-                                                                           ({
-                                                                                ...prevData,
-                                                                                projectSummaryDescription: newParagraphs[0]
-                                                                           }))
-                                                                      }}
-                                                                      name={`paragraph.${index}`}
-                                                                      label={`Paragraf ${index + 1}`}
                                                                  />
+                                                            }
+                                                            label={useRichText ? 'Editor' : 'Lista'}
+                                                       />
+                                                  </Box>
 
-                                                                 <IconButton disabled={loading} onClick={() => arrayHelpers.insert(index + 1, '')}>
-                                                                      <AddBoxIcon />
-                                                                 </IconButton>
-                                                                 <IconButton disabled={loading} onClick={() => arrayHelpers.remove(index)}>
-                                                                      <DeleteIcon />
-                                                                 </IconButton>
-                                                            </Box>
-                                                       ))
-                                                       :
-                                                       < IconButton disabled={loading} onClick={() => arrayHelpers.push('')}>
-                                                            <AddBoxIcon />
-                                                       </IconButton>
-                                             )}
-                                        />
-                                   </Grid>
+                                                  {useRichText ? (
+                                                       <Box sx={{ position: 'relative', width: '100%' }}>
+                                                            <QuillEditor
+                                                                 value={editorHtml}
+                                                                 onChange={(value) => {
+                                                                      setEditorHtml(value)
+                                                                      setQuillEditorData(value)
+                                                                      formik.setFieldValue('quillEditorData', value)
+                                                                      setDataForProjectSummary((prevData: any) => ({
+                                                                           ...prevData,
+                                                                           projectSummaryDescription: htmlToFirstText(value)
+                                                                      }))
+                                                                 }}
+                                                            />
+                                                            {(loading) && (
+                                                                 <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(255,255,255,0.4)', cursor: 'not-allowed' }} />
+                                                            )}
+                                                       </Box>
+                                                  ) : (
+                                                       <FieldArray
+                                                            name={'paragraphs'}
+                                                            render={arrayHelpers => (
+                                                                 formik.values?.paragraphs.length > 0 ?
+                                                                      formik.values?.paragraphs.map((paragraph: any, index: any) => (
+                                                                           <Box sx={{ display: 'flex', width: '100%' }}>
+                                                                                <TextField
+                                                                                     disabled={loading}
+                                                                                     InputLabelProps={{ shrink: true }}
+                                                                                     defaultValue={paragraph}
+                                                                                     fullWidth
+                                                                                     onBlur={(e) => {
+                                                                                          const newParagraphs = [...formik.values.paragraphs];
+                                                                                          newParagraphs[index] = e.target.value;
+                                                                                          formik.setFieldValue('paragraphs', newParagraphs);
+                                                                                          setDataForProjectSummary((prevData: any) =>
+                                                                                          ({
+                                                                                               ...prevData,
+                                                                                               projectSummaryDescription: newParagraphs[0]
+                                                                                          }))
+                                                                                     }}
+                                                                                     name={`paragraph.${index}`}
+                                                                                     label={`Paragraf ${index + 1}`}
+                                                                                />
+
+                                                                                <IconButton disabled={loading} onClick={() => arrayHelpers.insert(index + 1, '')}>
+                                                                                     <AddBoxIcon />
+                                                                                </IconButton>
+                                                                                <IconButton disabled={loading} onClick={() => arrayHelpers.remove(index)}>
+                                                                                     <DeleteIcon />
+                                                                                </IconButton>
+                                                                           </Box>
+                                                                      ))
+                                                                      :
+                                                                      < IconButton disabled={loading} onClick={() => arrayHelpers.push('')}>
+                                                                           <AddBoxIcon />
+                                                                      </IconButton>
+                                                            )}
+                                                       />
+                                                  )}
+                                             </Grid>
 
 
-                                   <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
+                                             <Grid item xs={12} md={8}><Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} /></Grid>
 
-                                   <Grid
-                                        item
-                                        md={6}
-                                        xs={12}
-                                   >
-                                        <TextField
-                                             InputLabelProps={{ shrink: true }}
-                                             fullWidth
-                                             label="Linkovi (odvojeni zarezom)"
-                                             name="links"
-                                             onBlur={(e) => {
-                                                  const { value } = e.target;
-                                                  const links = value.split(',').map((link) => link.trim());
-                                                  formik.setFieldValue('links', links);
-                                                  formik.handleBlur(e);
-                                             }}
-                                             error={formik.touched.links && !!formik.errors.links}
-                                             helperText={formik.touched.links && formik.errors.links}
-                                        />
-                                   </Grid>
+                                             <Grid
+                                                  item
+                                                  md={8}
+                                                  xs={12}
+                                             >
+                                                  <TextField
+                                                       InputLabelProps={{ shrink: true }}
+                                                       fullWidth
+                                                       label="Linkovi (odvojeni zarezom)"
+                                                       name="links"
+                                                       onBlur={(e) => {
+                                                            const { value } = e.target;
+                                                            const links = value.split(',').map((link) => link.trim());
+                                                            formik.setFieldValue('links', links);
+                                                            formik.handleBlur(e);
+                                                       }}
+                                                       error={formik.touched.links && !!formik.errors.links}
+                                                       helperText={formik.touched.links && formik.errors.links}
+                                                  />
+                                             </Grid>
 
-                                   <Grid
-                                        item
-                                        md={6}
-                                        xs={12}
-                                   >
-                                        <TextField
-                                             InputLabelProps={{ shrink: true }}
-                                             fullWidth
-                                             label="Lokacije (odvojeni zarezom)"
-                                             name="locations"
-                                             onBlur={(e) => {
-                                                  const { value } = e.target;
-                                                  const locations = value.split(',').map((location) => location.trim());
-                                                  formik.setFieldValue('locations', locations);
-                                                  formik.handleBlur(e);
-                                             }}
-                                             error={formik.touched.locations && !!formik.errors.locations}
-                                             helperText={formik.touched.locations && formik.errors.locations}
-                                        />
-                                   </Grid>
+                                             <Grid
+                                                  item
+                                                  md={8}
+                                                  xs={12}
+                                             >
+                                                  <TextField
+                                                       InputLabelProps={{ shrink: true }}
+                                                       fullWidth
+                                                       label="Lokacije (odvojeni zarezom)"
+                                                       name="locations"
+                                                       onBlur={(e) => {
+                                                            const { value } = e.target;
+                                                            const locations = value.split(',').map((location) => location.trim());
+                                                            formik.setFieldValue('locations', locations);
+                                                            formik.handleBlur(e);
+                                                       }}
+                                                       error={formik.touched.locations && !!formik.errors.locations}
+                                                       helperText={formik.touched.locations && formik.errors.locations}
+                                                  />
+                                             </Grid>
 
-                                   <Grid
-                                        item
-                                        md={6}
-                                        xs={12}
-                                   >
-                                        <TextField
-                                             InputLabelProps={{ shrink: true }}
-                                             fullWidth
-                                             label="Aplikanti (odvojeni zarezom)"
-                                             name="applicants"
-                                             onBlur={(e) => {
-                                                  const { value } = e.target;
-                                                  const applicants = value.split(',').map((applicant) => applicant.trim());
-                                                  formik.setFieldValue('applicants', applicants);
-                                                  formik.handleBlur(e);
-                                             }}
-                                             error={formik.touched.applicants && !!formik.errors.applicants}
-                                             helperText={formik.touched.applicants && formik.errors.applicants}
-                                        />
-                                   </Grid>
+                                             <Grid
+                                                  item
+                                                  md={8}
+                                                  xs={12}
+                                             >
+                                                  <TextField
+                                                       InputLabelProps={{ shrink: true }}
+                                                       fullWidth
+                                                       label="Aplikanti (odvojeni zarezom)"
+                                                       name="applicants"
+                                                       onBlur={(e) => {
+                                                            const { value } = e.target;
+                                                            const applicants = value.split(',').map((applicant) => applicant.trim());
+                                                            formik.setFieldValue('applicants', applicants);
+                                                            formik.handleBlur(e);
+                                                       }}
+                                                       error={formik.touched.applicants && !!formik.errors.applicants}
+                                                       helperText={formik.touched.applicants && formik.errors.applicants}
+                                                  />
+                                             </Grid>
 
-                                   <Grid
-                                        item
-                                        md={6}
-                                        xs={12}
-                                   >
-                                        <TextField
-                                             InputLabelProps={{ shrink: true }}
-                                             fullWidth
-                                             label="Organizatori (odvojeni zarezom)"
-                                             name="organizers"
-                                             onBlur={(e) => {
-                                                  const { value } = e.target;
-                                                  const organizers = value.split(',').map((organizer: any) => organizer.trim());
-                                                  formik.setFieldValue('organizers', organizers);
-                                                  formik.handleBlur(e);
-                                             }}
-                                             error={formik.touched.organizers && !!formik.errors.organizers}
-                                             helperText={formik.touched.organizers && formik.errors.organizers}
-                                        />
-                                   </Grid>
+                                             <Grid
+                                                  item
+                                                  md={8}
+                                                  xs={12}
+                                             >
+                                                  <TextField
+                                                       InputLabelProps={{ shrink: true }}
+                                                       fullWidth
+                                                       label="Organizatori (odvojeni zarezom)"
+                                                       name="organizers"
+                                                       onBlur={(e) => {
+                                                            const { value } = e.target;
+                                                            const organizers = value.split(',').map((organizer: any) => organizer.trim());
+                                                            formik.setFieldValue('organizers', organizers);
+                                                            formik.handleBlur(e);
+                                                       }}
+                                                       error={formik.touched.organizers && !!formik.errors.organizers}
+                                                       helperText={formik.touched.organizers && formik.errors.organizers}
+                                                  />
+                                             </Grid>
 
-                                   <Grid
-                                        item
-                                        md={6}
-                                        xs={12}
-                                   >
-                                        <TextField
-                                             InputLabelProps={{ shrink: true }}
-                                             fullWidth
-                                             label="Pod Organizatori (odvojeni zarezom)"
-                                             name="subOrganizers"
-                                             onBlur={(e) => {
-                                                  const { value } = e.target;
-                                                  const subOrganizers = value.split(',').map((subOrganizer: any) => subOrganizer.trim());
-                                                  formik.setFieldValue('subOrganizers', subOrganizers);
-                                                  formik.handleBlur(e);
-                                             }}
-                                             error={formik.touched.subOrganizers && !!formik.errors.subOrganizers}
-                                             helperText={formik.touched.subOrganizers && formik.errors.subOrganizers}
-                                        />
-                                   </Grid>
+                                             <Grid
+                                                  item
+                                                  md={8}
+                                                  xs={12}
+                                             >
+                                                  <TextField
+                                                       InputLabelProps={{ shrink: true }}
+                                                       fullWidth
+                                                       label="Pod Organizatori (odvojeni zarezom)"
+                                                       name="subOrganizers"
+                                                       onBlur={(e) => {
+                                                            const { value } = e.target;
+                                                            const subOrganizers = value.split(',').map((subOrganizer: any) => subOrganizer.trim());
+                                                            formik.setFieldValue('subOrganizers', subOrganizers);
+                                                            formik.handleBlur(e);
+                                                       }}
+                                                       error={formik.touched.subOrganizers && !!formik.errors.subOrganizers}
+                                                       helperText={formik.touched.subOrganizers && formik.errors.subOrganizers}
+                                                  />
+                                             </Grid>
 
-                                   <Grid
-                                        item
-                                        md={6}
-                                        xs={12}
-                                   >
-                                        <TextField
-                                             InputLabelProps={{ shrink: true }}
-                                             fullWidth
-                                             label="Donatori (odvojeni zarezom)"
-                                             name="donators"
-                                             onBlur={(e) => {
-                                                  const { value } = e.target;
-                                                  const donators = value.split(',').map((donator: any) => donator.trim());
-                                                  formik.setFieldValue('donators', donators);
-                                                  formik.handleBlur(e);
-                                             }}
-                                             error={formik.touched.donators && !!formik.errors.donators}
-                                             helperText={formik.touched.donators && formik.errors.donators}
-                                        />
-                                   </Grid>
+                                             <Grid
+                                                  item
+                                                  md={8}
+                                                  xs={12}
+                                             >
+                                                  <TextField
+                                                       InputLabelProps={{ shrink: true }}
+                                                       fullWidth
+                                                       label="Donatori (odvojeni zarezom)"
+                                                       name="donators"
+                                                       onBlur={(e) => {
+                                                            const { value } = e.target;
+                                                            const donators = value.split(',').map((donator: any) => donator.trim());
+                                                            formik.setFieldValue('donators', donators);
+                                                            formik.handleBlur(e);
+                                                       }}
+                                                       error={formik.touched.donators && !!formik.errors.donators}
+                                                       helperText={formik.touched.donators && formik.errors.donators}
+                                                  />
+                                             </Grid>
 
-                                   <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
-                                   <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
-                                        <Button
-                                             variant="contained"
-                                             color="primary"
-                                             onClick={() => onSubmitFail()}
-                                             disabled={loading}
-                                        >
-                                             Odustani
-                                        </Button>
-                                        <Button type="submit"
-                                             variant="contained"
-                                             color="primary"
-                                             disabled={Object.keys(formik.errors).length != 0 && loading}
-                                        >
-                                             Dodaj projekat
-                                        </Button>
-                                   </Box>
+                                             <Grid item xs={12} md={8}><Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} /></Grid>
+                                             <Grid item xs={12} md={8}>
+                                                  <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
+                                                       <Button
+                                                            variant="contained"
+                                                            color="primary"
+                                                            onClick={() => onSubmitFail()}
+                                                            disabled={loading}
+                                                       >
+                                                            Odustani
+                                                       </Button>
+                                                       <Button type="submit"
+                                                            variant="contained"
+                                                            color="primary"
+                                                            disabled={Object.keys(formik.errors).length != 0 || loading}
+                                                       >
+                                                            Dodaj projekat
+                                                       </Button>
+                                                  </Box>
+                                                  <Typography>
+                                                       Greske:
+                                                       {Object.keys(formik.errors).length
+                                                            ? ` Greska: ${JSON.stringify(formik.errors)}`
+                                                            : ' /'}
+                                                  </Typography>
+                                             </Grid>
+                                        </Grid>
+                                   </fieldset>
                               </Form>
                          )
                     }

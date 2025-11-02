@@ -1197,19 +1197,3 @@ export const ActivityTable = ({ items }: any) => {
           </Card >
      );
 };
-
-
-
-// ActivitysTable.propTypes = {
-//           count: PropTypes.number,
-//           items: PropTypes.array,
-//           onDeselectAll: PropTypes.func,
-//           onDeselectOne: PropTypes.func,
-//           onPageChange: PropTypes.func,
-//           onRowsPerPageChange: PropTypes.func,
-//           onSelectAll: PropTypes.func,
-//           onSelectOne: PropTypes.func,
-//           page: PropTypes.number,
-//           rowsPerPage: PropTypes.number,
-//           selected: PropTypes.array
-// };

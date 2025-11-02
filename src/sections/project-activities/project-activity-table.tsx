@@ -2,12 +2,12 @@ import ChevronRightIcon from '@untitled-ui/icons-react/build/esm/ChevronRight';
 import ChevronDownIcon from '@untitled-ui/icons-react/build/esm/ChevronDown';
 import {
      Box, Button, Card, Checkbox, Divider, FormControl, Grid, IconButton, ImageList, ImageListItem, Input, MenuItem,
-     Stack, SvgIcon, Table, TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography, useTheme
+     Stack, SvgIcon, Table, TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography, useTheme, Switch, FormControlLabel
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddBoxIcon from '@mui/icons-material/AddBox';
-import { Fragment, useState } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Scrollbar } from 'src/components/scrollbar';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -21,6 +21,7 @@ import moment from 'moment';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import ArticleIcon from '@mui/icons-material/Article';
 import { extractFileName, getThumbnail } from '../project-summaries/project-summary-table';
+import QuillEditor from '@/components/quill-editor'
 
 const projectStatus: ProjectStatus[] = ['completed', 'in-progress', 'to-do'];
 
@@ -31,33 +32,60 @@ type ProjectLocale = {
      name: string;
 }
 
-const locales: ProjectLocale[] = [{ value: 'en', name: 'Engleski' }, { value: 'sr', name: 'Srpski' }]
-
 export const ProjectActivityTable = (props: any) => {
 
-     const { items, projectActivitiesCount, page, rowsPerPage, selected } = props;
+     const { items } = props;
      const [currentProjectID, setCurrentProjectID] = useState(null);
      const [currentProjectObject, setCurrentProjectObject] = useState<ProjectActivity | null | undefined>(projectActivityInitialValues);
-     const [listEnabled, setListEnabled] = useState<any>(false)
      const [listOnBottom, setListOnBottom] = useState<any>(false)
+     const [useRichText, setUseRichText] = useState<boolean>(false)
+     const [editorHtml, setEditorHtml] = useState<string>('')
+     const [quillEditorData, setQuillEditorData] = useState<string>('')
+     const [useRichTextEng, setUseRichTextEng] = useState<boolean>(false)
+     const [editorHtmlEng, setEditorHtmlEng] = useState<string>('')
+     const [contentHtmlEng, setContentHtmlEng] = useState<string>('')
 
      const router = useRouter();
      const theme = useTheme()
      const [loading, setLoading] = useState(false)
-     const [selectedImage, setSelectedImage] = useState(null);
+     const paragraphsToHtml = (paras: string[]) => (paras && paras.length ? paras.map((p) => `<p>${p}</p>`).join('') : '')
+     const htmlToParagraphs = (html: string) => {
+          if (typeof document === 'undefined') return []
+          const div = document.createElement('div')
+          div.innerHTML = html || ''
+          const blocks = Array.from(div.querySelectorAll('p, li'))
+          const texts = blocks.map((el) => (el.textContent || '').trim()).filter(Boolean)
+          if (texts.length) return texts
+          const all = (div.textContent || '').trim()
+          return all ? [all] : []
+     }
+
+     // When a project is selected/opened, initialize the editor mode and values
+     // Prefer existing saved quill data; fall back to paragraph list rendered as HTML
+     useEffect(() => {
+          if (!currentProjectID) {
+               setUseRichText(false)
+               setEditorHtml('')
+               setQuillEditorData('')
+               return
+          }
+          const obj = getObjectById(currentProjectID, items) as any
+          if (!obj) return
+          const savedHtml = obj.quillEditorData as string | undefined
+          const hasSavedHtml = typeof savedHtml === 'string' && savedHtml.trim().length > 0
+          setUseRichText(!!hasSavedHtml)
+          if (hasSavedHtml) {
+               setEditorHtml(savedHtml)
+               setQuillEditorData(savedHtml)
+          } else {
+               const html = paragraphsToHtml(obj.paragraphs || [])
+               setEditorHtml(html)
+          }
+     }, [currentProjectID])
 
      const getObjectById = (_id: any, arrayToSearch: any) => {
           for (const obj of arrayToSearch) {
                if (obj._id === _id) {
-                    return obj;  // Found the object with the desired ID
-               }
-          }
-          return null;  // Object with the desired ID not found
-     }
-
-     const getProjectSummaryByTitle = (title: string, arrayToSearch: any) => {
-          for (const obj of arrayToSearch) {
-               if (obj.title === title) {
                     return obj;  // Found the object with the desired ID
                }
           }
@@ -111,7 +139,11 @@ export const ProjectActivityTable = (props: any) => {
                          'Access-Control-Allow-Origin': 'https://lda-dashboard.vercel.app/api/project-api, http://localhost:3000/api/project-api',
                          'Access-Control-Allow-Methods': 'PUT' // Set the content type to JSON
                     },
-                    body: JSON.stringify(currentProjectObject)
+                    body: JSON.stringify({
+                         ...currentProjectObject,
+                         quillEditorData,
+                         contentHtmlEng,
+                    })
                });
 
                if (response.ok) {
@@ -1360,52 +1392,94 @@ export const ProjectActivityTable = (props: any) => {
                                                                                      md={6}
                                                                                      xs={12}
                                                                                 >
-                                                                                     <Typography sx={{ margin: '10px' }}>Pasusi:</Typography>
-                                                                                     {
-                                                                                          currentProjectObject?.paragraphs.length == 0 &&
-                                                                                          <Box>
-                                                                                               <IconButton onClick={() => onAddNewParagraph(0, '')}>
-                                                                                                    <AddBoxIcon />
-                                                                                               </IconButton>
-                                                                                               <IconButton onClick={() => onDeleteParagraph(0)}>
-                                                                                                    <DeleteIcon />
-                                                                                               </IconButton>
-                                                                                          </Box>
-                                                                                     }
-
-                                                                                     {
-                                                                                          currentProjectObject?.paragraphs.length != 0 &&
-                                                                                          currentProjectObject?.paragraphs?.map((paragraph: any, index: any) =>
-                                                                                               <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
-                                                                                                    <TextField
-                                                                                                         defaultValue={currentProjectObject.paragraphs[index]}
-                                                                                                         fullWidth
-                                                                                                         label={`Pasus ${index + 1}`}
-                                                                                                         disabled={loading}
-                                                                                                         // name={activity.description}
-                                                                                                         onBlur={(e: any) => {
-                                                                                                              setCurrentProjectObject((prevProjectActivity: ProjectActivity | null | undefined) => {
-                                                                                                                   if (prevProjectActivity) {
-                                                                                                                        const newParagraphs = [...prevProjectActivity.paragraphs];
-                                                                                                                        newParagraphs[index] = e.target.value; // Update the subtitle at the clicked index
-                                                                                                                        return {
-                                                                                                                             ...prevProjectActivity,
-                                                                                                                             paragraphs: newParagraphs,
-                                                                                                                        };
+                                                                                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 2, pr: 2 }}>
+                                                                                          <FormControlLabel
+                                                                                               control={
+                                                                                                    <Switch
+                                                                                                         checked={useRichText}
+                                                                                                         onChange={(e) => {
+                                                                                                              const checked = e.target.checked
+                                                                                                              setUseRichText(checked)
+                                                                                                              if (checked && currentProjectObject) {
+                                                                                                                   const savedHtml = (currentProjectObject as any).quillEditorData as string | undefined
+                                                                                                                   if (typeof savedHtml === 'string' && savedHtml.trim().length > 0) {
+                                                                                                                        setEditorHtml(savedHtml)
+                                                                                                                        setQuillEditorData(savedHtml)
+                                                                                                                   } else {
+                                                                                                                        const html = paragraphsToHtml(currentProjectObject.paragraphs || [])
+                                                                                                                        setEditorHtml(html)
+                                                                                                                        setQuillEditorData(html)
                                                                                                                    }
-                                                                                                                   return prevProjectActivity;
-                                                                                                              });
+                                                                                                              }
                                                                                                          }}
+                                                                                                         disabled={loading}
                                                                                                     />
-                                                                                                    <IconButton onClick={() => onAddNewParagraph(index + 1, '')}>
-                                                                                                         <AddBoxIcon />
-                                                                                                    </IconButton>
-                                                                                                    <IconButton onClick={() => onDeleteParagraph(index)}>
-                                                                                                         <DeleteIcon />
-                                                                                                    </IconButton>
-                                                                                               </Box>
-                                                                                          )
-                                                                                     }
+                                                                                               }
+                                                                                               label={useRichText ? 'Editor' : 'Lista'}
+                                                                                          />
+                                                                                          <Typography sx={{ margin: '10px' }}>Pasusi:</Typography>
+                                                                                     </Box>
+
+                                                                                     {useRichText ? (
+                                                                                          <Box sx={{ position: 'relative', width: '100%' }}>
+                                                                                               <QuillEditor
+                                                                                                    initialValue={editorHtml}
+                                                                                                    commitMode="onBlur"
+                                                                                                    onBlur={(html) => {
+                                                                                                         const val = html || ''
+                                                                                                         setEditorHtml(val)
+                                                                                                         setQuillEditorData(val)
+                                                                                                    }}
+                                                                                               />
+                                                                                               {loading && (
+                                                                                                    <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(255,255,255,0.4)', cursor: 'not-allowed' }} />
+                                                                                               )}
+                                                                                          </Box>
+                                                                                     ) : (
+                                                                                          <>
+                                                                                               {currentProjectObject?.paragraphs.length == 0 && (
+                                                                                                    <Box>
+                                                                                                         <IconButton onClick={() => onAddNewParagraph(0, '')}>
+                                                                                                              <AddBoxIcon />
+                                                                                                         </IconButton>
+                                                                                                         <IconButton onClick={() => onDeleteParagraph(0)}>
+                                                                                                              <DeleteIcon />
+                                                                                                         </IconButton>
+                                                                                                    </Box>
+                                                                                               )}
+
+                                                                                               {currentProjectObject?.paragraphs.length != 0 &&
+                                                                                                    currentProjectObject?.paragraphs?.map((paragraph: any, index: any) => (
+                                                                                                         <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
+                                                                                                              <TextField
+                                                                                                                   defaultValue={currentProjectObject.paragraphs[index]}
+                                                                                                                   fullWidth
+                                                                                                                   label={`Pasus ${index + 1}`}
+                                                                                                                   disabled={loading}
+                                                                                                                   onBlur={(e: any) => {
+                                                                                                                        setCurrentProjectObject((prevProjectActivity: ProjectActivity | null | undefined) => {
+                                                                                                                             if (prevProjectActivity) {
+                                                                                                                                  const newParagraphs = [...prevProjectActivity.paragraphs];
+                                                                                                                                  newParagraphs[index] = e.target.value; // Update the subtitle at the clicked index
+                                                                                                                                  return {
+                                                                                                                                       ...prevProjectActivity,
+                                                                                                                                       paragraphs: newParagraphs,
+                                                                                                                                  };
+                                                                                                                             }
+                                                                                                                             return prevProjectActivity;
+                                                                                                                        });
+                                                                                                                   }}
+                                                                                                              />
+                                                                                                              <IconButton onClick={() => onAddNewParagraph(index + 1, '')}>
+                                                                                                                   <AddBoxIcon />
+                                                                                                              </IconButton>
+                                                                                                              <IconButton onClick={() => onDeleteParagraph(index)}>
+                                                                                                                   <DeleteIcon />
+                                                                                                              </IconButton>
+                                                                                                         </Box>
+                                                                                                    ))}
+                                                                                          </>
+                                                                                     )}
                                                                                 </Grid>
                                                                                 <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
                                                                                 {/* ------------------------Paragraphs Translations------------------------ */}
@@ -1475,52 +1549,88 @@ export const ProjectActivityTable = (props: any) => {
                                                                                                }
                                                                                           />
                                                                                      </Grid>
-                                                                                     <Typography sx={{ margin: '10px' }}>Pasusi Prevedeni:</Typography>
-                                                                                     {
-                                                                                          currentProjectObject?.paragraphs_eng.length == 0 &&
-                                                                                          <Box>
-                                                                                               <IconButton onClick={() => onAddNewTranslatedParagraph(0, '')}>
-                                                                                                    <AddBoxIcon />
-                                                                                               </IconButton>
-                                                                                               <IconButton onClick={() => onDeleteTranslatedParagraph(0)}>
-                                                                                                    <DeleteIcon />
-                                                                                               </IconButton>
-                                                                                          </Box>
-                                                                                     }
-
-                                                                                     {
-                                                                                          currentProjectObject?.paragraphs_eng.length != 0 &&
-                                                                                          currentProjectObject?.paragraphs_eng?.map((paragraph_eng: any, index: any) =>
-                                                                                               <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
-                                                                                                    <TextField
-                                                                                                         defaultValue={currentProjectObject.paragraphs_eng[index]}
-                                                                                                         fullWidth
-                                                                                                         label={`Pasus ${index + 1}`}
-                                                                                                         disabled={loading}
-                                                                                                         // name={activity.description}
-                                                                                                         onBlur={(e: any) => {
-                                                                                                              setCurrentProjectObject((prevProjectActivity: ProjectActivity | null | undefined) => {
-                                                                                                                   if (prevProjectActivity) {
-                                                                                                                        const newParagraphs = [...prevProjectActivity.paragraphs_eng];
-                                                                                                                        newParagraphs[index] = e.target.value; // Update the subtitle at the clicked index
-                                                                                                                        return {
-                                                                                                                             ...prevProjectActivity,
-                                                                                                                             paragraphs_eng: newParagraphs,
-                                                                                                                        };
-                                                                                                                   }
-                                                                                                                   return prevProjectActivity;
-                                                                                                              });
+                                                                                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 2, pr: 2 }}>
+                                                                                          <FormControlLabel
+                                                                                               control={
+                                                                                                    <Switch
+                                                                                                         checked={useRichTextEng}
+                                                                                                         onChange={(e) => {
+                                                                                                              const checked = e.target.checked
+                                                                                                              setUseRichTextEng(checked)
+                                                                                                              if (checked && currentProjectObject) {
+                                                                                                                   const html = paragraphsToHtml(currentProjectObject.paragraphs_eng || [])
+                                                                                                                   setEditorHtmlEng(html)
+                                                                                                                   setContentHtmlEng(html)
+                                                                                                              }
                                                                                                          }}
+                                                                                                         disabled={loading}
                                                                                                     />
-                                                                                                    <IconButton onClick={() => onAddNewTranslatedParagraph(index + 1, '')}>
-                                                                                                         <AddBoxIcon />
-                                                                                                    </IconButton>
-                                                                                                    <IconButton onClick={() => onDeleteTranslatedParagraph(index)}>
-                                                                                                         <DeleteIcon />
-                                                                                                    </IconButton>
-                                                                                               </Box>
-                                                                                          )
-                                                                                     }
+                                                                                               }
+                                                                                               label={useRichTextEng ? 'Editor' : 'Lista'}
+                                                                                          />
+                                                                                          <Typography sx={{ margin: '10px' }}>Pasusi Prevedeni:</Typography>
+                                                                                     </Box>
+
+                                                                                     {useRichTextEng ? (
+                                                                                          <Box sx={{ position: 'relative', width: '100%' }}>
+                                                                                               <QuillEditor
+                                                                                                    initialValue={editorHtmlEng}
+                                                                                                    commitMode="onBlur"
+                                                                                                    onBlur={(html) => {
+                                                                                                         const val = html || ''
+                                                                                                         setEditorHtmlEng(val)
+                                                                                                         setContentHtmlEng(val)
+                                                                                                    }}
+                                                                                               />
+                                                                                               {loading && (
+                                                                                                    <Box sx={{ position: 'absolute', inset: 0, bgcolor: 'rgba(255,255,255,0.4)', cursor: 'not-allowed' }} />
+                                                                                               )}
+                                                                                          </Box>
+                                                                                     ) : (
+                                                                                          <>
+                                                                                               {currentProjectObject?.paragraphs_eng.length == 0 && (
+                                                                                                    <Box>
+                                                                                                         <IconButton onClick={() => onAddNewTranslatedParagraph(0, '')}>
+                                                                                                              <AddBoxIcon />
+                                                                                                         </IconButton>
+                                                                                                         <IconButton onClick={() => onDeleteTranslatedParagraph(0)}>
+                                                                                                              <DeleteIcon />
+                                                                                                         </IconButton>
+                                                                                                    </Box>
+                                                                                               )}
+
+                                                                                               {currentProjectObject?.paragraphs_eng.length != 0 &&
+                                                                                                    currentProjectObject?.paragraphs_eng?.map((paragraph_eng: any, index: any) => (
+                                                                                                         <Box key={Math.floor(Math.random() * 1000000)} sx={{ display: 'flex', width: '80%' }}>
+                                                                                                              <TextField
+                                                                                                                   defaultValue={currentProjectObject.paragraphs_eng[index]}
+                                                                                                                   fullWidth
+                                                                                                                   label={`Pasus ${index + 1}`}
+                                                                                                                   disabled={loading}
+                                                                                                                   onBlur={(e: any) => {
+                                                                                                                        setCurrentProjectObject((prevProjectActivity: ProjectActivity | null | undefined) => {
+                                                                                                                             if (prevProjectActivity) {
+                                                                                                                                  const newParagraphs = [...prevProjectActivity.paragraphs_eng];
+                                                                                                                                  newParagraphs[index] = e.target.value; // Update the subtitle at the clicked index
+                                                                                                                                  return {
+                                                                                                                                       ...prevProjectActivity,
+                                                                                                                                       paragraphs_eng: newParagraphs,
+                                                                                                                                  };
+                                                                                                                             }
+                                                                                                                             return prevProjectActivity;
+                                                                                                                        });
+                                                                                                                   }}
+                                                                                                              />
+                                                                                                              <IconButton onClick={() => onAddNewTranslatedParagraph(index + 1, '')}>
+                                                                                                                   <AddBoxIcon />
+                                                                                                              </IconButton>
+                                                                                                              <IconButton onClick={() => onDeleteTranslatedParagraph(index)}>
+                                                                                                                   <DeleteIcon />
+                                                                                                              </IconButton>
+                                                                                                         </Box>
+                                                                                                    ))}
+                                                                                          </>
+                                                                                     )}
                                                                                 </Grid>
                                                                                 <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
                                                                                 {/* ------------------------Links------------------------ */}

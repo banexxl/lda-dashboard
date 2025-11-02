@@ -14,6 +14,7 @@ export default async function handler(request: NextApiRequest, response: NextApi
 
           } else if (request.method === 'POST') {
 
+               console.log('request', request.body);
 
                try {
                     const res = await dbProjects.insertOne(
