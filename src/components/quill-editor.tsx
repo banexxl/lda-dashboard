@@ -17,9 +17,10 @@ export interface QuillEditorRef {
 }
 
 // Custom toolbar component that Quill will bind to
-const CustomToolbar = forwardRef<HTMLDivElement, {}>((props, ref) => {
+type CustomToolbarProps = { id?: string }
+const CustomToolbar = forwardRef<HTMLDivElement, CustomToolbarProps>((props, ref) => {
      return (
-          <div ref={ref} className="ql-toolbar ql-snow" data-custom-toolbar>
+          <div ref={ref} id={props.id} className="ql-toolbar ql-snow" data-custom-toolbar>
                <span className="ql-formats">
                     <select className="ql-font">
                          <option value="Inter">Inter</option>
@@ -64,6 +65,7 @@ const QuillEditor = forwardRef<QuillEditorRef, QuillEditorProps>(
           const containerRef = useRef<HTMLDivElement | null>(null)
           const quillRef = useRef<any>(null) // will hold the Quill instance once loaded
           const [toolbarNode, setToolbarNode] = useState<HTMLDivElement | null>(null)
+          const toolbarIdRef = useRef<string>('quill-toolbar-' + Math.random().toString(36).slice(2))
 
           // keep latest handlers without re-subscribing
           const currentValueRef = useRef<string | undefined>(value)
@@ -125,7 +127,8 @@ const QuillEditor = forwardRef<QuillEditorRef, QuillEditorProps>(
                          placeholder: placeholder || 'Start typing...',
                          modules: {
                               toolbar: {
-                                   container: toolbarNode
+                                   // Use selector for robustness
+                                   container: `#${toolbarIdRef.current}`
                               }
                          }
                     })
@@ -252,7 +255,7 @@ const QuillEditor = forwardRef<QuillEditorRef, QuillEditorProps>(
                          }
                     })}
                >
-                    <CustomToolbar ref={setToolbarNode} />
+                    <CustomToolbar ref={setToolbarNode} id={toolbarIdRef.current} />
                     {/* This div becomes the Quill root */}
                     <div ref={containerRef} />
                </Box>
