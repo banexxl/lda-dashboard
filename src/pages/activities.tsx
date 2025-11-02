@@ -1,16 +1,14 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Head from 'next/head';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-import Swal from 'sweetalert2'
 import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
 import { Box, Button, Container, Stack, SvgIcon, Typography } from '@mui/material';
 import { useSelection } from 'src/hooks/use-selection';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { ActivityTable } from '@/sections/activities/activity-table';
 import { ActivitySearch } from '@/sections/activities/activity-search'
-import { applyPagination } from 'src/utils/apply-pagination';
 import { ActivitiesServices } from '../utils/activity-services'
 import { AddActivityForm } from '../sections/activities/activity-form'
 import { useRouter } from 'next/navigation';
@@ -30,8 +28,6 @@ const Page = (props: any) => {
      const [open, setOpen] = useState(false)
      const ActivitySelection = useSelection(ActivityIds);
      const router = useRouter();
-     const [loading, setLoading] = useState(false)
-
      const handleSubmitSuccess = () => {
           setOpen(false); // Close the dialog
      };

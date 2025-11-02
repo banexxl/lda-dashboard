@@ -13,8 +13,6 @@ import 'simplebar-react/dist/simplebar.min.css';
 
 const clientSideEmotionCache = createEmotionCache();
 
-const SplashScreen = () => null;
-
 const App = (props: any) => {
      const { Component, emotionCache = clientSideEmotionCache, pageProps } = props;
      useNProgress();
