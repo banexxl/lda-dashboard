@@ -1,3 +1,5 @@
+'use client'
+
 import ChevronRightIcon from '@untitled-ui/icons-react/build/esm/ChevronRight';
 import ChevronDownIcon from '@untitled-ui/icons-react/build/esm/ChevronDown';
 import {
@@ -1890,19 +1892,3 @@ export const ProjectActivityTable = (props: any) => {
           </Card >
      );
 };
-
-
-
-// ProjectsTable.propTypes = {
-//           count: PropTypes.number,
-//           items: PropTypes.array,
-//           onDeselectAll: PropTypes.func,
-//           onDeselectOne: PropTypes.func,
-//           onPageChange: PropTypes.func,
-//           onRowsPerPageChange: PropTypes.func,
-//           onSelectAll: PropTypes.func,
-//           onSelectOne: PropTypes.func,
-//           page: PropTypes.number,
-//           rowsPerPage: PropTypes.number,
-//           selected: PropTypes.array
-// };

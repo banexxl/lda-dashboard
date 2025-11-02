@@ -1,16 +1,13 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useState } from 'react';
 import Head from 'next/head';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
-import Swal from 'sweetalert2'
 import PlusIcon from '@heroicons/react/24/solid/PlusIcon';
 import { Box, Button, Container, Stack, SvgIcon, Typography } from '@mui/material';
-import { useSelection } from 'src/hooks/use-selection';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { ProjectSummaryTable } from '@/sections/project-summaries/project-summary-table';
 import { ProjectsSearch } from '@/sections/project-summaries/project-search';
-import { applyPagination } from 'src/utils/apply-pagination';
 import { projectSummaryServices } from '../utils/project-summary-services'
 import { AddProjectSummaryForm } from '../sections/project-summaries/project-summary-form'
 import { useRouter } from 'next/navigation';
@@ -26,18 +23,8 @@ type PageProps = {
 }
 
 const Page = (props: PageProps) => {
-
-     // const ProjectsIds = useMemo(() => {
-     //      if (!Array.isArray(props.projects)) {
-     //           return [];
-     //      }
-     //      return props.projects.map((project: any) => project._id);
-     // }, [props.projects]);
-
      const [open, setOpen] = useState(false)
-     //const projectsSelection = useSelection(ProjectsIds);
      const router = useRouter();
-     const [loading, setLoading] = useState(false)
 
      const handleSubmitSuccess = () => {
           setOpen(false); // Close the dialog
@@ -162,7 +149,6 @@ export async function getServerSideProps(context: any) {
                },
           };
      } catch (error) {
-          console.error("Error fetching projects:", error);
           return {
                props: {
                     projects: [],

@@ -10,7 +10,6 @@ import "@uploadthing/react/styles.css";
 import { ActivitySchema, initialActivity } from './activity-type';
 import { DateField } from '@mui/x-date-pickers/DateField';
 import { sanitizeString } from '@/utils/url-creator';
-import moment from 'moment';
 import QuillEditor from '@/components/quill-editor'
 
 export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {

@@ -1,7 +1,9 @@
+'use client'
+
 import ChevronRightIcon from '@untitled-ui/icons-react/build/esm/ChevronRight';
 import ChevronDownIcon from '@untitled-ui/icons-react/build/esm/ChevronDown';
 import {
-     Avatar, Box, Button, Card, Divider, Grid, IconButton, ImageList, ImageListItem, Input, MenuItem,
+     Box, Button, Card, Divider, Grid, IconButton, ImageList, ImageListItem, Input, MenuItem,
      Stack, SvgIcon, Table, TableBody, TableCell, TableHead, TableRow, TextField, Typography, useTheme, Switch, FormControlLabel
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
