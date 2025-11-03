@@ -272,7 +272,7 @@ export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
                                         {useRichText ? (
                                              <QuillEditor
                                                   value={editorHtml}
-                                                  commitMode="onChange"
+                                                  commitMode="onBlur"
                                                   onChange={(value) => {
                                                        setEditorHtml(value)
                                                        setQuillEditorData(value)

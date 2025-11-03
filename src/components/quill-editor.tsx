@@ -1,28 +1,44 @@
-import React, { forwardRef, useImperativeHandle, useEffect, useRef, useState } from 'react'
-import 'quill/dist/quill.snow.css'
-import Box from '@mui/material/Box'
+'use client';
 
-interface QuillEditorProps {
-     placeholder?: string
-     onChange?: (value: string) => void
-     onBlur?: (value?: string) => void
-     value?: string
-     initialValue?: string
-     commitMode?: 'onChange' | 'onBlur'
-}
+import React, {
+     forwardRef,
+     useEffect,
+     useImperativeHandle,
+     useMemo,
+     useRef,
+     useState,
+} from 'react';
+import Box from '@mui/material/Box';
+import 'quill/dist/quill.snow.css';
 
 export interface QuillEditorRef {
-     getEditor: () => any
-     getContents: () => string
+     getEditor: () => any | null;
+     getContents: () => string;
 }
 
-// Custom toolbar component that Quill will bind to
-type CustomToolbarProps = { id?: string }
-const CustomToolbar = forwardRef<HTMLDivElement, CustomToolbarProps>((props, ref) => {
+type Props = {
+     placeholder?: string;
+     value?: string;                // controlled HTML
+     initialValue?: string;         // initial HTML for uncontrolled
+     onChange?: (html: string) => void;
+     onBlur?: (html?: string) => void;
+     commitMode?: 'onChange' | 'onBlur';
+     heightEm?: number;             // editor min-height in "em"
+     className?: string;
+};
+
+/** Custom toolbar DOM (native selects) */
+const CustomToolbar = forwardRef<HTMLDivElement, { id: string }>((props, ref) => {
      return (
-          <div ref={ref} id={props.id} className="ql-toolbar ql-snow" data-custom-toolbar>
+          <div
+               ref={ref}
+               id={props.id}
+               className="ql-toolbar ql-snow"
+               data-custom-toolbar
+          >
                <span className="ql-formats">
-                    <select className="ql-font">
+                    <select className="ql-font" defaultValue="">
+                         <option value="">Default</option>
                          <option value="Inter">Inter</option>
                          <option value="Arial">Arial</option>
                          <option value="Times New Roman">Times New Roman</option>
@@ -32,7 +48,9 @@ const CustomToolbar = forwardRef<HTMLDivElement, CustomToolbarProps>((props, ref
                          <option value="Sans Serif">Sans Serif</option>
                          <option value="Serif">Serif</option>
                     </select>
-                    <select className="ql-size">
+
+                    <select className="ql-size" defaultValue="">
+                         <option value="">Default</option>
                          <option value="12px">12px</option>
                          <option value="14px">14px</option>
                          <option value="16px">16px</option>
@@ -41,227 +59,238 @@ const CustomToolbar = forwardRef<HTMLDivElement, CustomToolbarProps>((props, ref
                          <option value="32px">32px</option>
                     </select>
                </span>
+
                <span className="ql-formats">
                     <button className="ql-bold" />
                     <button className="ql-italic" />
                     <button className="ql-underline" />
                     <button className="ql-strike" />
                </span>
+
                <span className="ql-formats">
                     <button className="ql-list" value="ordered" />
                     <button className="ql-list" value="bullet" />
                </span>
+
                <span className="ql-formats">
                     <button className="ql-link" />
                     <button className="ql-clean" />
                </span>
           </div>
-     )
-})
-CustomToolbar.displayName = 'CustomToolbar'
+     );
+});
+CustomToolbar.displayName = 'CustomToolbar';
 
-const QuillEditor = forwardRef<QuillEditorRef, QuillEditorProps>(
-     ({ placeholder, onChange, onBlur, value, initialValue, commitMode = 'onChange' }, ref) => {
-          const containerRef = useRef<HTMLDivElement | null>(null)
-          const quillRef = useRef<any>(null) // will hold the Quill instance once loaded
-          const [toolbarNode, setToolbarNode] = useState<HTMLDivElement | null>(null)
-          const toolbarIdRef = useRef<string>('quill-toolbar-' + Math.random().toString(36).slice(2))
+const QuillEditor = forwardRef<QuillEditorRef, Props>((props, ref) => {
+     const {
+          placeholder = 'Start typing…',
+          value,
+          initialValue,
+          onChange,
+          onBlur,
+          commitMode = 'onChange',
+          heightEm = 10.5,
+          className,
+     } = props;
 
-          // keep latest handlers without re-subscribing
-          const currentValueRef = useRef<string | undefined>(value)
-          const onChangeRef = useRef<typeof onChange>(onChange)
-          const onBlurRef = useRef<typeof onBlur>(onBlur)
-          useEffect(() => { onChangeRef.current = onChange }, [onChange])
-          useEffect(() => { onBlurRef.current = onBlur }, [onBlur])
+     const containerRef = useRef<HTMLDivElement | null>(null);
+     const quillRef = useRef<any | null>(null);
+     const [toolbarNode, setToolbarNode] = useState<HTMLDivElement | null>(null);
+     const toolbarId = useMemo(
+          () => 'ql-toolbar-' + Math.random().toString(36).slice(2),
+          []
+     );
 
-          useImperativeHandle(ref, () => ({
-               getEditor: () => quillRef.current,
-               getContents: () => (quillRef.current?.root?.innerHTML ?? '')
-          }))
+     // keep latest handlers/values
+     const onChangeRef = useRef(onChange);
+     const onBlurRef = useRef(onBlur);
+     const commitModeRef = useRef(commitMode);
+     const currentValueRef = useRef<string | undefined>(value);
 
-          // Initialize Quill only on the client
-          const commitModeRef = useRef(commitMode)
-          useEffect(() => { commitModeRef.current = commitMode }, [commitMode])
+     useEffect(() => { onChangeRef.current = onChange; }, [onChange]);
+     useEffect(() => { onBlurRef.current = onBlur; }, [onBlur]);
+     useEffect(() => { commitModeRef.current = commitMode; }, [commitMode]);
 
-          useEffect(() => {
-               let quillInstance: any | null = null
-               let handleTextChange: (() => void) | null = null
-               let handleBlur: (() => void) | null = null
-               let destroyed = false
+     useImperativeHandle(ref, () => ({
+          getEditor: () => quillRef.current,
+          getContents: () => quillRef.current?.root?.innerHTML ?? '',
+     }));
 
-               const init = async () => {
-                    if (typeof window === 'undefined') return
-                    if (!containerRef.current) return
-                    if (!toolbarNode) return
-                    // Guard against multiple initializations
-                    if (quillRef.current) return
-                    // If a previous Quill-generated toolbar exists (not our custom one), remove it proactively
-                    const maybeToolbar = containerRef.current.previousElementSibling as HTMLElement | null
-                    if (maybeToolbar && maybeToolbar.classList.contains('ql-toolbar') && !maybeToolbar.hasAttribute('data-custom-toolbar')) {
-                         maybeToolbar.remove()
-                    }
+     useEffect(() => {
+          let quillInstance: any | null = null;
+          let handleTextChange: (() => void) | null = null;
+          const savedRangeRef = { current: null as null | { index: number; length: number } };
 
-                    const Quill = (await import('quill')).default
+          const init = async () => {
+               if (typeof window === 'undefined') return;
+               if (!containerRef.current || !toolbarNode) return;
+               if (quillRef.current) return;
 
-                    // Register font & size whitelists (client-only)
-                    const Font: any = Quill.import('attributors/style/font')
-                    Font.whitelist = [
-                         'Inter',
-                         'Arial',
-                         'Times New Roman',
-                         'Georgia',
-                         'Courier New',
-                         'Monospace',
-                         'Sans Serif',
-                         'Serif'
-                    ]
-                    Quill.register(Font, true)
+               const Quill = (await import('quill')).default;
 
-                    const Size: any = Quill.import('attributors/style/size')
-                    Size.whitelist = ['12px', '14px', '16px', '18px', '24px', '32px']
-                    Quill.register(Size, true)
+               // Whitelists (style attributors)
+               const Font: any = Quill.import('attributors/style/font');
+               Font.whitelist = [
+                    'Inter',
+                    'Arial',
+                    'Times New Roman',
+                    'Georgia',
+                    'Courier New',
+                    'Monospace',
+                    'Sans Serif',
+                    'Serif',
+               ];
+               Quill.register(Font, true);
 
-                    // Create the editor
-                    quillInstance = new Quill(containerRef.current, {
-                         theme: 'snow',
-                         placeholder: placeholder || 'Start typing...',
-                         modules: {
-                              toolbar: {
-                                   // Use selector for robustness
-                                   container: `#${toolbarIdRef.current}`
-                              }
-                         }
-                    })
-                    quillRef.current = quillInstance
-                    if (destroyed) return
+               const Size: any = Quill.import('attributors/style/size');
+               Size.whitelist = ['12px', '14px', '16px', '18px', '24px', '32px'];
+               Quill.register(Size, true);
 
-                    // Set initial HTML (value has priority over initialValue)
-                    const startHTML = (typeof value === 'string' ? value : initialValue) || ''
-                    if (quillInstance.root.innerHTML !== startHTML) {
-                         quillInstance.root.innerHTML = startHTML
-                    }
-                    currentValueRef.current = startHTML
+               // Remember selection when toolbar is interacted with
+               const rememberSelection = () => {
+                    const r = quillInstance?.getSelection();
+                    if (r) savedRangeRef.current = r;
+               };
+               toolbarNode.addEventListener('mousedown', rememberSelection, true);
 
-                    // Handlers
-                    handleTextChange = () => {
-                         if (!quillInstance) return
-                         const html = quillInstance.root.innerHTML
-                         if (html !== currentValueRef.current) {
-                              currentValueRef.current = html
-                              if (commitModeRef.current === 'onChange') {
-                                   onChangeRef.current && onChangeRef.current(html)
-                              }
-                         }
-                    }
+               quillInstance = new Quill(containerRef.current, {
+                    theme: 'snow',
+                    placeholder,
+                    modules: {
+                         toolbar: {
+                              container: `#${toolbarId}`,
+                              handlers: {
+                                   size(this: any, value: string) {
+                                        const r = savedRangeRef.current;
+                                        if (r) this.quill.setSelection(r.index, r.length, 'user');
+                                        if (value) this.quill.format('size', value, 'user');
+                                        else this.quill.format('size', false, 'user');
+                                   },
+                                   font(this: any, value: string) {
+                                        const r = savedRangeRef.current;
+                                        if (r) this.quill.setSelection(r.index, r.length, 'user');
+                                        if (value) this.quill.format('font', value, 'user');
+                                        else this.quill.format('font', false, 'user');
+                                   },
+                              },
+                         },
+                    },
+               });
 
-                    handleBlur = () => {
-                         const html = quillInstance?.root?.innerHTML
-                         onBlurRef.current && onBlurRef.current(html)
-                    }
+               // Keep saved range up-to-date
+               quillInstance.on('selection-change', (range: any) => {
+                    if (range) savedRangeRef.current = range;
+               });
 
-                    quillInstance.on('text-change', handleTextChange)
-                    quillInstance.root.addEventListener('blur', handleBlur as EventListener)
+               quillRef.current = quillInstance;
+
+               // Initial content
+               const startHTML = (typeof value === 'string' ? value : initialValue) || '';
+               if (quillInstance.root.innerHTML !== startHTML) {
+                    quillInstance.root.innerHTML = startHTML;
                }
+               currentValueRef.current = startHTML;
 
-               init()
+               // Change handler
+               handleTextChange = () => {
+                    const html = quillInstance!.root.innerHTML;
+                    if (html !== currentValueRef.current) {
+                         currentValueRef.current = html;
+                         if (commitModeRef.current === 'onChange') {
+                              onChangeRef.current?.(html);
+                         }
+                    }
+               };
 
+               quillInstance.on('text-change', handleTextChange);
+               quillInstance.root.addEventListener('blur', () => {
+                    const html = quillInstance!.root.innerHTML;
+                    onBlurRef.current?.(html);
+                    if (commitModeRef.current === 'onBlur') {
+                         onChangeRef.current?.(html);
+                    }
+               });
+
+               // Cleanup listeners on unmount
                return () => {
-                    destroyed = true
-                    if (quillInstance && handleTextChange) {
-                         quillInstance.off('text-change', handleTextChange)
-                    }
-                    if (quillInstance && handleBlur) {
-                         quillInstance.root.removeEventListener('blur', handleBlur as EventListener)
-                    }
-                    // Remove Quill-inserted toolbar (not our custom one) and clean container DOM/classes
-                    const el = containerRef.current as HTMLElement | null
-                    if (el) {
-                         const prev = el.previousElementSibling as HTMLElement | null
-                         if (prev && prev.classList.contains('ql-toolbar') && !prev.hasAttribute('data-custom-toolbar')) {
-                              prev.remove()
-                         }
-                         el.classList.remove('ql-container', 'ql-snow')
-                         el.innerHTML = ''
-                    }
-                    quillInstance = null
-                    quillRef.current = null
-               }
-          }, [toolbarNode])
+                    toolbarNode.removeEventListener('mousedown', rememberSelection, true);
+               };
+          };
 
-          // update placeholder dynamically if it changes
-          useEffect(() => {
-               const quill = quillRef.current
-               if (!quill) return
-               const attr = placeholder || 'Start typing...'
-               if (quill.root) {
-                    quill.root.setAttribute('data-placeholder', attr)
-               }
-          }, [placeholder])
+          const cleanupPromise = init();
 
-          // Sync external value (controlled mode)
-          useEffect(() => {
-               const quill = quillRef.current
-               if (!quill) return
-               if (typeof value === 'string' && value !== currentValueRef.current) {
-                    if (quill.root.innerHTML !== value) {
-                         quill.root.innerHTML = value
-                    }
-                    currentValueRef.current = value
+          return () => {
+               // Ensure async init cleanup runs once it finishes
+               cleanupPromise.then((fn) => fn?.());
+               const q = quillRef.current;
+               if (q && handleTextChange) q.off('text-change', handleTextChange);
+               if (q) {
+                    q.root.replaceChildren(); // clear content safely
                }
-          }, [value])
+               quillRef.current = null;
+          };
+     }, [toolbarNode, placeholder, toolbarId]);
 
-          return (
-               <Box
-                    sx={(theme) => ({
+     // Controlled updates
+     useEffect(() => {
+          const q = quillRef.current;
+          if (!q) return;
+          if (typeof value === 'string' && value !== currentValueRef.current) {
+               if (q.root.innerHTML !== value) {
+                    q.root.innerHTML = value;
+               }
+               currentValueRef.current = value;
+          }
+     }, [value]);
+
+     return (
+          <Box
+               className={className}
+               sx={(theme) => ({
+                    border: '1px solid',
+                    borderColor: 'divider',
+                    borderRadius: 2,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    '& .ql-toolbar.ql-snow': {
                          border: '1px solid',
-                         borderColor: 'divider',
-                         borderRadius: 2,
+                         borderBottom: `1px solid ${theme.palette.divider}`,
+                         borderRadius: `${theme.shape.borderRadius}px ${theme.shape.borderRadius}px 0 0`,
+                         backgroundColor: theme.palette.background.paper,
+                         position: 'relative',
+                         zIndex: 2,
+                         whiteSpace: 'nowrap',
+                         overflow: 'visible',
+                    },
+                    '& .ql-container.ql-snow': {
+                         border: '1px solid',
+                         position: 'relative',
+                         zIndex: 1,
+                         flexGrow: 1,
                          display: 'flex',
                          flexDirection: 'column',
-                         '& .ql-toolbar.ql-snow': {
-                              border: '1px solid',
-                              borderBottom: `1px solid ${theme.palette.divider}`,
-                              borderRadius: `${theme.shape.borderRadius}px ${theme.shape.borderRadius}px 0 0`,
-                              backgroundColor: theme.palette.background.paper,
-                              position: 'relative',
-                              zIndex: 2,
-                              whiteSpace: 'nowrap',
-                              overflow: 'visible'
+                    },
+                    '& .ql-toolbar.ql-snow + .ql-container.ql-snow': {
+                         borderTop: 0,
+                    },
+                    '& .ql-editor': {
+                         fontFamily: theme.typography.fontFamily,
+                         fontSize: theme.typography.body1.fontSize as any,
+                         color: theme.palette.text.primary,
+                         minHeight: `${heightEm}em`,
+                         paddingBottom: theme.spacing(2),
+                         '&.ql-blank::before': {
+                              color: theme.palette.text.secondary,
+                              fontStyle: 'normal',
                          },
-                         '& .ql-container.ql-snow': {
-                              border: '1px solid',
-                              position: 'relative',
-                              zIndex: 1,
-                              flexGrow: 1,
-                              display: 'flex',
-                              flexDirection: 'column'
-                         },
-                         '& .ql-toolbar.ql-snow + .ql-container.ql-snow': {
-                              borderTop: 0
-                         },
-                         '& .ql-editor': {
-                              fontFamily: theme.typography.fontFamily,
-                              fontSize: theme.typography.body1.fontSize,
-                              color: theme.palette.text.primary,
-                              minHeight:
-                                   typeof theme.typography.body1.lineHeight === 'number'
-                                        ? `${theme.typography.body1.lineHeight * 7}em`
-                                        : '10.5em',
-                              paddingBottom: theme.spacing(2),
-                              '&.ql-blank::before': {
-                                   color: theme.palette.text.secondary,
-                                   fontStyle: 'normal'
-                              }
-                         }
-                    })}
-               >
-                    <CustomToolbar ref={setToolbarNode} id={toolbarIdRef.current} />
-                    {/* This div becomes the Quill root */}
-                    <div ref={containerRef} />
-               </Box>
-          )
-     }
-)
+                    },
+               })}
+          >
+               <CustomToolbar id={toolbarId} ref={setToolbarNode} />
+               <div ref={containerRef} />
+          </Box>
+     );
+});
 
-QuillEditor.displayName = 'QuillEditor'
-export default QuillEditor
+QuillEditor.displayName = 'QuillEditor';
+export default QuillEditor;

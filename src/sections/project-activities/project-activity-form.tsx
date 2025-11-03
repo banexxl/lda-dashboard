@@ -471,6 +471,7 @@ export const AddProjectActivityForm = ({ onSubmitSuccess, onSubmitFail, projectS
                                                        <Box sx={{ position: 'relative', width: '100%' }}>
                                                             <QuillEditor
                                                                  value={editorHtml}
+                                                                 commitMode='onBlur'
                                                                  onChange={(value) => {
                                                                       setEditorHtml(value)
                                                                       setQuillEditorData(value)
