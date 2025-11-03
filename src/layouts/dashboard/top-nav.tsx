@@ -32,7 +32,7 @@ export const TopNav = (props: any) => {
      const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up('lg'));
      const accountPopover = usePopover();
      const router = useRouter();
-     const auth = useSession()
+     // const auth = useSession()
      const [loading, setLoading] = useState(false)
 
      const handleRebuild = async () => {
@@ -42,8 +42,6 @@ export const TopNav = (props: any) => {
                     method: 'POST'
                })
                const res = await response.json()
-               console.log('response', res);
-
                if (response.ok) {
 
                     Swal.fire({
@@ -51,7 +49,6 @@ export const TopNav = (props: any) => {
                          title: 'Success',
                          text: 'Projekti uspešno poslati! Sačekajte desetak minuta i osvežite stranicu!',
                     })
-                    router.push('/activities')
                } else {
                     const errorData = await response.json(); // Parse the error response
 
@@ -167,7 +164,7 @@ export const TopNav = (props: any) => {
                                         height: 40,
                                         width: 40
                                    }}
-                                   src={`${auth.data?.user?.image}`}
+                              // src={`${auth.data?.user?.image}`}
                               />
                          </Stack>
                     </Stack>
