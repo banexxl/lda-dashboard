@@ -44,7 +44,7 @@ const Page = () => {
      };
 
      return (
-          <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '70dvh' }}>
+          <Box component="main" sx={{ display: 'flex', flexDirection: 'column', minHeight: '100dvh' }}>
                <Head>
                     <title>Login</title>
                     <meta name="description" content="Sign in to access your LDA Dashboard." />
@@ -57,28 +57,31 @@ const Page = () => {
                          alignItems: 'center',
                          display: 'flex',
                          justifyContent: 'center',
-                         p: { xs: 2, md: 4 }
+                         p: { xs: 2, sm: 3, md: 4 },
+                         borderRadius: { xs: 0, sm: 2 }
                     }}
                >
                     <Box
                          sx={{
-                              maxWidth: 520,
                               width: '100%',
-                              px: { xs: 2, md: 4 },
-                              py: { xs: 4, md: 8 }
+                              maxWidth: { xs: 360, sm: 440, md: 520 },
+                              px: { xs: 2, sm: 4, md: 6 },
+                              py: { xs: 4, sm: 6, md: 8 }
                          }}
                     >
-                         <Stack spacing={3} alignItems="center">
+                         <Stack spacing={{ xs: 2.5, md: 3 }} alignItems="center">
                               <Image
                                    src={`https://lda-su.s3.eu-central-1.amazonaws.com/logoAca/viber_slika_2024-01-25_20-26-42-218.png`}
                                    alt="LDA Dashboard logo"
                                    width={220}
                                    height={160}
                                    priority
+                                   sizes="(max-width: 600px) 160px, 220px"
+                                   style={{ width: 'min(60vw, 220px)', height: 'auto' }}
                               />
 
                               <Stack spacing={0.5} alignItems="center">
-                                   <Typography variant="h4" component="h1">
+                                   <Typography component="h1" sx={{ typography: { xs: 'h5', md: 'h4' } }}>
                                         Welcome back
                                    </Typography>
                                    <Typography variant="body2" color="text.secondary" align="center">
@@ -105,7 +108,7 @@ const Page = () => {
                                    Sign in with Google
                               </LoadingButton>
 
-                              <Typography variant="caption" color="text.secondary" align="center">
+                              <Typography variant="caption" color="text.secondary" align="center" sx={{ px: 1 }}>
                                    By continuing, you agree to our acceptable use and data policies.
                               </Typography>
                          </Stack>

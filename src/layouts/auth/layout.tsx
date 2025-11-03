@@ -16,20 +16,25 @@ export const Layout = (props: any) => {
                component="main"
                sx={{
                     display: 'flex',
-                    flex: '1 1 auto'
+                    flex: '1 1 auto',
+                    minHeight: '100dvh'
                }}
           >
                <Grid
                     container
-                    sx={{ flex: '1 1 auto' }}
+                    sx={{ flex: '1 1 auto', justifyContent: 'center' }}
                >
                     <Grid
                          xs={12}
+                         sm={10}
+                         md={8}
                          lg={6}
                          sx={{
                               display: 'flex',
                               flexDirection: 'column',
-                              position: 'relative'
+                              position: 'relative',
+                              mx: 'auto',
+                              width: '100%'
                          }}
                     >
                          {children}
