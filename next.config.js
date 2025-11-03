@@ -1,6 +1,19 @@
 module.exports = {
      reactStrictMode: true,
      images: {
-          domains: ["lh3.googleusercontent.com", "utfs.io", "lda-su.s3.eu-central-1.amazonaws.com"]
+          remotePatterns: [
+               {
+                    protocol: "https",
+                    hostname: "lh3.googleusercontent.com",
+               },
+               {
+                    protocol: "https",
+                    hostname: "utfs.io",
+               },
+               {
+                    protocol: "https",
+                    hostname: "lda-su.s3.eu-central-1.amazonaws.com",
+               },
+          ],
      },
 };
