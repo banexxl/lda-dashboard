@@ -1,5 +1,5 @@
 {
-  "name": "LDA Subotica dashboard",
+  "name": "lda-subotica-dashboard",
   "version": "1.0.0",
   "author": "Branislav Damjanovic",
   "licence": "none",
@@ -24,7 +24,6 @@
     "@mui/icons-material": "^5.14.9",
     "@mui/lab": "5.0.0-alpha.120",
     "@mui/material": "^5.2.0",
-    "@mui/system": "5.11.9",
     "@mui/x-date-pickers": "^7.2.0",
     "@untitled-ui/icons-react": "^0.1.1",
     "@uploadthing/react": "^6.0.2",
