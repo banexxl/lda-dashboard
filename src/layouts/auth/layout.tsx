@@ -2,15 +2,9 @@
 
 import PropTypes from 'prop-types';
 import { Box, Unstable_Grid2 as Grid } from '@mui/material';
-import { useSession } from 'next-auth/react';
-
-// TODO: Change subtitle text
 
 export const Layout = (props: any) => {
      const { children } = props;
-     const session = useSession();
-     console.log('session', session);
-
      return (
           <Box
                component="main"
