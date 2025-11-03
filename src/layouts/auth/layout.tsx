@@ -1,13 +1,15 @@
+'use client'
+
 import PropTypes from 'prop-types';
-import NextLink from 'next/link';
-import Image from 'next/image'
-import { Box, Typography, Unstable_Grid2 as Grid } from '@mui/material';
-import { Logo } from 'src/components/logo';
+import { Box, Unstable_Grid2 as Grid } from '@mui/material';
+import { useSession } from 'next-auth/react';
 
 // TODO: Change subtitle text
 
 export const Layout = (props: any) => {
      const { children } = props;
+     const session = useSession();
+     console.log('session', session);
 
      return (
           <Box
@@ -30,32 +32,6 @@ export const Layout = (props: any) => {
                               position: 'relative'
                          }}
                     >
-                         <Box
-                              component="header"
-                              sx={{
-                                   left: 0,
-                                   p: 3,
-                                   position: 'fixed',
-                                   top: 0,
-                                   width: '100%'
-                              }}
-                         >
-                              <Box
-                                   component={NextLink}
-                                   href="/"
-                                   sx={{
-                                        display: 'inline-flex',
-                                        height: 32,
-                                        width: 32
-                                   }}
-                              >
-                                   {/* <Image src="/dar.ico"
-                                        alt='DAR Apoteka'
-                                        width='75'
-                                        height='70' /> */}
-                                   {/* <Logo /> */}
-                              </Box>
-                         </Box>
                          {children}
                     </Grid>
                </Grid>

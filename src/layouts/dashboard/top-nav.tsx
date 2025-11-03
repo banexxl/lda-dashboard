@@ -1,3 +1,5 @@
+'use client'
+
 import PropTypes from 'prop-types';
 import BellIcon from '@heroicons/react/24/solid/BellIcon';
 import UsersIcon from '@heroicons/react/24/solid/UsersIcon';

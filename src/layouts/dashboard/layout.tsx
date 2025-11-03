@@ -1,7 +1,9 @@
+'use client'
+
 import { useCallback, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { styled } from '@mui/material/styles';
-import { withAuthGuard } from 'src/hocs/with-auth-guard';
+import { withAuthGuard } from '@/hooks/use-auth-guard';
 import { SideNav } from './side-nav';
 import { TopNav } from './top-nav';
 
@@ -24,6 +26,7 @@ const LayoutContainer = styled('div')({
 });
 
 export const Layout = withAuthGuard((props: any) => {
+
      const { children } = props;
      const pathname = usePathname();
      const [openNav, setOpenNav] = useState(false);

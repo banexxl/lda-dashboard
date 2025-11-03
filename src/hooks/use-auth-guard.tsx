@@ -1,11 +1,14 @@
-import Page from "@/pages/auth/login";
+'use client'
+
 import { CircularProgress } from "@mui/material";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 
 export const withAuthGuard = (Component: any) => (props: any) => {
 
   const { data: session, status } = useSession();
+  const router = useRouter();
 
   //circular process in the middle screen
   if (status === "loading") {
@@ -18,8 +21,8 @@ export const withAuthGuard = (Component: any) => (props: any) => {
     }} />;
   }
 
-  if (!session) {
-    return <Page></Page>;
+  if (status === "unauthenticated") {
+    router.push('/auth/login');
   }
 
   return (

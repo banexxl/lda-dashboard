@@ -1,6 +1,5 @@
 import { Box } from "@mui/material";
 import moment from "moment";
-import { useRouter } from "next/router";
 import { PropsWithChildren, useEffect, useState } from "react";
 
 export interface AutoLogoutProviderProps {
