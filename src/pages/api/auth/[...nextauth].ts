@@ -13,9 +13,15 @@ export const authOptions = {
      ],
      callbacks: {
           async signIn({ account, profile }: any) {
+               console.log('account', account);
+               console.log('profile', profile);
+
+
                // Check if account exists on MongoDB and if so, return true
                if (account.provider === "google") {
                     const user = await UserServices().getUserByEmail(profile.email)
+                    console.log('user', user);
+
                     return profile.email_verified && profile.email.endsWith("@gmail.com") && user?.email ? true : false;
                }
                return false; // Do different verification for other providers that don't have `email_verified`
@@ -30,16 +36,13 @@ export const authOptions = {
                return session;
           },
           async redirect({ url, baseUrl }: any) {
-               console.log('url', url)
-               console.log('baseUrl', baseUrl)
                const redirectUrl = url.startsWith('/') ? new URL(url, baseUrl).toString() : url;
                console.log(`[next-auth] Redirecting to "${redirectUrl}" (resolved from url "${url}" and baseUrl "${baseUrl}")`);
-               return baseUrl;
+               return redirectUrl;
           }
      },
      session: {
           maxAge: 1 * 60 * 60, // 1 hour
      },
-     secret: process.env.NEXTAUTH_SECRET,
 }
 export default NextAuth(authOptions);

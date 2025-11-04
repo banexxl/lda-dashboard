@@ -1,16 +1,18 @@
-'use client'
-
 import { CircularProgress } from "@mui/material";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-
+import { useRouter } from "next/router";
+import { useEffect } from "react";
 
 export const withAuthGuard = (Component: any) => (props: any) => {
-
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  //circular process in the middle screen
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push('/auth/login');
+    }
+  }, [status, router]);
+
   if (status === "loading") {
     return <CircularProgress sx={{
       position: 'absolute',
@@ -22,7 +24,7 @@ export const withAuthGuard = (Component: any) => (props: any) => {
   }
 
   if (status === "unauthenticated") {
-    router.push('/auth/login');
+    return null; // Don't render anything while redirecting
   }
 
   return (
