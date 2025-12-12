@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2'
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddBoxIcon from '@mui/icons-material/AddBox';
-import "@uploadthing/react/styles.css";
+
 import { ActivitySchema, initialActivity } from './activity-type';
 import { DateField } from '@mui/x-date-pickers/DateField';
 import { sanitizeString } from '@/utils/url-creator';

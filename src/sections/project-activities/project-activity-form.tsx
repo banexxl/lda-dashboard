@@ -4,7 +4,7 @@ import { TextField, Typography, Button, Box, Grid, MenuItem, IconButton, FormCon
 import Swal from 'sweetalert2'
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddBoxIcon from '@mui/icons-material/AddBox';
-import "@uploadthing/react/styles.css";
+
 import { ProjectActivity, ProjectActivitySchema, projectActivityInitialValues } from './project-activity-type';
 import { DateField } from '@mui/x-date-pickers/DateField';
 import { sanitizeString } from '@/utils/url-creator';

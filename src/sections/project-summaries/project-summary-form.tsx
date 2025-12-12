@@ -3,7 +3,7 @@ import { TextField, Typography, Button, Box, Grid, MenuItem, IconButton, FormCon
 import { Form, Formik } from 'formik';
 import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2'
-import "@uploadthing/react/styles.css";
+
 import { ProjectSummarySchema, initialProjectSummary } from './project-summary-type';
 import { DateField } from '@mui/x-date-pickers/DateField';
 import { sanitizeString } from '@/utils/url-creator';

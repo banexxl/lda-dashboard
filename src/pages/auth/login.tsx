@@ -7,11 +7,11 @@ import { useMemo, useState } from 'react';
 import {
      Alert,
      Box,
+     Button,
      Card,
      Stack,
      Typography
 } from '@mui/material';
-import { LoadingButton } from '@mui/lab';
 import GoogleIcon from '@mui/icons-material/Google';
 import Image from 'next/image';
 
@@ -95,18 +95,17 @@ const Page = () => {
                                    </Alert>
                               )}
 
-                              <LoadingButton
+                              <Button
                                    onClick={onGoogleSignIn}
+                                   disabled={loading}
                                    variant="contained"
-                                   loading={loading}
-                                   loadingPosition="start"
                                    startIcon={<GoogleIcon />}
                                    fullWidth
                                    size="large"
                                    aria-label="Sign in with Google"
                               >
                                    Sign in with Google
-                              </LoadingButton>
+                              </Button>
 
                               <Typography variant="caption" color="text.secondary" align="center" sx={{ px: 1 }}>
                                    By continuing, you agree to our acceptable use and data policies.
