@@ -30,9 +30,11 @@ export const PublicationsServices = () => {
                }
 
                const skip = page * parsedLimit;
+
                const publications = await database
                     .collection('Publications')
                     .find({})
+                    .sort({ publicationUploadedDateTime: -1 }) // Sort by last updated first
                     .skip(skip)
                     .limit(parsedLimit)
                     .toArray();
