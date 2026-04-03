@@ -42,13 +42,24 @@ export default async (req: any, res: any) => {
 
                // Determine the content type based on the file extension
                let contentType: string;
+               const normalizedExtension = extension.toLowerCase();
                const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'webp'];
                const videoExtensions = ['mp4', 'webm', 'mov', 'avi'];
+               const docExtensions = ['pdf', 'doc', 'docx', 'xlsx', 'xls'];
 
-               if (imageExtensions.includes(extension.toLowerCase())) {
-                    contentType = `image/${extension}`;
-               } else if (videoExtensions.includes(extension.toLowerCase())) {
-                    contentType = `video/${extension}`;
+               if (imageExtensions.includes(normalizedExtension)) {
+                    contentType = `image/${normalizedExtension}`;
+               } else if (videoExtensions.includes(normalizedExtension)) {
+                    contentType = `video/${normalizedExtension}`;
+               } else if (docExtensions.includes(normalizedExtension)) {
+                    const docContentTypes: Record<string, string> = {
+                         pdf: 'application/pdf',
+                         doc: 'application/msword',
+                         docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                         xls: 'application/vnd.ms-excel',
+                         xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+                    };
+                    contentType = docContentTypes[normalizedExtension];
                } else {
                     return res.status(400).json({ error: 'Unsupported file type' });
                }
@@ -56,7 +67,9 @@ export default async (req: any, res: any) => {
                // Decode base64 data, removing the correct prefix
                const base64Prefix = contentType.startsWith('image')
                     ? /^data:image\/\w+;base64,/
-                    : /^data:video\/\w+;base64,/;
+                    : contentType.startsWith('video')
+                         ? /^data:video\/\w+;base64,/
+                         : /^data:application\/[^;]+;base64,/;
 
                const decodedFile = Buffer.from(file.replace(base64Prefix, ''), 'base64');
 
