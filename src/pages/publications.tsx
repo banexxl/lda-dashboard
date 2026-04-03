@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { GetServerSideProps } from 'next';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Button, Paper, Pagination, Box, Typography } from '@mui/material';
 import { Publication } from '@/utils/publication-services';
@@ -19,6 +19,7 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
      page,
      limit
 }) => {
+     const maxFileSizeBytes = 5 * 1024 * 1024;
      const [editableRows, setEditableRows] = useState<Publication[]>(publications);
      const [newPublication, setNewPublication] = useState<Publication>({
           _id: '', // Will be filled after saving to the DB
@@ -27,6 +28,18 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
           publicationImageURL: '',
           publicationUploadedDateTime: new Date(),
      });
+     const [documentFile, setDocumentFile] = useState<File | null>(null);
+     const [imageFile, setImageFile] = useState<File | null>(null);
+     const [imagePreviewUrl, setImagePreviewUrl] = useState<string>('');
+     const [uploadError, setUploadError] = useState<string>('');
+     const [showDocumentSuccess, setShowDocumentSuccess] = useState(false);
+     const [showImageSuccess, setShowImageSuccess] = useState(false);
+     const [isUploadingDocument, setIsUploadingDocument] = useState(false);
+     const [isUploadingImage, setIsUploadingImage] = useState(false);
+
+     const isAddDisabled = useMemo(() => {
+          return !newPublication.publicationTitle || !newPublication.publicationURL || !newPublication.publicationImageURL;
+     }, [newPublication.publicationTitle, newPublication.publicationURL, newPublication.publicationImageURL]);
      const handleEditChange = (index: number, field: keyof Publication, value: string) => {
           const updatedRows = [...editableRows];
           updatedRows[index] = {
@@ -76,7 +89,114 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
           setNewPublication({ ...newPublication, [field]: value });
      };
 
+     useEffect(() => {
+          if (!imageFile) {
+               setImagePreviewUrl('');
+               return;
+          }
+
+          const previewUrl = URL.createObjectURL(imageFile);
+          setImagePreviewUrl(previewUrl);
+
+          return () => {
+               URL.revokeObjectURL(previewUrl);
+          };
+     }, [imageFile]);
+
+     const readFileAsDataUrl = (file: File) => new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = () => reject(new Error('Failed to read file'));
+          reader.readAsDataURL(file);
+     });
+
+     const uploadFile = async (file: File, title: string) => {
+          const fileName = file.name;
+          const extension = fileName.split('.').pop() || '';
+          const fileDataUrl = await readFileAsDataUrl(file);
+
+          const response = await fetch('/api/aws-s3', {
+               method: 'POST',
+               headers: {
+                    'Content-Type': 'application/json',
+               },
+               body: JSON.stringify({
+                    file: fileDataUrl,
+                    title,
+                    extension,
+                    fileName,
+               }),
+          });
+
+          if (!response.ok) {
+               const errorResponse = await response.json();
+               throw new Error(errorResponse?.error || 'Upload failed');
+          }
+
+          const result = await response.json();
+          return result.imageUrl as string;
+     };
+
+     const handleUploadDocument = async () => {
+          setUploadError('');
+
+          if (!newPublication.publicationTitle) {
+               setUploadError('Title is required before uploading documents.');
+               return;
+          }
+
+          if (!documentFile) {
+               setUploadError('Select a document to upload.');
+               return;
+          }
+
+          try {
+               setIsUploadingDocument(true);
+               const documentUrl = await uploadFile(documentFile, newPublication.publicationTitle);
+               setNewPublication({
+                    ...newPublication,
+                    publicationURL: documentUrl,
+               });
+          } catch (error: any) {
+               setUploadError(error?.message || 'Failed to upload document.');
+          } finally {
+               setIsUploadingDocument(false);
+          }
+     };
+
+     const handleUploadImage = async () => {
+          setUploadError('');
+
+          if (!newPublication.publicationTitle) {
+               setUploadError('Title is required before uploading images.');
+               return;
+          }
+
+          if (!imageFile) {
+               setUploadError('Select an image to upload.');
+               return;
+          }
+
+          try {
+               setIsUploadingImage(true);
+               const imageUrl = await uploadFile(imageFile, newPublication.publicationTitle);
+               setNewPublication({
+                    ...newPublication,
+                    publicationImageURL: imageUrl,
+               });
+          } catch (error: any) {
+               setUploadError(error?.message || 'Failed to upload image.');
+          } finally {
+               setIsUploadingImage(false);
+          }
+     };
+
      const handleAddPublication = async () => {
+          if (isAddDisabled) {
+               setUploadError('Title, document, and image are required.');
+               return;
+          }
+
           const response = await fetch(`/api/publications-api`, {
                method: 'POST',
                headers: {
@@ -99,6 +219,11 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                     publicationImageURL: '',
                     publicationUploadedDateTime: new Date()
                });
+               setDocumentFile(null);
+               setImageFile(null);
+               setImagePreviewUrl('');
+               setShowDocumentSuccess(false);
+               setShowImageSuccess(false);
           } else {
                alert('Failed to add publication');
           }
@@ -112,8 +237,8 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                          <TableHead>
                               <TableRow>
                                    <TableCell>Title</TableCell>
-                                   <TableCell>URL</TableCell>
-                                   <TableCell>Image URL</TableCell>
+                                   <TableCell>Document</TableCell>
+                                   <TableCell>Image</TableCell>
                                    <TableCell>Uploaded Date</TableCell>
                                    <TableCell>Actions</TableCell>
                               </TableRow>
@@ -135,30 +260,34 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                                              />
                                         </TableCell>
                                         <TableCell>
-                                             <TextField
-                                                  fullWidth
-                                                  value={publication.publicationURL}
-                                                  onChange={(e) =>
-                                                       handleEditChange(
-                                                            editableRows.findIndex((row) => row._id === publication._id),
-                                                            'publicationURL',
-                                                            e.target.value
-                                                       )
-                                                  }
-                                             />
+                                             {publication.publicationURL && (
+                                                  <Button
+                                                       href={publication.publicationURL}
+                                                       target="_blank"
+                                                       rel="noopener noreferrer"
+                                                       variant="outlined"
+                                                       sx={{
+                                                            borderRadius: 2,
+                                                            textTransform: 'none',
+                                                            fontWeight: 600,
+                                                            px: 2.5,
+                                                            borderWidth: 2,
+                                                            '&:hover': { borderWidth: 2 }
+                                                       }}
+                                                  >
+                                                       Open Document
+                                                  </Button>
+                                             )}
                                         </TableCell>
                                         <TableCell>
-                                             <TextField
-                                                  fullWidth
-                                                  value={publication.publicationImageURL || ''}
-                                                  onChange={(e) =>
-                                                       handleEditChange(
-                                                            editableRows.findIndex((row) => row._id === publication._id),
-                                                            'publicationImageURL',
-                                                            e.target.value
-                                                       )
-                                                  }
-                                             />
+                                             {publication.publicationImageURL && (
+                                                  <Box
+                                                       component="img"
+                                                       src={publication.publicationImageURL}
+                                                       alt={publication.publicationTitle}
+                                                       sx={{ maxWidth: 120, borderRadius: 1, border: '1px solid #ddd' }}
+                                                  />
+                                             )}
                                         </TableCell>
                                         <TableCell>
                                              {publication.publicationUploadedDateTime && !isNaN(new Date(publication.publicationUploadedDateTime).getTime())
@@ -166,10 +295,38 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                                                   : 'Invalid Date'}
                                         </TableCell>
                                         <TableCell>
-                                             <Button onClick={() => handleSave(editableRows.findIndex((row) => row._id === publication._id))} variant="contained">
+                                             <Button
+                                                  onClick={() => handleSave(editableRows.findIndex((row) => row._id === publication._id))}
+                                                  variant="contained"
+                                                  sx={{
+                                                       borderRadius: 2,
+                                                       textTransform: 'none',
+                                                       fontWeight: 600,
+                                                       px: 2.5,
+                                                       boxShadow: '0 6px 16px rgba(0,0,0,0.12)',
+                                                       '&:hover': {
+                                                            boxShadow: '0 8px 20px rgba(0,0,0,0.18)'
+                                                       }
+                                                  }}
+                                             >
                                                   Save
                                              </Button>
-                                             <Button onClick={() => handleDelete(publication._id)} variant="contained" color="error">
+                                             <Button
+                                                  onClick={() => handleDelete(publication._id)}
+                                                  variant="contained"
+                                                  color="error"
+                                                  sx={{
+                                                       borderRadius: 2,
+                                                       textTransform: 'none',
+                                                       fontWeight: 600,
+                                                       px: 2.5,
+                                                       ml: 1,
+                                                       boxShadow: '0 6px 16px rgba(0,0,0,0.12)',
+                                                       '&:hover': {
+                                                            boxShadow: '0 8px 20px rgba(0,0,0,0.18)'
+                                                       }
+                                                  }}
+                                             >
                                                   Delete
                                              </Button>
                                         </TableCell>
@@ -185,22 +342,187 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                     <TextField
                          label="Title"
                          fullWidth
+                         required
                          value={newPublication.publicationTitle}
                          onChange={(e) => handleNewPublicationChange('publicationTitle', e.target.value)}
                     />
-                    <TextField
-                         label="URL"
-                         fullWidth
-                         value={newPublication.publicationURL}
-                         onChange={(e) => handleNewPublicationChange('publicationURL', e.target.value)}
-                    />
-                    <TextField
-                         label="Image URL"
-                         fullWidth
-                         value={newPublication.publicationImageURL}
-                         onChange={(e) => handleNewPublicationChange('publicationImageURL', e.target.value)}
-                    />
-                    <Button onClick={handleAddPublication} variant="contained" color="primary">
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                         <Typography variant="subtitle2">Upload Document (PDF/DOC/DOCX/XLS/XLSX)</Typography>
+                         <Button
+                              component="label"
+                              variant="outlined"
+                              onClick={() => {
+                                   setUploadError('');
+                                   setShowDocumentSuccess(false);
+                              }}
+                              sx={{
+                                   width: 300,
+                                   borderRadius: 2,
+                                   textTransform: 'none',
+                                   fontWeight: 600,
+                                   px: 2.5,
+                                   borderWidth: 2,
+                                   '&:hover': { borderWidth: 2 }
+                              }}
+                         >
+                              Choose Document
+                              <input
+                                   hidden
+                                   type="file"
+                                   accept=".pdf,.doc,.docx,.xls,.xlsx"
+                                   onChange={async (e) => {
+                                        const selectedFile = e.target.files?.[0] || null;
+                                        if (!selectedFile) {
+                                             setDocumentFile(null);
+                                             return;
+                                        }
+                                        const rawTitle = selectedFile.name.replace(/\.[^/.]+$/, '');
+                                        const normalizedTitle = rawTitle.replace(/[_-]+/g, ' ').trim();
+                                        if (selectedFile.size > maxFileSizeBytes) {
+                                             setUploadError('Document exceeds 5MB size limit.');
+                                             setDocumentFile(null);
+                                             return;
+                                        }
+                                        setUploadError('');
+                                        setDocumentFile(selectedFile);
+                                        setNewPublication((prev) => ({
+                                             ...prev,
+                                             publicationTitle: normalizedTitle
+                                        }));
+                                        try {
+                                             setIsUploadingDocument(true);
+                                             const documentUrl = await uploadFile(selectedFile, normalizedTitle);
+                                             setNewPublication((prev) => ({
+                                                  ...prev,
+                                                  publicationURL: documentUrl
+                                             }));
+                                             setShowDocumentSuccess(true);
+                                        } catch (error: any) {
+                                             setUploadError(error?.message || 'Failed to upload document.');
+                                        } finally {
+                                             setIsUploadingDocument(false);
+                                        }
+                                   }}
+                              />
+                         </Button>
+                         {documentFile && (
+                              <Typography variant="caption">
+                                   Selected: {documentFile.name} ({(documentFile.size / 1024 / 1024).toFixed(2)} MB)
+                              </Typography>
+                         )}
+                         <Typography variant="caption">
+                              {isUploadingDocument ? 'Uploading document...' : 'Document uploads automatically after selection.'}
+                         </Typography>
+                         {showDocumentSuccess && newPublication.publicationURL && (
+                              <Button
+                                   href={newPublication.publicationURL}
+                                   target="_blank"
+                                   rel="noopener noreferrer"
+                                   variant="text"
+                                   sx={{
+                                        textTransform: 'none',
+                                        fontWeight: 600,
+                                        px: 0,
+                                        justifyContent: 'flex-start'
+                                   }}
+                              >
+                                   View uploaded document
+                              </Button>
+                         )}
+                    </Box>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                         <Typography variant="subtitle2">Upload Image</Typography>
+                         <Button
+                              component="label"
+                              variant="outlined"
+                              onClick={() => {
+                                   setUploadError('');
+                                   setShowImageSuccess(false);
+                              }}
+                              sx={{
+                                   width: 300,
+                                   borderRadius: 2,
+                                   textTransform: 'none',
+                                   fontWeight: 600,
+                                   px: 2.5,
+                                   borderWidth: 2,
+                                   '&:hover': { borderWidth: 2 }
+                              }}
+                         >
+                              Choose Image
+                              <input
+                                   hidden
+                                   type="file"
+                                   accept="image/*"
+                                   onChange={async (e) => {
+                                        const selectedFile = e.target.files?.[0] || null;
+                                        if (!selectedFile) {
+                                             setImageFile(null);
+                                             return;
+                                        }
+                                        if (selectedFile.size > maxFileSizeBytes) {
+                                             setUploadError('Image exceeds 5MB size limit.');
+                                             setImageFile(null);
+                                             return;
+                                        }
+                                        setUploadError('');
+                                        setImageFile(selectedFile);
+                                        try {
+                                             setIsUploadingImage(true);
+                                             const imageUrl = await uploadFile(selectedFile, newPublication.publicationTitle || selectedFile.name);
+                                             setNewPublication((prev) => ({
+                                                  ...prev,
+                                                  publicationImageURL: imageUrl
+                                             }));
+                                             setShowImageSuccess(true);
+                                        } catch (error: any) {
+                                             setUploadError(error?.message || 'Failed to upload image.');
+                                        } finally {
+                                             setIsUploadingImage(false);
+                                        }
+                                   }}
+                              />
+                         </Button>
+                         {imageFile && (
+                              <Typography variant="caption">
+                                   Selected: {imageFile.name} ({(imageFile.size / 1024 / 1024).toFixed(2)} MB)
+                              </Typography>
+                         )}
+                         {imagePreviewUrl && (
+                              <Box
+                                   component="img"
+                                   src={imagePreviewUrl}
+                                   alt="Preview"
+                                   sx={{ maxWidth: 220, borderRadius: 1, border: '1px solid #ddd' }}
+                              />
+                         )}
+                         <Typography variant="caption">
+                              {isUploadingImage ? 'Uploading image...' : 'Image uploads automatically after selection.'}
+                         </Typography>
+                         {showImageSuccess && (
+                              <Typography variant="caption">Image uploaded.</Typography>
+                         )}
+                    </Box>
+                    {uploadError && (
+                         <Typography color="error" variant="body2">{uploadError}</Typography>
+                    )}
+                    <Button
+                         onClick={handleAddPublication}
+                         variant="contained"
+                         color="primary"
+                         disabled={isAddDisabled}
+                         sx={{
+                              borderRadius: 2,
+                              textTransform: 'none',
+                              fontWeight: 700,
+                              px: 3,
+                              py: 1.2,
+                              boxShadow: '0 10px 24px rgba(0,0,0,0.16)',
+                              '&:hover': {
+                                   boxShadow: '0 12px 28px rgba(0,0,0,0.22)'
+                              }
+                         }}
+                    >
                          Add Publication
                     </Button>
                </Box>
