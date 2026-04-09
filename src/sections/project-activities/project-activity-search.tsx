@@ -1,10 +1,16 @@
 import MagnifyingGlassIcon from '@heroicons/react/24/solid/MagnifyingGlassIcon';
 import { Card, InputAdornment, OutlinedInput, SvgIcon } from '@mui/material';
 
-export const ProjectsActivitySearch = () => (
+type ProjectsActivitySearchProps = {
+     value: string;
+     onChange: (value: string) => void;
+};
+
+export const ProjectsActivitySearch = ({ value, onChange }: ProjectsActivitySearchProps) => (
      <Card sx={{ p: 2 }}>
           <OutlinedInput
-               defaultValue=""
+               value={value}
+               onChange={(event) => onChange(event.target.value)}
                fullWidth
                placeholder="Search project activity..."
                startAdornment={(

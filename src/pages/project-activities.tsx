@@ -30,6 +30,25 @@ const Page = (props: any) => {
      const ProjectsSelection = useSelection(ProjectsIds);
      const router = useRouter();
      const [loading, setLoading] = useState(false)
+     const [searchQuery, setSearchQuery] = useState('')
+
+     const filteredProjectActivities = useMemo(() => {
+          const query = searchQuery.trim().toLowerCase()
+          if (!query) return props.projectActivities
+          return (props.projectActivities || []).filter((activity: any) => {
+               const fieldsToSearch = [
+                    activity?.title,
+                    activity?.subTitle,
+                    activity?.title_eng,
+                    activity?.subTitle_eng,
+                    activity?.projectURL,
+                    activity?.projectSummaryURL
+               ]
+               return fieldsToSearch
+                    .filter((value) => typeof value === 'string')
+                    .some((value: string) => value.toLowerCase().includes(query))
+          })
+     }, [props.projectActivities, searchQuery])
 
      const handleSubmitSuccess = () => {
           setOpen(false); // Close the dialog
@@ -96,10 +115,13 @@ const Page = (props: any) => {
 
                                         </Box>
                                    </Stack>
-                                   <ProjectsActivitySearch />
+                                   <ProjectsActivitySearch
+                                        value={searchQuery}
+                                        onChange={setSearchQuery}
+                                   />
                                    <ProjectActivityTable
-                                        projectActivitiesCount={props.projectActivities.length || 0}
-                                        items={props.projectActivities}
+                                        projectActivitiesCount={filteredProjectActivities.length || 0}
+                                        items={filteredProjectActivities}
                                         page={props.page}
                                         rowsPerPage={props.limit}
                                         selected={ProjectsSelection.selected}
