@@ -1176,12 +1176,19 @@ export const ProjectSummaryTable = ({ items }: any) => {
                                                                                      {/* -------------------------publikacije------------------------------------------ */}
                                                                                      {
                                                                                           currentProjectObject?.publications && currentProjectObject.publications.length > 0 && (
-                                                                                               <Box sx={{ width: '90%', display: 'flex' }}
+                                                                                               <Box
+                                                                                                    sx={{
+                                                                                                         width: '90%',
+                                                                                                         display: 'grid',
+                                                                                                         gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
+                                                                                                         gap: 3,
+                                                                                                         alignItems: 'start'
+                                                                                                    }}
                                                                                                >
                                                                                                     {currentProjectObject.publications.map((item: string, index: number) => (
                                                                                                          <Box
                                                                                                               key={index}
-                                                                                                              sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-around', marginRight: '40px' }}
+                                                                                                              sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-around' }}
                                                                                                          >
                                                                                                               {getThumbnail(item) === 'pdf' ? (
 
