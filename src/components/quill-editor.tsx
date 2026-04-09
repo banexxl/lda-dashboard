@@ -10,6 +10,7 @@ import React, {
 } from 'react';
 import Box from '@mui/material/Box';
 import 'quill/dist/quill.snow.css';
+import Quill from 'quill';
 
 export interface QuillEditorRef {
      getEditor: () => any | null;
@@ -37,7 +38,7 @@ const CustomToolbar = forwardRef<HTMLDivElement, { id: string }>((props, ref) =>
                data-custom-toolbar
           >
                <span className="ql-formats">
-                    <select className="ql-font" defaultValue="">
+                    <select className="ql-font" defaultValue="" title="Font (Ctrl/Cmd+Shift+F)">
                          <option value="">Default</option>
                          <option value="Inter">Inter</option>
                          <option value="Arial">Arial</option>
@@ -49,7 +50,7 @@ const CustomToolbar = forwardRef<HTMLDivElement, { id: string }>((props, ref) =>
                          <option value="Serif">Serif</option>
                     </select>
 
-                    <select className="ql-size" defaultValue="">
+                    <select className="ql-size" defaultValue="" title="Size (Ctrl/Cmd+Shift+S)">
                          <option value="">Default</option>
                          <option value="12px">12px</option>
                          <option value="14px">14px</option>
@@ -61,19 +62,19 @@ const CustomToolbar = forwardRef<HTMLDivElement, { id: string }>((props, ref) =>
                </span>
 
                <span className="ql-formats">
-                    <button className="ql-bold" />
-                    <button className="ql-italic" />
-                    <button className="ql-underline" />
-                    <button className="ql-strike" />
+                    <button className="ql-bold" title="Bold (Ctrl/Cmd+B)" />
+                    <button className="ql-italic" title="Italic (Ctrl/Cmd+I)" />
+                    <button className="ql-underline" title="Underline (Ctrl/Cmd+U)" />
+                    <button className="ql-strike" title="Strike (Ctrl/Cmd+Shift+X)" />
                </span>
 
                <span className="ql-formats">
-                    <button className="ql-list" value="ordered" />
-                    <button className="ql-list" value="bullet" />
+                    <button className="ql-list" value="ordered" title="Numbered list (Ctrl/Cmd+Shift+7)" />
+                    <button className="ql-list" value="bullet" title="Bulleted list (Ctrl/Cmd+Shift+8)" />
                </span>
 
                <span className="ql-formats">
-                    <select className="ql-align" defaultValue="">
+                    <select className="ql-align" defaultValue="" title="Align (Ctrl/Cmd+Shift+L/E/R/J)">
                          <option value="" />
                          <option value="center" />
                          <option value="right" />
@@ -82,8 +83,8 @@ const CustomToolbar = forwardRef<HTMLDivElement, { id: string }>((props, ref) =>
                </span>
 
                <span className="ql-formats">
-                    <button className="ql-link" />
-                    <button className="ql-clean" />
+                    <button className="ql-link" title="Insert link (Ctrl/Cmd+K)" />
+                    <button className="ql-clean" title="Clear formatting (Ctrl/Cmd+\\)" />
                </span>
           </div>
      );
@@ -126,7 +127,7 @@ const QuillEditor = forwardRef<QuillEditorRef, Props>((props, ref) => {
      }));
 
      useEffect(() => {
-          let quillInstance: any | null = null;
+          let quillInstance: Quill | null = null;
           let handleTextChange: (() => void) | null = null;
           const savedRangeRef = { current: null as null | { index: number; length: number } };
 
@@ -158,6 +159,16 @@ const QuillEditor = forwardRef<QuillEditorRef, Props>((props, ref) => {
                Align.whitelist = ['', 'center', 'right', 'justify'];
                Quill.register(Align, true);
 
+               const fontWhitelist = Font.whitelist as string[];
+               const sizeWhitelist = Size.whitelist as string[];
+
+               const getNextValue = (list: string[], current: string | false | undefined) => {
+                    if (!list.length) return '';
+                    if (!current || current === '') return list[0];
+                    const index = list.indexOf(current);
+                    return list[(index + 1) % list.length];
+               };
+
                // Remember selection when toolbar is interacted with
                const rememberSelection = () => {
                     const r = quillInstance?.getSelection();
@@ -183,6 +194,144 @@ const QuillEditor = forwardRef<QuillEditorRef, Props>((props, ref) => {
                                         if (r) this.quill.setSelection(r.index, r.length, 'user');
                                         if (value) this.quill.format('font', value, 'user');
                                         else this.quill.format('font', false, 'user');
+                                   },
+                              },
+                         },
+                         keyboard: {
+                              bindings: {
+                                   // Bold (Ctrl/Cmd+B)
+                                   bold: {
+                                        key: 'B',
+                                        shortKey: true,
+                                        handler(this: any) {
+                                             this.quill.format('bold', !this.quill.getFormat().bold, 'user');
+                                        },
+                                   },
+                                   // Italic (Ctrl/Cmd+I)
+                                   italic: {
+                                        key: 'I',
+                                        shortKey: true,
+                                        handler(this: any) {
+                                             this.quill.format('italic', !this.quill.getFormat().italic, 'user');
+                                        },
+                                   },
+                                   // Underline (Ctrl/Cmd+U)
+                                   underline: {
+                                        key: 'U',
+                                        shortKey: true,
+                                        handler(this: any) {
+                                             this.quill.format('underline', !this.quill.getFormat().underline, 'user');
+                                        },
+                                   },
+                                   // Strike (Ctrl/Cmd+Shift+X)
+                                   strike: {
+                                        key: 'X',
+                                        shortKey: true,
+                                        shiftKey: true,
+                                        handler(this: any) {
+                                             this.quill.format('strike', !this.quill.getFormat().strike, 'user');
+                                        },
+                                   },
+                                   // Ordered list (Ctrl/Cmd+Shift+7)
+                                   listOrdered: {
+                                        key: '7',
+                                        shortKey: true,
+                                        shiftKey: true,
+                                        handler(this: any) {
+                                             const isOrdered = this.quill.getFormat().list === 'ordered';
+                                             this.quill.format('list', isOrdered ? false : 'ordered', 'user');
+                                        },
+                                   },
+                                   // Bullet list (Ctrl/Cmd+Shift+8)
+                                   listBullet: {
+                                        key: '8',
+                                        shortKey: true,
+                                        shiftKey: true,
+                                        handler(this: any) {
+                                             const isBullet = this.quill.getFormat().list === 'bullet';
+                                             this.quill.format('list', isBullet ? false : 'bullet', 'user');
+                                        },
+                                   },
+                                   // Align left (Ctrl/Cmd+Shift+L)
+                                   alignLeft: {
+                                        key: 'L',
+                                        shortKey: true,
+                                        shiftKey: true,
+                                        handler(this: any) {
+                                             this.quill.format('align', false, 'user');
+                                        },
+                                   },
+                                   // Align center (Ctrl/Cmd+Shift+E)
+                                   alignCenter: {
+                                        key: 'E',
+                                        shortKey: true,
+                                        shiftKey: true,
+                                        handler(this: any) {
+                                             this.quill.format('align', 'center', 'user');
+                                        },
+                                   },
+                                   // Align right (Ctrl/Cmd+Shift+R)
+                                   alignRight: {
+                                        key: 'R',
+                                        shortKey: true,
+                                        shiftKey: true,
+                                        handler(this: any) {
+                                             this.quill.format('align', 'right', 'user');
+                                        },
+                                   },
+                                   // Align justify (Ctrl/Cmd+Shift+J)
+                                   alignJustify: {
+                                        key: 'J',
+                                        shortKey: true,
+                                        shiftKey: true,
+                                        handler(this: any) {
+                                             this.quill.format('align', 'justify', 'user');
+                                        },
+                                   },
+                                   // Insert link (Ctrl/Cmd+K)
+                                   link: {
+                                        key: 'K',
+                                        shortKey: true,
+                                        handler(this: any) {
+                                             const range = this.quill.getSelection();
+                                             if (!range) return;
+                                             const existing = this.quill.getFormat(range).link as string | undefined;
+                                             const href = window.prompt('Enter link URL', existing || '');
+                                             if (href === null) return;
+                                             if (href) this.quill.format('link', href, 'user');
+                                             else this.quill.format('link', false, 'user');
+                                        },
+                                   },
+                                   // Clear formatting (Ctrl/Cmd+\)
+                                   clean: {
+                                        key: '\\',
+                                        shortKey: true,
+                                        handler(this: any) {
+                                             const range = this.quill.getSelection();
+                                             if (range) this.quill.removeFormat(range.index, range.length, 'user');
+                                        },
+                                   },
+                                   // Cycle font (Ctrl/Cmd+Shift+F)
+                                   fontCycle: {
+                                        key: 'F',
+                                        shortKey: true,
+                                        shiftKey: true,
+                                        handler(this: any) {
+                                             const current = this.quill.getFormat().font as string | false | undefined;
+                                             const next = getNextValue(fontWhitelist, current);
+                                             this.quill.format('font', next || false, 'user');
+                                        },
+                                   },
+                                   // Cycle size (Ctrl/Cmd+Shift+S)
+                                   sizeCycle: {
+                                        key: 'S',
+                                        shortKey: true,
+                                        shiftKey: true,
+                                        handler(this: any) {
+                                             const current = this.quill.getFormat().size as string | false | undefined;
+                                             const next = getNextValue(sizeWhitelist, current);
+                                             this.quill.format('size', next || false, 'user');
+                                        },
                                    },
                               },
                          },
