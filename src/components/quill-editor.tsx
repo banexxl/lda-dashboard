@@ -136,7 +136,6 @@ const QuillEditor = forwardRef<QuillEditorRef, Props>((props, ref) => {
                if (quillRef.current) return;
 
                const Quill = (await import('quill')).default;
-
                // Whitelists (style attributors)
                const Font: any = Quill.import('attributors/style/font');
                Font.whitelist = [
@@ -152,7 +151,7 @@ const QuillEditor = forwardRef<QuillEditorRef, Props>((props, ref) => {
                Quill.register(Font, true);
 
                const Size: any = Quill.import('attributors/style/size');
-               Size.whitelist = ['12px', '14px', '16px', '18px', '24px', '32px'];
+               Size.whitelist = ['12px', '14px', '16px', '18px', '20px', '22px', '24px', '32px'];
                Quill.register(Size, true);
 
                const Align: any = Quill.import('attributors/style/align');
