@@ -11,7 +11,6 @@ import { ActivityTable } from '@/sections/activities/activity-table';
 import { ActivitySearch } from '@/sections/activities/activity-search'
 import { ActivitiesServices } from '../utils/activity-services'
 import { AddActivityForm } from '../sections/activities/activity-form'
-import { useRouter } from 'next/navigation';
 import { TablePagination } from '@mui/material'
 import { SessionProvider } from 'next-auth/react';
 
@@ -27,8 +26,9 @@ const Page = (props: any) => {
 
      const [open, setOpen] = useState(false)
      const ActivitySelection = useSelection(ActivityIds);
-     const router = useRouter();
      const [searchQuery, setSearchQuery] = useState('')
+     const [page, setPage] = useState(0)
+     const [rowsPerPage, setRowsPerPage] = useState(5)
 
      const filteredActivities = useMemo(() => {
           const query = searchQuery.trim().toLowerCase()
@@ -49,11 +49,9 @@ const Page = (props: any) => {
      }, [props.activities, searchQuery])
 
      const pagedActivities = useMemo(() => {
-          const page = props.page || 1
-          const limit = props.limit || 5
-          const startIndex = (page - 1) * limit
-          return filteredActivities.slice(startIndex, startIndex + limit)
-     }, [filteredActivities, props.page, props.limit])
+          const startIndex = page * rowsPerPage
+          return filteredActivities.slice(startIndex, startIndex + rowsPerPage)
+     }, [filteredActivities, page, rowsPerPage])
      const handleSubmitSuccess = () => {
           setOpen(false); // Close the dialog
      };
@@ -63,12 +61,13 @@ const Page = (props: any) => {
      }
 
      const handleRowsPerPageChange = (event: any) => {
-          router.push(`activities/?page=${props.page}&limit=${event.target.value || 5}`);
-          return (event.target.value)
+          const newRowsPerPage = parseInt(event.target.value, 10) || 5
+          setRowsPerPage(newRowsPerPage)
+          setPage(0)
      }
 
      const handlePageChange = (event: any, newPage: any) => {
-          router.push(`/activities?page=${newPage}&limit=${props.limit || 5}`);
+          setPage(newPage)
      }
 
      return (
@@ -126,8 +125,8 @@ const Page = (props: any) => {
                                    <ActivityTable
                                         count={pagedActivities.length || 0}
                                         items={pagedActivities}
-                                        page={props.page}
-                                        rowsPerPage={props.limit}
+                                        page={page + 1}
+                                        rowsPerPage={rowsPerPage}
                                         selected={ActivitySelection.selected}
                                         activityCount={props.activitiesCount}
                                    />
@@ -136,8 +135,8 @@ const Page = (props: any) => {
                                         count={filteredActivities.length}
                                         onPageChange={handlePageChange}
                                         onRowsPerPageChange={handleRowsPerPageChange}
-                                        page={props.page}
-                                        rowsPerPage={props.limit || 5}
+                                        page={page}
+                                        rowsPerPage={rowsPerPage}
                                         rowsPerPageOptions={[5, 10, 25]}
                                         showFirstButton
                                         showLastButton
@@ -176,9 +175,7 @@ export async function getServerSideProps(context: any) {
           return {
                props: {
                     activities: JSON.parse(JSON.stringify(activities)),
-                    activitiesCount: JSON.parse(JSON.stringify(activitiesCount)),
-                    page: parseInt(context.query.page) || 1,
-                    limit: parseInt(context.query.limit) || 5
+                    activitiesCount: JSON.parse(JSON.stringify(activitiesCount))
                },
           };
      } catch (error) {
@@ -186,8 +183,6 @@ export async function getServerSideProps(context: any) {
                props: {
                     activities: [],
                     activitiesCount: 0,
-                    page: 1,
-                    limit: 5,
                     error: "Failed to fetch activities. Please try again later.",
                },
           };

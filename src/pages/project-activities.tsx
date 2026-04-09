@@ -12,7 +12,6 @@ import { ProjectsActivitySearch } from '@/sections/project-activities/project-ac
 import { projectActivitiesServices } from '../utils/project-activity-services'
 import { projectSummaryServices } from '../utils/project-summary-services'
 import { AddProjectActivityForm } from '../sections/project-activities/project-activity-form'
-import { useRouter } from 'next/navigation';
 import { TablePagination } from '@mui/material'
 import { SessionProvider } from 'next-auth/react';
 
@@ -28,9 +27,10 @@ const Page = (props: any) => {
 
      const [open, setOpen] = useState(false)
      const ProjectsSelection = useSelection(ProjectsIds);
-     const router = useRouter();
      const [loading, setLoading] = useState(false)
      const [searchQuery, setSearchQuery] = useState('')
+     const [page, setPage] = useState(0)
+     const [rowsPerPage, setRowsPerPage] = useState(5)
 
      const filteredProjectActivities = useMemo(() => {
           const query = searchQuery.trim().toLowerCase()
@@ -51,11 +51,9 @@ const Page = (props: any) => {
      }, [props.projectActivities, searchQuery])
 
      const pagedProjectActivities = useMemo(() => {
-          const page = props.page || 1
-          const limit = props.limit || 5
-          const startIndex = (page - 1) * limit
-          return filteredProjectActivities.slice(startIndex, startIndex + limit)
-     }, [filteredProjectActivities, props.page, props.limit])
+          const startIndex = page * rowsPerPage
+          return filteredProjectActivities.slice(startIndex, startIndex + rowsPerPage)
+     }, [filteredProjectActivities, page, rowsPerPage])
 
      const handleSubmitSuccess = () => {
           setOpen(false); // Close the dialog
@@ -66,12 +64,13 @@ const Page = (props: any) => {
      }
 
      const handleRowsPerPageChange = (event: any) => {
-          router.push(`project-activities/?page=${props.page}&limit=${event.target.value || 5}`);
-          return (event.target.value)
+          const newRowsPerPage = parseInt(event.target.value, 10) || 5
+          setRowsPerPage(newRowsPerPage)
+          setPage(0)
      }
 
      const handlePageChange = (event: any, newPage: any) => {
-          router.push(`/project-activities?page=${newPage}&limit=${props.limit || 5}`);
+          setPage(newPage)
      }
 
      return (
@@ -129,8 +128,8 @@ const Page = (props: any) => {
                                    <ProjectActivityTable
                                         projectActivitiesCount={pagedProjectActivities.length || 0}
                                         items={pagedProjectActivities}
-                                        page={props.page}
-                                        rowsPerPage={props.limit}
+                                        page={page + 1}
+                                        rowsPerPage={rowsPerPage}
                                         selected={ProjectsSelection.selected}
                                         projectSummaries={props.projectSummaries}
                                    />
@@ -139,8 +138,8 @@ const Page = (props: any) => {
                                         count={filteredProjectActivities.length}
                                         onPageChange={handlePageChange}
                                         onRowsPerPageChange={handleRowsPerPageChange}
-                                        page={props.page}
-                                        rowsPerPage={props.limit || 5}
+                                        page={page}
+                                        rowsPerPage={rowsPerPage}
                                         rowsPerPageOptions={[5, 10, 25]}
                                         showFirstButton
                                         showLastButton
@@ -183,8 +182,6 @@ export async function getServerSideProps(context: any) {
                props: {
                     projectActivities: JSON.parse(JSON.stringify(projectActivities)),
                     projectActivitiesCount: JSON.parse(JSON.stringify(projectActivitiesCount)),
-                    page: parseInt(context.query.page) || 1,
-                    limit: parseInt(context.query.limit) || 5,
                     projectSummaries: JSON.parse(JSON.stringify(projectSummaries)),
                },
           };
@@ -194,8 +191,6 @@ export async function getServerSideProps(context: any) {
                props: {
                     projects: [],
                     projectActivitiesCount: 0,
-                    page: 1,
-                    limit: 5,
                     error: "Failed to fetch projects. Please try again later.",
                },
           };
