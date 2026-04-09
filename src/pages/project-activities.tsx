@@ -50,6 +50,13 @@ const Page = (props: any) => {
           })
      }, [props.projectActivities, searchQuery])
 
+     const pagedProjectActivities = useMemo(() => {
+          const page = props.page || 1
+          const limit = props.limit || 5
+          const startIndex = (page - 1) * limit
+          return filteredProjectActivities.slice(startIndex, startIndex + limit)
+     }, [filteredProjectActivities, props.page, props.limit])
+
      const handleSubmitSuccess = () => {
           setOpen(false); // Close the dialog
      };
@@ -120,8 +127,8 @@ const Page = (props: any) => {
                                         onChange={setSearchQuery}
                                    />
                                    <ProjectActivityTable
-                                        projectActivitiesCount={filteredProjectActivities.length || 0}
-                                        items={filteredProjectActivities}
+                                        projectActivitiesCount={pagedProjectActivities.length || 0}
+                                        items={pagedProjectActivities}
                                         page={props.page}
                                         rowsPerPage={props.limit}
                                         selected={ProjectsSelection.selected}
@@ -129,7 +136,7 @@ const Page = (props: any) => {
                                    />
                                    <TablePagination
                                         component="div"
-                                        count={props.projectActivitiesCount}
+                                        count={filteredProjectActivities.length}
                                         onPageChange={handlePageChange}
                                         onRowsPerPageChange={handleRowsPerPageChange}
                                         page={props.page}
@@ -168,19 +175,16 @@ const Page = (props: any) => {
 export async function getServerSideProps(context: any) {
 
      try {
-          const page = context.query.page || 1
-          const limit = context.query.limit || 5
-
-          const projectActivities = await projectActivitiesServices().getProjectActivitiesByPage(page, limit);
-          const projectActivitiesCount = await projectActivitiesServices().getProjectActivitiesCount();
+          const projectActivities = await projectActivitiesServices().getAllProjectActivities();
+          const projectActivitiesCount = Array.isArray(projectActivities) ? projectActivities.length : 0;
           const projectSummaries = await projectSummaryServices().getAllProjectSummaries();
 
           return {
                props: {
                     projectActivities: JSON.parse(JSON.stringify(projectActivities)),
                     projectActivitiesCount: JSON.parse(JSON.stringify(projectActivitiesCount)),
-                    page: parseInt(context.query.page),
-                    limit: parseInt(context.query.limit),
+                    page: parseInt(context.query.page) || 1,
+                    limit: parseInt(context.query.limit) || 5,
                     projectSummaries: JSON.parse(JSON.stringify(projectSummaries)),
                },
           };

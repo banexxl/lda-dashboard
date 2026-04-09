@@ -47,6 +47,13 @@ const Page = (props: any) => {
                     .some((value) => value.toLowerCase().includes(query))
           })
      }, [props.activities, searchQuery])
+
+     const pagedActivities = useMemo(() => {
+          const page = props.page || 1
+          const limit = props.limit || 5
+          const startIndex = (page - 1) * limit
+          return filteredActivities.slice(startIndex, startIndex + limit)
+     }, [filteredActivities, props.page, props.limit])
      const handleSubmitSuccess = () => {
           setOpen(false); // Close the dialog
      };
@@ -117,8 +124,8 @@ const Page = (props: any) => {
                                         onChange={setSearchQuery}
                                    />
                                    <ActivityTable
-                                        count={filteredActivities.length || 0}
-                                        items={filteredActivities}
+                                        count={pagedActivities.length || 0}
+                                        items={pagedActivities}
                                         page={props.page}
                                         rowsPerPage={props.limit}
                                         selected={ActivitySelection.selected}
@@ -126,7 +133,7 @@ const Page = (props: any) => {
                                    />
                                    <TablePagination
                                         component="div"
-                                        count={props.activitiesCount}
+                                        count={filteredActivities.length}
                                         onPageChange={handlePageChange}
                                         onRowsPerPageChange={handleRowsPerPageChange}
                                         page={props.page}
@@ -163,18 +170,15 @@ const Page = (props: any) => {
 export async function getServerSideProps(context: any) {
 
      try {
-          const page = context.query.page || 1
-          const limit = context.query.limit || 5
-
-          const activities = await ActivitiesServices().getActivitiesByPage(page, limit);
-          const activitiesCount = await ActivitiesServices().getActivitiesCount();
+          const activities = await ActivitiesServices().getAllActivities();
+          const activitiesCount = Array.isArray(activities) ? activities.length : 0;
 
           return {
                props: {
                     activities: JSON.parse(JSON.stringify(activities)),
                     activitiesCount: JSON.parse(JSON.stringify(activitiesCount)),
-                    page: parseInt(context.query.page),
-                    limit: parseInt(context.query.limit)
+                    page: parseInt(context.query.page) || 1,
+                    limit: parseInt(context.query.limit) || 5
                },
           };
      } catch (error) {

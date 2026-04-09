@@ -45,6 +45,13 @@ const Page = (props: PageProps) => {
           })
      }, [props.projects, searchQuery])
 
+     const pagedProjects = useMemo(() => {
+          const page = props.page || 1
+          const limit = props.limit || 5
+          const startIndex = (page - 1) * limit
+          return filteredProjects.slice(startIndex, startIndex + limit)
+     }, [filteredProjects, props.page, props.limit])
+
      const handleSubmitSuccess = () => {
           setOpen(false); // Close the dialog
      };
@@ -115,11 +122,11 @@ const Page = (props: PageProps) => {
                                         onChange={setSearchQuery}
                                    />
                                    <ProjectSummaryTable
-                                        items={filteredProjects}
+                                        items={pagedProjects}
                                    />
                                    <TablePagination
                                         component="div"
-                                        count={props.projectSummariesCount}
+                                        count={filteredProjects.length}
                                         onPageChange={handlePageChange}
                                         onRowsPerPageChange={handleRowsPerPageChange}
                                         page={props.page}
@@ -156,18 +163,15 @@ const Page = (props: PageProps) => {
 export async function getServerSideProps(context: any) {
 
      try {
-          const page = context.query.page || 1
-          const limit = context.query.limit || 5
-
-          const projects = await projectSummaryServices().getProjectsByPage(page, limit);
-          const projectSummariesCount = await projectSummaryServices().getProjectSummariesCount();
+          const projects = await projectSummaryServices().getAllProjectSummaries();
+          const projectSummariesCount = Array.isArray(projects) ? projects.length : 0;
 
           return {
                props: {
                     projects: JSON.parse(JSON.stringify(projects)),
                     projectSummariesCount: JSON.parse(JSON.stringify(projectSummariesCount)),
-                    page: parseInt(context.query.page),
-                    limit: parseInt(context.query.limit)
+                    page: parseInt(context.query.page) || 1,
+                    limit: parseInt(context.query.limit) || 5
                },
           };
      } catch (error) {
