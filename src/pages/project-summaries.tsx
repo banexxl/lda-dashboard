@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Head from 'next/head';
 import Dialog from '@mui/material/Dialog';
 import DialogContent from '@mui/material/DialogContent';
@@ -25,6 +25,25 @@ type PageProps = {
 const Page = (props: PageProps) => {
      const [open, setOpen] = useState(false)
      const router = useRouter();
+     const [searchQuery, setSearchQuery] = useState('')
+
+     const filteredProjects = useMemo(() => {
+          const query = searchQuery.trim().toLowerCase()
+          if (!query) return props.projects
+          return (props.projects || []).filter((project) => {
+               const fieldsToSearch = [
+                    project?.title,
+                    project?.projectSummaryURL,
+                    project?.projectSummaryCoverURL,
+                    project?.status,
+                    project?.locale,
+                    project?.category
+               ]
+               return fieldsToSearch
+                    .filter((value) => typeof value === 'string')
+                    .some((value) => value.toLowerCase().includes(query))
+          })
+     }, [props.projects, searchQuery])
 
      const handleSubmitSuccess = () => {
           setOpen(false); // Close the dialog
@@ -91,9 +110,12 @@ const Page = (props: PageProps) => {
 
                                         </Box>
                                    </Stack>
-                                   <ProjectsSearch />
+                                   <ProjectsSearch
+                                        value={searchQuery}
+                                        onChange={setSearchQuery}
+                                   />
                                    <ProjectSummaryTable
-                                        items={props.projects}
+                                        items={filteredProjects}
                                    />
                                    <TablePagination
                                         component="div"

@@ -28,6 +28,25 @@ const Page = (props: any) => {
      const [open, setOpen] = useState(false)
      const ActivitySelection = useSelection(ActivityIds);
      const router = useRouter();
+     const [searchQuery, setSearchQuery] = useState('')
+
+     const filteredActivities = useMemo(() => {
+          const query = searchQuery.trim().toLowerCase()
+          if (!query) return props.activities
+          return (props.activities || []).filter((activity: any) => {
+               const fieldsToSearch = [
+                    activity?.title,
+                    activity?.activityURL,
+                    activity?.author,
+                    activity?.status,
+                    activity?.category,
+                    activity?.locale
+               ]
+               return fieldsToSearch
+                    .filter((value) => typeof value === 'string')
+                    .some((value) => value.toLowerCase().includes(query))
+          })
+     }, [props.activities, searchQuery])
      const handleSubmitSuccess = () => {
           setOpen(false); // Close the dialog
      };
@@ -93,10 +112,13 @@ const Page = (props: any) => {
 
                                         </Box>
                                    </Stack>
-                                   <ActivitySearch />
+                                   <ActivitySearch
+                                        value={searchQuery}
+                                        onChange={setSearchQuery}
+                                   />
                                    <ActivityTable
-                                        count={props.activities.length || 0}
-                                        items={props.activities}
+                                        count={filteredActivities.length || 0}
+                                        items={filteredActivities}
                                         page={props.page}
                                         rowsPerPage={props.limit}
                                         selected={ActivitySelection.selected}
