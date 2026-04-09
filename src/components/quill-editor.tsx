@@ -73,6 +73,15 @@ const CustomToolbar = forwardRef<HTMLDivElement, { id: string }>((props, ref) =>
                </span>
 
                <span className="ql-formats">
+                    <select className="ql-align" defaultValue="">
+                         <option value="" />
+                         <option value="center" />
+                         <option value="right" />
+                         <option value="justify" />
+                    </select>
+               </span>
+
+               <span className="ql-formats">
                     <button className="ql-link" />
                     <button className="ql-clean" />
                </span>
@@ -145,6 +154,10 @@ const QuillEditor = forwardRef<QuillEditorRef, Props>((props, ref) => {
                const Size: any = Quill.import('attributors/style/size');
                Size.whitelist = ['12px', '14px', '16px', '18px', '24px', '32px'];
                Quill.register(Size, true);
+
+               const Align: any = Quill.import('attributors/style/align');
+               Align.whitelist = ['', 'center', 'right', 'justify'];
+               Quill.register(Align, true);
 
                // Remember selection when toolbar is interacted with
                const rememberSelection = () => {
