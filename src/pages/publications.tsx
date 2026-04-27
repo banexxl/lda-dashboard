@@ -21,6 +21,7 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
 }) => {
      const maxFileSizeBytes = 5 * 1024 * 1024;
      const [editableRows, setEditableRows] = useState<Publication[]>(publications);
+     const [dirtyRows, setDirtyRows] = useState<Record<string, boolean>>({});
      const [newPublication, setNewPublication] = useState<Publication>({
           _id: '', // Will be filled after saving to the DB
           publicationTitle: '',
@@ -47,6 +48,10 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                [field]: value,
           };
           setEditableRows(updatedRows);
+          const rowId = updatedRows[index]?._id;
+          if (rowId) {
+               setDirtyRows((prev) => ({ ...prev, [rowId]: true }));
+          }
      };
 
      const handleSave = async (index: number) => {
@@ -65,6 +70,7 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
           const result = await response.json();
           if (result.message === 'Publication updated successfully') {
                alert('Publication updated successfully');
+               setDirtyRows((prev) => ({ ...prev, [publicationToSave._id]: false }));
           } else {
                alert('Failed to save publication');
           }
@@ -80,6 +86,11 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                alert('Publication deleted successfully');
                // Remove the deleted publication from the table
                setEditableRows(editableRows.filter((row) => row._id !== id));
+               setDirtyRows((prev) => {
+                    const next = { ...prev };
+                    delete next[id];
+                    return next;
+               });
           } else {
                alert('Failed to delete publication');
           }
@@ -298,6 +309,7 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                                              <Button
                                                   onClick={() => handleSave(editableRows.findIndex((row) => row._id === publication._id))}
                                                   variant="contained"
+                                                  disabled={!dirtyRows[publication._id]}
                                                   sx={{
                                                        borderRadius: 2,
                                                        textTransform: 'none',
