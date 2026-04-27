@@ -4,7 +4,8 @@ import ChevronRightIcon from '@untitled-ui/icons-react/build/esm/ChevronRight';
 import ChevronDownIcon from '@untitled-ui/icons-react/build/esm/ChevronDown';
 import {
      Box, Button, Card, Checkbox, Divider, FormControl, Grid, IconButton, ImageList, ImageListItem, Input, MenuItem,
-     Stack, SvgIcon, Table, TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography, useTheme, Switch, FormControlLabel
+     Stack, SvgIcon, Table, TableBody, TableCell, TableHead, TableRow, TextField, Tooltip, Typography, useTheme, Switch, FormControlLabel,
+     Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress
 } from '@mui/material';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -34,6 +35,14 @@ type ProjectLocale = {
      name: string;
 }
 
+type PublicationItem = {
+     _id: string;
+     publicationTitle: string;
+     publicationURL: string;
+     publicationImageURL?: string;
+     publicationUploadedDateTime?: string | Date;
+}
+
 export const ProjectActivityTable = (props: any) => {
 
      const { items } = props;
@@ -46,6 +55,10 @@ export const ProjectActivityTable = (props: any) => {
      const [useRichTextEng, setUseRichTextEng] = useState<boolean>(false)
      const [editorHtmlEng, setEditorHtmlEng] = useState<string>('')
      const [contentHtmlEng, setContentHtmlEng] = useState<string>('')
+     const [isPublicationModalOpen, setIsPublicationModalOpen] = useState(false)
+     const [publicationsCatalog, setPublicationsCatalog] = useState<PublicationItem[]>([])
+     const [publicationsCatalogLoading, setPublicationsCatalogLoading] = useState(false)
+     const [publicationsCatalogError, setPublicationsCatalogError] = useState('')
 
      const router = useRouter();
      const theme = useTheme()
@@ -84,6 +97,32 @@ export const ProjectActivityTable = (props: any) => {
                setEditorHtml(html)
           }
      }, [currentProjectID])
+
+     useEffect(() => {
+          if (!isPublicationModalOpen || publicationsCatalog.length > 0 || publicationsCatalogLoading) {
+               return
+          }
+
+          const fetchPublications = async () => {
+               try {
+                    setPublicationsCatalogLoading(true)
+                    setPublicationsCatalogError('')
+                    const response = await fetch('/api/publications-api')
+                    if (!response.ok) {
+                         throw new Error('Failed to load publications')
+                    }
+                    const data = await response.json()
+                    const list = Array.isArray(data) ? data : data.publications || []
+                    setPublicationsCatalog(list)
+               } catch (error: any) {
+                    setPublicationsCatalogError(error?.message || 'Failed to load publications')
+               } finally {
+                    setPublicationsCatalogLoading(false)
+               }
+          }
+
+          fetchPublications()
+     }, [isPublicationModalOpen, publicationsCatalog.length, publicationsCatalogLoading])
 
      const getObjectById = (_id: any, arrayToSearch: any) => {
           for (const obj of arrayToSearch) {
@@ -567,6 +606,21 @@ export const ProjectActivityTable = (props: any) => {
                return prevProject;
           });
      };
+
+     const handleSelectPublication = (publicationURL: string) => {
+          setCurrentProjectObject((prevProject: ProjectActivity | null | undefined) => {
+               if (!prevProject) return prevProject
+               const existing = prevProject.publications || []
+               if (existing.includes(publicationURL)) {
+                    return prevProject
+               }
+               return {
+                    ...prevProject,
+                    publications: [...existing, publicationURL]
+               }
+          })
+          setIsPublicationModalOpen(false)
+     }
 
      const onAddNewList = (index: number, text: string) => {
           setCurrentProjectObject((prevActivity: ProjectActivity | null | undefined) => {
@@ -1784,7 +1838,90 @@ export const ProjectActivityTable = (props: any) => {
                                                                                           />
                                                                                      </Button>
 
+                                                                                     <Button
+                                                                                          variant="outlined"
+                                                                                          sx={{ maxWidth: '200px', marginTop: '16px' }}
+                                                                                          onClick={() => setIsPublicationModalOpen(true)}
+                                                                                     >
+                                                                                          Dodaj postojecu publikaciju
+                                                                                     </Button>
+
                                                                                 </Box>
+
+                                                                                <Dialog
+                                                                                     open={isPublicationModalOpen}
+                                                                                     onClose={() => setIsPublicationModalOpen(false)}
+                                                                                     fullWidth
+                                                                                     maxWidth="md"
+                                                                                >
+                                                                                     <DialogTitle>Izaberite publikaciju</DialogTitle>
+                                                                                     <DialogContent dividers>
+                                                                                          {publicationsCatalogLoading && (
+                                                                                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, py: 2 }}>
+                                                                                                    <CircularProgress size={20} />
+                                                                                                    <Typography>Ucitavanje publikacija...</Typography>
+                                                                                               </Box>
+                                                                                          )}
+                                                                                          {publicationsCatalogError && (
+                                                                                               <Typography color="error.main">{publicationsCatalogError}</Typography>
+                                                                                          )}
+                                                                                          {!publicationsCatalogLoading && !publicationsCatalogError && publicationsCatalog.length === 0 && (
+                                                                                               <Typography>Nema sacuvanih publikacija.</Typography>
+                                                                                          )}
+                                                                                          {!publicationsCatalogLoading && !publicationsCatalogError && publicationsCatalog.length > 0 && (
+                                                                                               <Box
+                                                                                                    sx={{
+                                                                                                         display: 'grid',
+                                                                                                         gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                                                                                                         gap: 2
+                                                                                                    }}
+                                                                                               >
+                                                                                                    {publicationsCatalog.map((publication) => (
+                                                                                                         <Box
+                                                                                                              key={publication._id}
+                                                                                                              sx={{
+                                                                                                                   border: '1px solid #e0e0e0',
+                                                                                                                   borderRadius: 2,
+                                                                                                                   p: 2,
+                                                                                                                   display: 'flex',
+                                                                                                                   flexDirection: 'column',
+                                                                                                                   gap: 1,
+                                                                                                                   alignItems: 'center'
+                                                                                                              }}
+                                                                                                         >
+                                                                                                              {getThumbnail(publication.publicationURL) === 'pdf' ? (
+                                                                                                                   <PictureAsPdfIcon sx={{ color: theme.palette.primary.dark, width: 48, height: 48 }} />
+                                                                                                              ) : (
+                                                                                                                   <ArticleIcon sx={{ color: theme.palette.primary.dark, width: 48, height: 48 }} />
+                                                                                                              )}
+                                                                                                              <Typography
+                                                                                                                   sx={{
+                                                                                                                        textAlign: 'center',
+                                                                                                                        whiteSpace: 'normal',
+                                                                                                                        wordBreak: 'break-word',
+                                                                                                                        maxWidth: '160px'
+                                                                                                                   }}
+                                                                                                              >
+                                                                                                                   {publication.publicationTitle || extractFileName(publication.publicationURL)}
+                                                                                                              </Typography>
+                                                                                                              <Button
+                                                                                                                   size="small"
+                                                                                                                   variant="outlined"
+                                                                                                                   onClick={() => handleSelectPublication(publication.publicationURL)}
+                                                                                                              >
+                                                                                                                   Izaberi
+                                                                                                              </Button>
+                                                                                                         </Box>
+                                                                                                    ))}
+                                                                                               </Box>
+                                                                                          )}
+                                                                                     </DialogContent>
+                                                                                     <DialogActions>
+                                                                                          <Button onClick={() => setIsPublicationModalOpen(false)} variant="text">
+                                                                                               Zatvori
+                                                                                          </Button>
+                                                                                     </DialogActions>
+                                                                                </Dialog>
 
                                                                                 {/* ------------------------Gallery------------------------ */}
                                                                                 <Grid
