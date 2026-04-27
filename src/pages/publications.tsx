@@ -408,8 +408,10 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                                                   ...prev,
                                                   publicationURL: documentUrl
                                              }));
+                                             setUploadError('');
                                              setShowDocumentSuccess(true);
                                         } catch (error: any) {
+                                             setShowDocumentSuccess(false);
                                              setUploadError(error?.message || 'Failed to upload document.');
                                         } finally {
                                              setIsUploadingDocument(false);
@@ -426,20 +428,25 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                               {isUploadingDocument ? 'Uploading document...' : 'Document uploads automatically after selection.'}
                          </Typography>
                          {showDocumentSuccess && newPublication.publicationURL && (
-                              <Button
-                                   href={newPublication.publicationURL}
-                                   target="_blank"
-                                   rel="noopener noreferrer"
-                                   variant="text"
-                                   sx={{
-                                        textTransform: 'none',
-                                        fontWeight: 600,
-                                        px: 0,
-                                        justifyContent: 'flex-start'
-                                   }}
-                              >
-                                   View uploaded document
-                              </Button>
+                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                   <Typography variant="caption" sx={{ color: 'success.main' }}>
+                                        Document uploaded successfully.
+                                   </Typography>
+                                   <Button
+                                        href={newPublication.publicationURL}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        variant="text"
+                                        sx={{
+                                             textTransform: 'none',
+                                             fontWeight: 600,
+                                             px: 0,
+                                             justifyContent: 'flex-start'
+                                        }}
+                                   >
+                                        View uploaded document
+                                   </Button>
+                              </Box>
                          )}
                     </Box>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -486,8 +493,10 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                                                   ...prev,
                                                   publicationImageURL: imageUrl
                                              }));
+                                             setUploadError('');
                                              setShowImageSuccess(true);
                                         } catch (error: any) {
+                                             setShowImageSuccess(false);
                                              setUploadError(error?.message || 'Failed to upload image.');
                                         } finally {
                                              setIsUploadingImage(false);
@@ -512,7 +521,9 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                               {isUploadingImage ? 'Uploading image...' : 'Image uploads automatically after selection.'}
                          </Typography>
                          {showImageSuccess && (
-                              <Typography variant="caption">Image uploaded.</Typography>
+                              <Typography variant="caption" sx={{ color: 'success.main' }}>
+                                   Image uploaded successfully.
+                              </Typography>
                          )}
                     </Box>
                     {uploadError && (
