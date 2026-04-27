@@ -149,60 +149,6 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
           return result.imageUrl as string;
      };
 
-     const handleUploadDocument = async () => {
-          setDocumentUploadError('');
-
-          if (!newPublication.publicationTitle) {
-               setDocumentUploadError('Title is required before uploading documents.');
-               return;
-          }
-
-          if (!documentFile) {
-               setDocumentUploadError('Select a document to upload.');
-               return;
-          }
-
-          try {
-               setIsUploadingDocument(true);
-               const documentUrl = await uploadFile(documentFile, newPublication.publicationTitle);
-               setNewPublication({
-                    ...newPublication,
-                    publicationURL: documentUrl,
-               });
-          } catch (error: any) {
-               setDocumentUploadError(error?.message || 'Failed to upload document.');
-          } finally {
-               setIsUploadingDocument(false);
-          }
-     };
-
-     const handleUploadImage = async () => {
-          setImageUploadError('');
-
-          if (!newPublication.publicationTitle) {
-               setImageUploadError('Title is required before uploading images.');
-               return;
-          }
-
-          if (!imageFile) {
-               setImageUploadError('Select an image to upload.');
-               return;
-          }
-
-          try {
-               setIsUploadingImage(true);
-               const imageUrl = await uploadFile(imageFile, newPublication.publicationTitle);
-               setNewPublication({
-                    ...newPublication,
-                    publicationImageURL: imageUrl,
-               });
-          } catch (error: any) {
-               setImageUploadError(error?.message || 'Failed to upload image.');
-          } finally {
-               setIsUploadingImage(false);
-          }
-     };
-
      const handleAddPublication = async () => {
           if (isAddDisabled) {
                setDocumentUploadError('Title, document, and image are required.');
