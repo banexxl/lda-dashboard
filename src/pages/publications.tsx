@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { GetServerSideProps } from 'next';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Button, Paper, Pagination, Box, Typography, MenuItem } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Button, Paper, Pagination, Box, Typography, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { Publication } from '@/utils/publication-services';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 
@@ -35,6 +35,7 @@ const PublicationTable: React.FC<{ publications: Publication[] }> = ({
      const [showImageSuccess, setShowImageSuccess] = useState(false);
      const [isUploadingDocument, setIsUploadingDocument] = useState(false);
      const [isUploadingImage, setIsUploadingImage] = useState(false);
+     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
      const isAddDisabled = useMemo(() => {
           return !newPublication.publicationTitle || !newPublication.publicationURL || !newPublication.publicationImageURL;
@@ -193,6 +194,27 @@ const PublicationTable: React.FC<{ publications: Publication[] }> = ({
 
      return (
           <>
+               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
+                    <Typography variant="h6">Publications</Typography>
+                    <Button
+                         variant="contained"
+                         color="primary"
+                         onClick={() => setIsAddModalOpen(true)}
+                         sx={{
+                              borderRadius: 2,
+                              textTransform: 'none',
+                              fontWeight: 700,
+                              px: 3,
+                              py: 1.2,
+                              boxShadow: '0 10px 24px rgba(0,0,0,0.16)',
+                              '&:hover': {
+                                   boxShadow: '0 12px 28px rgba(0,0,0,0.22)'
+                              }
+                         }}
+                    >
+                         Add Publication
+                    </Button>
+               </Box>
                <TableContainer component={Paper} sx={{ mt: 3 }}>
                     <Table>
                          <TableHead>
@@ -298,214 +320,227 @@ const PublicationTable: React.FC<{ publications: Publication[] }> = ({
                     </Table>
                </TableContainer>
 
-               {/* Add New Publication Form */}
-               <Box sx={{ m: 4, gap: 2, display: 'flex', flexDirection: 'column' }}>
-                    <Typography variant="h6" gutterBottom   >Add New Publication</Typography>
-                    <TextField
-                         label="Title"
-                         fullWidth
-                         required
-                         value={newPublication.publicationTitle}
-                         onChange={(e) => handleNewPublicationChange('publicationTitle', e.target.value)}
-                    />
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                         <Typography variant="subtitle2">Upload Document (PDF/DOC/DOCX/XLS/XLSX)</Typography>
-                         <Button
-                              component="label"
-                              variant="outlined"
-                              onClick={() => {
-                                   setDocumentUploadError('');
-                                   setShowDocumentSuccess(false);
-                              }}
-                              sx={{
-                                   width: 300,
-                                   borderRadius: 2,
-                                   textTransform: 'none',
-                                   fontWeight: 600,
-                                   px: 2.5,
-                                   borderWidth: 2,
-                                   '&:hover': { borderWidth: 2 }
-                              }}
-                         >
-                              Choose Document
-                              <input
-                                   hidden
-                                   type="file"
-                                   accept=".pdf,.doc,.docx,.xls,.xlsx"
-                                   onChange={async (e) => {
-                                        const selectedFile = e.target.files?.[0] || null;
-                                        if (!selectedFile) {
-                                             setDocumentFile(null);
-                                             return;
-                                        }
-                                        const rawTitle = selectedFile.name.replace(/\.[^/.]+$/, '');
-                                        const normalizedTitle = rawTitle.replace(/[_-]+/g, ' ').trim();
-                                        if (selectedFile.size > maxFileSizeBytes) {
-                                             setDocumentUploadError('Document exceeds 10MB size limit.');
-                                             setDocumentFile(null);
-                                             return;
-                                        }
-                                        setDocumentUploadError('');
-                                        setDocumentFile(selectedFile);
-                                        setNewPublication((prev) => ({
-                                             ...prev,
-                                             publicationTitle: normalizedTitle
-                                        }));
-                                        try {
-                                             setIsUploadingDocument(true);
-                                             const documentUrl = await uploadFile(selectedFile, normalizedTitle);
-                                             setNewPublication((prev) => ({
-                                                  ...prev,
-                                                  publicationURL: documentUrl
-                                             }));
-                                             setDocumentUploadError('');
-                                             setShowDocumentSuccess(true);
-                                        } catch (error: any) {
-                                             setShowDocumentSuccess(false);
-                                             setDocumentUploadError(error?.message || 'Failed to upload document.');
-                                        } finally {
-                                             setIsUploadingDocument(false);
-                                        }
-                                   }}
+               <Dialog
+                    open={isAddModalOpen}
+                    onClose={() => setIsAddModalOpen(false)}
+                    fullWidth
+                    maxWidth="md"
+               >
+                    <DialogTitle>Add New Publication</DialogTitle>
+                    <DialogContent dividers>
+                         <Box sx={{ gap: 2, display: 'flex', flexDirection: 'column' }}>
+                              <TextField
+                                   label="Title"
+                                   fullWidth
+                                   required
+                                   value={newPublication.publicationTitle}
+                                   onChange={(e) => handleNewPublicationChange('publicationTitle', e.target.value)}
                               />
-                         </Button>
-                         {documentFile && (
-                              <Typography variant="caption">
-                                   Selected: {documentFile.name} ({(documentFile.size / 1024 / 1024).toFixed(2)} MB)
-                              </Typography>
-                         )}
-                         <Typography variant="caption">
-                              {isUploadingDocument ? 'Uploading document...' : 'Document uploads automatically after selection.'}
-                         </Typography>
-                         {showDocumentSuccess && newPublication.publicationURL && (
-                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                                   <Typography variant="caption" sx={{ color: 'success.main' }}>
-                                        Document uploaded successfully.
-                                   </Typography>
+                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                   <Typography variant="subtitle2">Upload Document (PDF/DOC/DOCX/XLS/XLSX)</Typography>
                                    <Button
-                                        href={newPublication.publicationURL}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        variant="text"
+                                        component="label"
+                                        variant="outlined"
+                                        onClick={() => {
+                                             setDocumentUploadError('');
+                                             setShowDocumentSuccess(false);
+                                        }}
                                         sx={{
+                                             width: 300,
+                                             borderRadius: 2,
                                              textTransform: 'none',
                                              fontWeight: 600,
-                                             px: 0,
-                                             justifyContent: 'flex-start'
+                                             px: 2.5,
+                                             borderWidth: 2,
+                                             '&:hover': { borderWidth: 2 }
                                         }}
                                    >
-                                        View uploaded document
+                                        Choose Document
+                                        <input
+                                             hidden
+                                             type="file"
+                                             accept=".pdf,.doc,.docx,.xls,.xlsx"
+                                             onChange={async (e) => {
+                                                  const selectedFile = e.target.files?.[0] || null;
+                                                  if (!selectedFile) {
+                                                       setDocumentFile(null);
+                                                       return;
+                                                  }
+                                                  const rawTitle = selectedFile.name.replace(/\.[^/.]+$/, '');
+                                                  const normalizedTitle = rawTitle.replace(/[_-]+/g, ' ').trim();
+                                                  if (selectedFile.size > maxFileSizeBytes) {
+                                                       setDocumentUploadError('Document exceeds 10MB size limit.');
+                                                       setDocumentFile(null);
+                                                       return;
+                                                  }
+                                                  setDocumentUploadError('');
+                                                  setDocumentFile(selectedFile);
+                                                  setNewPublication((prev) => ({
+                                                       ...prev,
+                                                       publicationTitle: normalizedTitle
+                                                  }));
+                                                  try {
+                                                       setIsUploadingDocument(true);
+                                                       const documentUrl = await uploadFile(selectedFile, normalizedTitle);
+                                                       setNewPublication((prev) => ({
+                                                            ...prev,
+                                                            publicationURL: documentUrl
+                                                       }));
+                                                       setDocumentUploadError('');
+                                                       setShowDocumentSuccess(true);
+                                                  } catch (error: any) {
+                                                       setShowDocumentSuccess(false);
+                                                       setDocumentUploadError(error?.message || 'Failed to upload document.');
+                                                  } finally {
+                                                       setIsUploadingDocument(false);
+                                                  }
+                                             }}
+                                        />
                                    </Button>
+                                   {documentFile && (
+                                        <Typography variant="caption">
+                                             Selected: {documentFile.name} ({(documentFile.size / 1024 / 1024).toFixed(2)} MB)
+                                        </Typography>
+                                   )}
+                                   <Typography variant="caption">
+                                        {isUploadingDocument ? 'Uploading document...' : 'Document uploads automatically after selection.'}
+                                   </Typography>
+                                   {showDocumentSuccess && newPublication.publicationURL && (
+                                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                                             <Typography variant="caption" sx={{ color: 'success.main' }}>
+                                                  Document uploaded successfully.
+                                             </Typography>
+                                             <Button
+                                                  href={newPublication.publicationURL}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  variant="text"
+                                                  sx={{
+                                                       textTransform: 'none',
+                                                       fontWeight: 600,
+                                                       px: 0,
+                                                       justifyContent: 'flex-start'
+                                                  }}
+                                             >
+                                                  View uploaded document
+                                             </Button>
+                                        </Box>
+                                   )}
+                                   {documentUploadError && (
+                                        <Typography variant="caption" sx={{ color: 'error.main' }}>
+                                             {documentUploadError}
+                                        </Typography>
+                                   )}
                               </Box>
-                         )}
-                         {documentUploadError && (
-                              <Typography variant="caption" sx={{ color: 'error.main' }}>
-                                   {documentUploadError}
-                              </Typography>
-                         )}
-                    </Box>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                         <Typography variant="subtitle2">Upload Image</Typography>
+                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                                   <Typography variant="subtitle2">Upload Image</Typography>
+                                   <Button
+                                        component="label"
+                                        variant="outlined"
+                                        onClick={() => {
+                                             setImageUploadError('');
+                                             setShowImageSuccess(false);
+                                        }}
+                                        sx={{
+                                             width: 300,
+                                             borderRadius: 2,
+                                             textTransform: 'none',
+                                             fontWeight: 600,
+                                             px: 2.5,
+                                             borderWidth: 2,
+                                             '&:hover': { borderWidth: 2 }
+                                        }}
+                                   >
+                                        Choose Image
+                                        <input
+                                             hidden
+                                             type="file"
+                                             accept="image/*"
+                                             onChange={async (e) => {
+                                                  const selectedFile = e.target.files?.[0] || null;
+                                                  if (!selectedFile) {
+                                                       setImageFile(null);
+                                                       return;
+                                                  }
+                                                  if (selectedFile.size > maxFileSizeBytes) {
+                                                       setImageUploadError('Image exceeds 10MB size limit.');
+                                                       setImageFile(null);
+                                                       return;
+                                                  }
+                                                  setImageUploadError('');
+                                                  setImageFile(selectedFile);
+                                                  try {
+                                                       setIsUploadingImage(true);
+                                                       const imageUrl = await uploadFile(selectedFile, newPublication.publicationTitle || selectedFile.name);
+                                                       setNewPublication((prev) => ({
+                                                            ...prev,
+                                                            publicationImageURL: imageUrl
+                                                       }));
+                                                       setImageUploadError('');
+                                                       setShowImageSuccess(true);
+                                                  } catch (error: any) {
+                                                       setShowImageSuccess(false);
+                                                       setImageUploadError(error?.message || 'Failed to upload image.');
+                                                  } finally {
+                                                       setIsUploadingImage(false);
+                                                  }
+                                             }}
+                                        />
+                                   </Button>
+                                   {imageFile && (
+                                        <Typography variant="caption">
+                                             Selected: {imageFile.name} ({(imageFile.size / 1024 / 1024).toFixed(2)} MB)
+                                        </Typography>
+                                   )}
+                                   {imagePreviewUrl && (
+                                        <Box
+                                             component="img"
+                                             src={imagePreviewUrl}
+                                             alt="Preview"
+                                             sx={{ maxWidth: 220, borderRadius: 1, border: '1px solid #ddd' }}
+                                        />
+                                   )}
+                                   <Typography variant="caption">
+                                        {isUploadingImage ? 'Uploading image...' : 'Image uploads automatically after selection.'}
+                                   </Typography>
+                                   {showImageSuccess && (
+                                        <Typography variant="caption" sx={{ color: 'success.main' }}>
+                                             Image uploaded successfully.
+                                        </Typography>
+                                   )}
+                                   {imageUploadError && (
+                                        <Typography variant="caption" sx={{ color: 'error.main' }}>
+                                             {imageUploadError}
+                                        </Typography>
+                                   )}
+                              </Box>
+                         </Box>
+                    </DialogContent>
+                    <DialogActions sx={{ px: 3, py: 2 }}>
+                         <Button onClick={() => setIsAddModalOpen(false)} variant="text">
+                              Cancel
+                         </Button>
                          <Button
-                              component="label"
-                              variant="outlined"
-                              onClick={() => {
-                                   setImageUploadError('');
-                                   setShowImageSuccess(false);
-                              }}
+                              onClick={handleAddPublication}
+                              variant="contained"
+                              color="primary"
+                              disabled={isAddDisabled}
                               sx={{
-                                   width: 300,
                                    borderRadius: 2,
                                    textTransform: 'none',
-                                   fontWeight: 600,
-                                   px: 2.5,
-                                   borderWidth: 2,
-                                   '&:hover': { borderWidth: 2 }
+                                   fontWeight: 700,
+                                   px: 3,
+                                   py: 1.2,
+                                   boxShadow: '0 10px 24px rgba(0,0,0,0.16)',
+                                   '&:hover': {
+                                        boxShadow: '0 12px 28px rgba(0,0,0,0.22)'
+                                   }
                               }}
                          >
-                              Choose Image
-                              <input
-                                   hidden
-                                   type="file"
-                                   accept="image/*"
-                                   onChange={async (e) => {
-                                        const selectedFile = e.target.files?.[0] || null;
-                                        if (!selectedFile) {
-                                             setImageFile(null);
-                                             return;
-                                        }
-                                        if (selectedFile.size > maxFileSizeBytes) {
-                                             setImageUploadError('Image exceeds 10MB size limit.');
-                                             setImageFile(null);
-                                             return;
-                                        }
-                                        setImageUploadError('');
-                                        setImageFile(selectedFile);
-                                        try {
-                                             setIsUploadingImage(true);
-                                             const imageUrl = await uploadFile(selectedFile, newPublication.publicationTitle || selectedFile.name);
-                                             setNewPublication((prev) => ({
-                                                  ...prev,
-                                                  publicationImageURL: imageUrl
-                                             }));
-                                             setImageUploadError('');
-                                             setShowImageSuccess(true);
-                                        } catch (error: any) {
-                                             setShowImageSuccess(false);
-                                             setImageUploadError(error?.message || 'Failed to upload image.');
-                                        } finally {
-                                             setIsUploadingImage(false);
-                                        }
-                                   }}
-                              />
+                              Add Publication
                          </Button>
-                         {imageFile && (
-                              <Typography variant="caption">
-                                   Selected: {imageFile.name} ({(imageFile.size / 1024 / 1024).toFixed(2)} MB)
-                              </Typography>
-                         )}
-                         {imagePreviewUrl && (
-                              <Box
-                                   component="img"
-                                   src={imagePreviewUrl}
-                                   alt="Preview"
-                                   sx={{ maxWidth: 220, borderRadius: 1, border: '1px solid #ddd' }}
-                              />
-                         )}
-                         <Typography variant="caption">
-                              {isUploadingImage ? 'Uploading image...' : 'Image uploads automatically after selection.'}
-                         </Typography>
-                         {showImageSuccess && (
-                              <Typography variant="caption" sx={{ color: 'success.main' }}>
-                                   Image uploaded successfully.
-                              </Typography>
-                         )}
-                         {imageUploadError && (
-                              <Typography variant="caption" sx={{ color: 'error.main' }}>
-                                   {imageUploadError}
-                              </Typography>
-                         )}
-                    </Box>
-                    <Button
-                         onClick={handleAddPublication}
-                         variant="contained"
-                         color="primary"
-                         disabled={isAddDisabled}
-                         sx={{
-                              borderRadius: 2,
-                              textTransform: 'none',
-                              fontWeight: 700,
-                              px: 3,
-                              py: 1.2,
-                              boxShadow: '0 10px 24px rgba(0,0,0,0.16)',
-                              '&:hover': {
-                                   boxShadow: '0 12px 28px rgba(0,0,0,0.22)'
-                              }
-                         }}
-                    >
-                         Add Publication
-                    </Button>
-               </Box>
+                    </DialogActions>
+               </Dialog>
 
                {/* Pagination Controls */}
                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 2 }}>
