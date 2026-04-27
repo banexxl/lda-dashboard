@@ -1,25 +1,22 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { GetServerSideProps } from 'next';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Button, Paper, Pagination, Box, Typography } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Button, Paper, Pagination, Box, Typography, MenuItem } from '@mui/material';
 import { Publication } from '@/utils/publication-services';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 
 // Define the interface for your page props
 interface PublicationsPageProps {
      publications: Publication[];
-     publicationsCount: number;
-     page: number;
-     limit: number;
      error?: string;
 }
 
-const PublicationTable: React.FC<{ publications: Publication[], publicationsCount: number, page: number, limit: number }> = ({
-     publications,
-     publicationsCount,
-     page,
-     limit
+const PublicationTable: React.FC<{ publications: Publication[] }> = ({
+     publications
 }) => {
      const maxFileSizeBytes = 10 * 1024 * 1024;
+     const [page, setPage] = useState(1);
+     const [rowsPerPage, setRowsPerPage] = useState(10);
+     const totalPages = Math.max(1, Math.ceil(publications.length / rowsPerPage));
      const [editableRows, setEditableRows] = useState<Publication[]>(publications);
      const [dirtyRows, setDirtyRows] = useState<Record<string, boolean>>({});
      const [newPublication, setNewPublication] = useState<Publication>({
@@ -42,6 +39,7 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
      const isAddDisabled = useMemo(() => {
           return !newPublication.publicationTitle || !newPublication.publicationURL || !newPublication.publicationImageURL;
      }, [newPublication.publicationTitle, newPublication.publicationURL, newPublication.publicationImageURL]);
+
      const handleEditChange = (index: number, field: keyof Publication, value: string) => {
           const updatedRows = [...editableRows];
           updatedRows[index] = {
@@ -188,6 +186,10 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
           }
      };
 
+     const pagedRows = useMemo(() => {
+          const startIndex = (page - 1) * rowsPerPage;
+          return editableRows.slice(startIndex, startIndex + rowsPerPage);
+     }, [editableRows, page, rowsPerPage]);
 
      return (
           <>
@@ -203,7 +205,7 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                               </TableRow>
                          </TableHead>
                          <TableBody>
-                              {editableRows.map((publication, index) => (
+                              {pagedRows.map((publication, index) => (
                                    <TableRow key={publication._id}>
                                         <TableCell>
                                              <TextField
@@ -506,14 +508,33 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                </Box>
 
                {/* Pagination Controls */}
-               <Pagination
-                    count={Math.ceil(publicationsCount / limit - 1)} // Total pages
-                    page={page}
-                    onChange={(event, value) => window.location.href = `/publications?page=${value}&limit=${limit}`} // Navigate to the selected page
-                    variant="outlined"
-                    shape="rounded"
-                    color="primary"
-               />
+               <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mt: 2 }}>
+                    <Pagination
+                         count={totalPages}
+                         page={page}
+                         onChange={(event, value) => setPage(value)}
+                         variant="outlined"
+                         shape="rounded"
+                         color="primary"
+                    />
+                    <TextField
+                         select
+                         label="Rows"
+                         value={rowsPerPage}
+                         onChange={(event) => {
+                              const nextRows = parseInt(event.target.value, 10) || 10;
+                              setRowsPerPage(nextRows);
+                              setPage(1);
+                         }}
+                         sx={{ width: 120 }}
+                    >
+                         {[5, 10, 25].map((value) => (
+                              <MenuItem key={value} value={value}>
+                                   {value}
+                              </MenuItem>
+                         ))}
+                    </TextField>
+               </Box>
           </>
      );
 
@@ -521,9 +542,6 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
 
 const PublicationsPage: React.FC<PublicationsPageProps> = ({
      publications,
-     publicationsCount,
-     page,
-     limit,
      error,
 }) => {
      if (error) {
@@ -534,9 +552,6 @@ const PublicationsPage: React.FC<PublicationsPageProps> = ({
           <DashboardLayout>
                <PublicationTable
                     publications={publications}
-                    publicationsCount={publicationsCount}  // Pass publicationsCount here
-                    page={page}                           // Pass page here
-                    limit={limit}
                />
           </DashboardLayout>
      );
@@ -546,21 +561,20 @@ const PublicationsPage: React.FC<PublicationsPageProps> = ({
 // Server-side data fetching
 export const getServerSideProps: GetServerSideProps = async (context) => {
      try {
-          const page = parseInt(context.query.page as string) || 1;
-          const limit = parseInt(context.query.limit as string) || 5;
-
-          const response = await fetch(`${process.env.BASE_URL}/api/publications-api?page=${page}&limit=${limit}`);
+          const response = await fetch(`${process.env.BASE_URL}/api/publications-api`);
           const data = await response.json();
 
-          const publications = data.publications || [];
-          const publicationsCount = data.publicationsCount || 0;
+          const rawPublications = Array.isArray(data) ? data : data.publications || [];
+          const publications = rawPublications.map((publication: any) => ({
+               ...publication,
+               _id: typeof publication._id === 'string'
+                    ? publication._id
+                    : publication._id?.toString?.() || '',
+          }));
 
           return {
                props: {
                     publications,
-                    publicationsCount,  // Ensure this is passed
-                    page,               // Ensure this is passed
-                    limit,
                },
           };
      } catch (error) {
@@ -568,9 +582,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
           return {
                props: {
                     publications: [],
-                    publicationsCount: 0,
-                    page: 1,
-                    limit: 5,
                     error: 'Failed to fetch publications. Please try again later.',
                },
           };

@@ -22,17 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                          return res.status(500).json({ error: 'Failed to add publication' });
                     }
                case 'GET':
-                    // Fetch all publications with pagination
-                    if (req.query.page && req.query.limit) {
-                         const page = parseInt(req.query.page as string, 10);
-                         const limit = parseInt(req.query.limit as string, 10);
-
-                         const publications = await publicationServices.getPublicationsByPage(page, limit);
-                         const publicationsCount = await publicationServices.getPublicationsCount();
-
-                         return res.status(200).json({ publications, publicationsCount });
-                    }
-                    // Default fetch all publications if no page or limit is provided
+                    // Fetch all publications
                     const allPublications = await publicationServices.getAllPublications();
                     return res.status(200).json(allPublications);
 
