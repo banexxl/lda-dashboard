@@ -14,7 +14,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                          return res.status(400).json({ error: 'Missing publication data' });
                     }
 
-                    const publication = await publicationServices.addPublication({ publicationTitle, publicationURL, publicationImageURL, publicationUploadedDateTime });
+                    const parsedUploadedDate = new Date(publicationUploadedDateTime);
+                    if (isNaN(parsedUploadedDate.getTime())) {
+                         return res.status(400).json({ error: 'Invalid publicationUploadedDateTime' });
+                    }
+
+                    const publication = await publicationServices.addPublication({
+                         publicationTitle,
+                         publicationURL,
+                         publicationImageURL,
+                         publicationUploadedDateTime: parsedUploadedDate,
+                    });
 
                     if (publication) {
                          return res.status(200).json({ message: 'Publication added successfully', publication });
@@ -34,7 +44,21 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                          return res.status(400).json({ error: 'Missing publication id or data' });
                     }
 
-                    const updated = await publicationServices.updatePublication(id, updatedPublication);
+                    const normalizedUpdate = {
+                         ...updatedPublication,
+                         publicationUploadedDateTime: updatedPublication.publicationUploadedDateTime
+                              ? new Date(updatedPublication.publicationUploadedDateTime)
+                              : updatedPublication.publicationUploadedDateTime,
+                    };
+
+                    if (
+                         normalizedUpdate.publicationUploadedDateTime &&
+                         isNaN(new Date(normalizedUpdate.publicationUploadedDateTime).getTime())
+                    ) {
+                         return res.status(400).json({ error: 'Invalid publicationUploadedDateTime' });
+                    }
+
+                    const updated = await publicationServices.updatePublication(id, normalizedUpdate);
 
                     if (updated) {
                          return res.status(200).json({ message: 'Publication updated successfully' });
