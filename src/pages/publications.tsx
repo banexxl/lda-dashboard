@@ -32,7 +32,8 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
      const [documentFile, setDocumentFile] = useState<File | null>(null);
      const [imageFile, setImageFile] = useState<File | null>(null);
      const [imagePreviewUrl, setImagePreviewUrl] = useState<string>('');
-     const [uploadError, setUploadError] = useState<string>('');
+     const [documentUploadError, setDocumentUploadError] = useState<string>('');
+     const [imageUploadError, setImageUploadError] = useState<string>('');
      const [showDocumentSuccess, setShowDocumentSuccess] = useState(false);
      const [showImageSuccess, setShowImageSuccess] = useState(false);
      const [isUploadingDocument, setIsUploadingDocument] = useState(false);
@@ -149,15 +150,15 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
      };
 
      const handleUploadDocument = async () => {
-          setUploadError('');
+          setDocumentUploadError('');
 
           if (!newPublication.publicationTitle) {
-               setUploadError('Title is required before uploading documents.');
+               setDocumentUploadError('Title is required before uploading documents.');
                return;
           }
 
           if (!documentFile) {
-               setUploadError('Select a document to upload.');
+               setDocumentUploadError('Select a document to upload.');
                return;
           }
 
@@ -169,22 +170,22 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                     publicationURL: documentUrl,
                });
           } catch (error: any) {
-               setUploadError(error?.message || 'Failed to upload document.');
+               setDocumentUploadError(error?.message || 'Failed to upload document.');
           } finally {
                setIsUploadingDocument(false);
           }
      };
 
      const handleUploadImage = async () => {
-          setUploadError('');
+          setImageUploadError('');
 
           if (!newPublication.publicationTitle) {
-               setUploadError('Title is required before uploading images.');
+               setImageUploadError('Title is required before uploading images.');
                return;
           }
 
           if (!imageFile) {
-               setUploadError('Select an image to upload.');
+               setImageUploadError('Select an image to upload.');
                return;
           }
 
@@ -196,7 +197,7 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                     publicationImageURL: imageUrl,
                });
           } catch (error: any) {
-               setUploadError(error?.message || 'Failed to upload image.');
+               setImageUploadError(error?.message || 'Failed to upload image.');
           } finally {
                setIsUploadingImage(false);
           }
@@ -204,7 +205,8 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
 
      const handleAddPublication = async () => {
           if (isAddDisabled) {
-               setUploadError('Title, document, and image are required.');
+               setDocumentUploadError('Title, document, and image are required.');
+               setImageUploadError('');
                return;
           }
 
@@ -364,7 +366,7 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                               component="label"
                               variant="outlined"
                               onClick={() => {
-                                   setUploadError('');
+                                   setDocumentUploadError('');
                                    setShowDocumentSuccess(false);
                               }}
                               sx={{
@@ -391,11 +393,11 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                                         const rawTitle = selectedFile.name.replace(/\.[^/.]+$/, '');
                                         const normalizedTitle = rawTitle.replace(/[_-]+/g, ' ').trim();
                                         if (selectedFile.size > maxFileSizeBytes) {
-                                             setUploadError('Document exceeds 5MB size limit.');
+                                             setDocumentUploadError('Document exceeds 5MB size limit.');
                                              setDocumentFile(null);
                                              return;
                                         }
-                                        setUploadError('');
+                                        setDocumentUploadError('');
                                         setDocumentFile(selectedFile);
                                         setNewPublication((prev) => ({
                                              ...prev,
@@ -408,11 +410,11 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                                                   ...prev,
                                                   publicationURL: documentUrl
                                              }));
-                                             setUploadError('');
+                                             setDocumentUploadError('');
                                              setShowDocumentSuccess(true);
                                         } catch (error: any) {
                                              setShowDocumentSuccess(false);
-                                             setUploadError(error?.message || 'Failed to upload document.');
+                                             setDocumentUploadError(error?.message || 'Failed to upload document.');
                                         } finally {
                                              setIsUploadingDocument(false);
                                         }
@@ -448,6 +450,11 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                                    </Button>
                               </Box>
                          )}
+                         {documentUploadError && (
+                              <Typography variant="caption" sx={{ color: 'error.main' }}>
+                                   {documentUploadError}
+                              </Typography>
+                         )}
                     </Box>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                          <Typography variant="subtitle2">Upload Image</Typography>
@@ -455,7 +462,7 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                               component="label"
                               variant="outlined"
                               onClick={() => {
-                                   setUploadError('');
+                                   setImageUploadError('');
                                    setShowImageSuccess(false);
                               }}
                               sx={{
@@ -480,11 +487,11 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                                              return;
                                         }
                                         if (selectedFile.size > maxFileSizeBytes) {
-                                             setUploadError('Image exceeds 5MB size limit.');
+                                             setImageUploadError('Image exceeds 5MB size limit.');
                                              setImageFile(null);
                                              return;
                                         }
-                                        setUploadError('');
+                                        setImageUploadError('');
                                         setImageFile(selectedFile);
                                         try {
                                              setIsUploadingImage(true);
@@ -493,11 +500,11 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                                                   ...prev,
                                                   publicationImageURL: imageUrl
                                              }));
-                                             setUploadError('');
+                                             setImageUploadError('');
                                              setShowImageSuccess(true);
                                         } catch (error: any) {
                                              setShowImageSuccess(false);
-                                             setUploadError(error?.message || 'Failed to upload image.');
+                                             setImageUploadError(error?.message || 'Failed to upload image.');
                                         } finally {
                                              setIsUploadingImage(false);
                                         }
@@ -525,10 +532,12 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                                    Image uploaded successfully.
                               </Typography>
                          )}
+                         {imageUploadError && (
+                              <Typography variant="caption" sx={{ color: 'error.main' }}>
+                                   {imageUploadError}
+                              </Typography>
+                         )}
                     </Box>
-                    {uploadError && (
-                         <Typography color="error" variant="body2">{uploadError}</Typography>
-                    )}
                     <Button
                          onClick={handleAddPublication}
                          variant="contained"
