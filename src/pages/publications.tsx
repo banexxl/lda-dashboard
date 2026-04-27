@@ -19,7 +19,7 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
      page,
      limit
 }) => {
-     const maxFileSizeBytes = 5 * 1024 * 1024;
+     const maxFileSizeBytes = 10 * 1024 * 1024;
      const [editableRows, setEditableRows] = useState<Publication[]>(publications);
      const [dirtyRows, setDirtyRows] = useState<Record<string, boolean>>({});
      const [newPublication, setNewPublication] = useState<Publication>({
@@ -393,7 +393,7 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                                         const rawTitle = selectedFile.name.replace(/\.[^/.]+$/, '');
                                         const normalizedTitle = rawTitle.replace(/[_-]+/g, ' ').trim();
                                         if (selectedFile.size > maxFileSizeBytes) {
-                                             setDocumentUploadError('Document exceeds 5MB size limit.');
+                                             setDocumentUploadError('Document exceeds 10MB size limit.');
                                              setDocumentFile(null);
                                              return;
                                         }
@@ -487,7 +487,7 @@ const PublicationTable: React.FC<{ publications: Publication[], publicationsCoun
                                              return;
                                         }
                                         if (selectedFile.size > maxFileSizeBytes) {
-                                             setImageUploadError('Image exceeds 5MB size limit.');
+                                             setImageUploadError('Image exceeds 10MB size limit.');
                                              setImageFile(null);
                                              return;
                                         }
