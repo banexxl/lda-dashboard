@@ -2,6 +2,7 @@ import SourceIcon from '@mui/icons-material/Source';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import PostAddIcon from '@mui/icons-material/PostAdd';
 import { SvgIcon } from '@mui/material';
+import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
 
 export const items = [
      {
@@ -45,7 +46,7 @@ export const items = [
           path: '/questions',
           icon: (
                <SvgIcon fontSize="small">
-                    <PostAddIcon />
+                    <QuestionAnswerIcon />
                </SvgIcon>
           )
      }
