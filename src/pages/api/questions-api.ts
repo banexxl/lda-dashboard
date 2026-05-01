@@ -45,13 +45,12 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     });
 
                     if (updated) {
-                         let emailSent = false;
                          let emailError: string | null = null;
 
                          if (answerText) {
                               try {
                                    const resend = new Resend(process.env.RESEND_API_KEY);
-                                   await resend.emails.send({
+                                   const emailResponse = await resend.emails.send({
                                         from: 'LDA Subotica - Kontakt forma <onboarding@resend.dev>',
                                         to: updatedQuestion.email,
                                         subject: 'Your question has been answered',
@@ -67,18 +66,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                              <p>Thank you.</p>
                                         `,
                                    });
-                                   emailSent = true;
+                                   console.log('emailResponse', emailResponse);
+
                               } catch (error: any) {
                                    emailError = error?.message || 'Failed to send email';
                               }
                          }
 
                          return res.status(200).json({
-                              message: emailSent
+                              message: emailError
                                    ? 'Question updated successfully. Notification email sent.'
-                                   : 'Question updated successfully.',
-                              emailSent,
-                              emailError,
+                                   : 'Question updated successfully.'
                          });
                     }
 
