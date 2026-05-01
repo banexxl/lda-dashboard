@@ -3,6 +3,7 @@ import AssignmentIcon from '@mui/icons-material/Assignment';
 import PostAddIcon from '@mui/icons-material/PostAdd';
 import { SvgIcon } from '@mui/material';
 import QuestionAnswerIcon from '@mui/icons-material/QuestionAnswer';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 
 export const items = [
      {
@@ -37,7 +38,7 @@ export const items = [
           path: '/publications',
           icon: (
                <SvgIcon fontSize="small">
-                    <PostAddIcon />
+                    <PictureAsPdfIcon />
                </SvgIcon>
           )
      },
