@@ -1,5 +1,6 @@
 import { QuestionsServices } from '@/utils/questions-services';
 import { NextApiRequest, NextApiResponse } from 'next';
+import { Resend } from 'resend';
 
 const questionsServices = QuestionsServices();
 
@@ -44,7 +45,41 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     });
 
                     if (updated) {
-                         return res.status(200).json({ message: 'Question updated successfully' });
+                         let emailSent = false;
+                         let emailError: string | null = null;
+
+                         if (answerText) {
+                              try {
+                                   const resend = new Resend(process.env.RESEND_API_KEY);
+                                   await resend.emails.send({
+                                        from: 'LDA Subotica - Kontakt forma <onboarding@resend.dev>',
+                                        to: updatedQuestion.email,
+                                        subject: 'Your question has been answered',
+                                        html: `
+                                             <p>Hello ${updatedQuestion.fullName || ''},</p>
+                                             <p>Your question has been answered. You can view and ask more questions here:</p>
+                                             <p>
+                                                  <a href="https://lda-subotica.org/postavi-pitanje/" 
+                                                     style="display:inline-block;padding:10px 16px;background:#1976d2;color:#ffffff;text-decoration:none;border-radius:4px;">
+                                                       Open the Q&amp;A page
+                                                  </a>
+                                             </p>
+                                             <p>Thank you.</p>
+                                        `,
+                                   });
+                                   emailSent = true;
+                              } catch (error: any) {
+                                   emailError = error?.message || 'Failed to send email';
+                              }
+                         }
+
+                         return res.status(200).json({
+                              message: emailSent
+                                   ? 'Question updated successfully. Notification email sent.'
+                                   : 'Question updated successfully.',
+                              emailSent,
+                              emailError,
+                         });
                     }
 
                     return res.status(500).json({ error: 'Failed to update question' });
