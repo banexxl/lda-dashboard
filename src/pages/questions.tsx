@@ -109,6 +109,19 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
      };
 
      const handleDelete = async (id: string) => {
+          const confirmation = await Swal.fire({
+               title: 'Delete question?',
+               text: 'This action cannot be undone.',
+               icon: 'warning',
+               showCancelButton: true,
+               confirmButtonText: 'Delete',
+               cancelButtonText: 'Cancel',
+          });
+
+          if (!confirmation.isConfirmed) {
+               return;
+          }
+
           const response = await fetch(`/api/questions-api?id=${id}`, {
                method: 'DELETE',
           });
@@ -116,11 +129,21 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
           const result = await response.json();
           if (response.ok) {
                setRows((prev) => prev.filter((row) => row._id !== id));
-               alert(result.message || 'Question deleted successfully');
+               Swal.fire({
+                    title: 'Deleted',
+                    text: result.message || 'Question deleted successfully',
+                    icon: 'success',
+                    confirmButtonText: 'OK',
+               });
                return;
           }
 
-          alert(result.error || 'Failed to delete question');
+          Swal.fire({
+               title: 'Error',
+               text: result.error || 'Failed to delete question',
+               icon: 'error',
+               confirmButtonText: 'OK',
+          });
      };
 
      return (
