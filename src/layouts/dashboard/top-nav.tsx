@@ -20,7 +20,6 @@ import {
 import { alpha } from '@mui/material/styles';
 import { usePopover } from 'src/hooks/use-popover';
 import { AccountPopover } from './account-popover';
-import { useSession } from 'next-auth/react';
 import Swal from 'sweetalert2';
 import PlusIcon from '@heroicons/react/24/solid/GlobeAltIcon';
 import { useState } from 'react';

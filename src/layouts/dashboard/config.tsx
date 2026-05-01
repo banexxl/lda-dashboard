@@ -39,5 +39,14 @@ export const items = [
                     <PostAddIcon />
                </SvgIcon>
           )
+     },
+     {
+          title: 'Q&A',
+          path: '/questions',
+          icon: (
+               <SvgIcon fontSize="small">
+                    <PostAddIcon />
+               </SvgIcon>
+          )
      }
 ];
