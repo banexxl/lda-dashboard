@@ -21,6 +21,7 @@ import {
 } from '@mui/material';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
 import { QuestionsServices, QuestionItem } from '@/utils/questions-services';
+import { SessionProvider } from 'next-auth/react';
 
 interface QuestionsPageProps {
      questions: QuestionItem[];
@@ -147,7 +148,7 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
      };
 
      return (
-          <Box>
+          <SessionProvider>
                <Head>
                     <title>Questions</title>
                </Head>
@@ -272,7 +273,7 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
                          </Button>
                     </DialogActions>
                </Dialog>
-          </Box>
+          </SessionProvider>
      );
 };
 

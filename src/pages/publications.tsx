@@ -3,6 +3,7 @@ import { GetServerSideProps } from 'next';
 import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Button, Paper, Pagination, Box, Typography, MenuItem, Dialog, DialogTitle, DialogContent, DialogActions } from '@mui/material';
 import { Publication } from '@/utils/publication-services';
 import { Layout as DashboardLayout } from 'src/layouts/dashboard/layout';
+import { SessionProvider } from 'next-auth/react';
 
 // Define the interface for your page props
 interface PublicationsPageProps {
@@ -193,7 +194,7 @@ const PublicationTable: React.FC<{ publications: Publication[] }> = ({
      }, [editableRows, page, rowsPerPage]);
 
      return (
-          <>
+          <SessionProvider>
                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
                     <Typography variant="h6">Publications</Typography>
                     <Button
@@ -570,7 +571,7 @@ const PublicationTable: React.FC<{ publications: Publication[] }> = ({
                          ))}
                     </TextField>
                </Box>
-          </>
+          </SessionProvider>
      );
 
 };
