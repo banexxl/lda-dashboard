@@ -22,8 +22,6 @@ export const QuestionsServices = () => {
                     .find({})
                     .sort({ questionDateTime: -1 })
                     .toArray();
-               console.log(questions);
-
                return questions;
           } catch (error: any) {
                console.error('Error while fetching questions:', error);

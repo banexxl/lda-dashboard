@@ -205,8 +205,6 @@ export const ProjectActivityTable = (props: any) => {
                               handleProjectClose()
                          }
                     })
-                    const errorData = await response.json()
-                    console.log(errorData);
                }
 
           } catch (err) {
@@ -489,8 +487,6 @@ export const ProjectActivityTable = (props: any) => {
                          });
                     } else {
                          const result = await response.json();
-                         console.log(result);
-
                          onAddNewPublication(result.imageUrl);
 
                          Swal.fire({

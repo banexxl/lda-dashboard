@@ -143,8 +143,6 @@ export const ActivityTable = ({ items }: any) => {
                               handleActivityClose()
                          }
                     })
-                    const errorData = await response.json()
-                    console.log(errorData);
                }
 
           } catch (err) {

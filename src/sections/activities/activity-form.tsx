@@ -22,8 +22,6 @@ export const AddActivityForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
      const [quillEditorData, setQuillEditorData] = useState<string>('')
 
      const handleSubmit = async (values: any) => {
-          console.log('values', values);
-
           try {
                const responseValues: any = await fetch('/api/activities-api', {
                     method: 'POST',

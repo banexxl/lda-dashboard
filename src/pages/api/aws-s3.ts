@@ -158,8 +158,6 @@ export default async (req: any, res: any) => {
                };
 
                const uploadedFile = await s3.upload(params).promise()
-               console.log('uploadedFile', uploadedFile);
-
                await projectActivitiesServices().addPublicationToPublicationsDB(title, uploadedFile.Location)
 
                return res.status(200).json({ imageUrl: uploadedFile.Location });

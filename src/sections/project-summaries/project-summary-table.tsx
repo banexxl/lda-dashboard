@@ -88,8 +88,6 @@ export const ProjectSummaryTable = ({ items }: any) => {
                          projectSummarySubtitles,
                          ...filteredObj
                     } = obj;
-                    console.log('filteredObj', filteredObj);
-
                     return filteredObj;
                }
           }
@@ -105,8 +103,6 @@ export const ProjectSummaryTable = ({ items }: any) => {
                setCurrentProjectObject(getObjectById(ProjectId, items))
                return ProjectId;
           })
-          console.log('currentProjectObject', currentProjectObject);
-
      }
 
      const handleProjectClose = () => {
@@ -114,7 +110,6 @@ export const ProjectSummaryTable = ({ items }: any) => {
      }
 
      const handleProjectUpdateClick = () => {
-          console.log('currentProjectObject', currentProjectObject);
           Swal.fire({
                title: 'Da li ste sigurni?',
                text: "Možete izmeniti pojekat u svakom momentu...",
@@ -166,8 +161,6 @@ export const ProjectSummaryTable = ({ items }: any) => {
                               handleProjectClose()
                          }
                     })
-                    const errorData = await response.json()
-                    console.log(errorData);
                }
 
           } catch (err) {
