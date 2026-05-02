@@ -1,6 +1,6 @@
 import { QuestionsServices } from '@/utils/questions-services';
 import { NextApiRequest, NextApiResponse } from 'next';
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
 const questionsServices = QuestionsServices();
 
@@ -45,38 +45,58 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     });
 
                     if (updated) {
-                         let emailError: string | null = null;
-
                          if (answerText) {
-                              try {
-                                   const resend = new Resend(process.env.RESEND_API_KEY);
-                                   const emailResponse = await resend.emails.send({
-                                        from: 'LDA Subotica - Kontakt forma <onboarding@resend.dev>',
-                                        to: updatedQuestion.email,
-                                        subject: 'Your question has been answered',
-                                        html: `
-                                             <p>Hello ${updatedQuestion.fullName || ''},</p>
-                                             <p>Your question has been answered. You can view and ask more questions here:</p>
-                                             <p>
-                                                  <a href="https://lda-subotica.org/postavi-pitanje/" 
-                                                     style="display:inline-block;padding:10px 16px;background:#1976d2;color:#ffffff;text-decoration:none;border-radius:4px;">
-                                                       Open the Q&amp;A page
-                                                  </a>
-                                             </p>
-                                             <p>Thank you.</p>
-                                        `,
-                                   });
-                                   console.log('emailResponse', emailResponse);
+                              const sendNotification = async () => {
+                                   try {
+                                        const host = process.env.EMAIL_SERVER_HOST;
+                                        const user = process.env.EMAIL_SERVER_USER;
+                                        const pass = process.env.EMAIL_SERVER_PASSWORD;
+                                        const port = Number(process.env.EMAIL_SERVER_PORT || 465);
 
-                              } catch (error: any) {
-                                   emailError = error?.message || 'Failed to send email';
-                              }
+                                        if (!host || !user || !pass) {
+                                             throw new Error('Missing email server configuration');
+                                        }
+
+                                        const transporter = nodemailer.createTransport({
+                                             host,
+                                             port,
+                                             secure: port === 465,
+                                             auth: { user, pass },
+                                        });
+
+                                        console.log('email: sending notification to', updatedQuestion.email);
+                                        const emailResponse = await Promise.race([
+                                             transporter.sendMail({
+                                                  from: 'LDA Subotica - Postavi Pitanje <noreply@lda-subotica.org>',
+                                                  to: updatedQuestion.email,
+                                                  subject: 'Your question has been answered',
+                                                  html: `
+                                                       <p>Hello ${updatedQuestion.fullName || ''},</p>
+                                                       <p>Your question has been answered. You can view and ask more questions here:</p>
+                                                       <p>
+                                                            <a href="https://lda-subotica.org/postavi-pitanje/" 
+                                                               style="display:inline-block;padding:10px 16px;background:#1976d2;color:#ffffff;text-decoration:none;border-radius:4px;">
+                                                                 Open the Q&amp;A page
+                                                            </a>
+                                                       </p>
+                                                       <p>Thank you.</p>
+                                                  `,
+                                             }),
+                                             new Promise((_, reject) =>
+                                                  setTimeout(() => reject(new Error('Email send timed out')), 10000)
+                                             )
+                                        ]);
+                                        console.log('email: sent', emailResponse);
+                                   } catch (error: any) {
+                                        console.error('email: failed', error);
+                                   }
+                              };
+
+                              void sendNotification();
                          }
 
                          return res.status(200).json({
-                              message: emailError
-                                   ? 'Question updated successfully. Notification email sent.'
-                                   : 'Question updated successfully.'
+                              message: 'Question updated successfully.'
                          });
                     }
 

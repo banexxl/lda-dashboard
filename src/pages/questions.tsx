@@ -5,6 +5,7 @@ import Swal from 'sweetalert2';
 import {
      Box,
      Button,
+     CircularProgress,
      Container,
      Dialog,
      DialogActions,
@@ -40,6 +41,7 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
      const [rows, setRows] = useState<QuestionItem[]>(questions);
      const [isModalOpen, setIsModalOpen] = useState(false);
      const [activeQuestion, setActiveQuestion] = useState<QuestionItem | null>(null);
+     const [isSaving, setIsSaving] = useState(false);
      const [page, setPage] = useState(0);
      const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -80,50 +82,62 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
      const handleSave = async () => {
           if (!activeQuestion) return;
 
-          const response = await fetch('/api/questions-api', {
-               method: 'PUT',
-               headers: {
-                    'Content-Type': 'application/json',
-               },
-               body: JSON.stringify({
-                    id: activeQuestion._id,
-                    updatedQuestion: {
-                         ...activeQuestion,
+          setIsSaving(true);
+          try {
+               const response = await fetch('/api/questions-api', {
+                    method: 'PUT',
+                    headers: {
+                         'Content-Type': 'application/json',
                     },
-               }),
-          });
+                    body: JSON.stringify({
+                         id: activeQuestion._id,
+                         updatedQuestion: {
+                              ...activeQuestion,
+                         },
+                    }),
+               });
 
-          const result = await response.json();
-          if (response.ok) {
-               setRows((prev) =>
-                    prev.map((row) =>
-                         row._id === activeQuestion._id
-                              ? {
-                                   ...activeQuestion,
-                                   answerDateTime:
-                                        activeQuestion.answer?.trim().length > 0
-                                             ? new Date()
-                                             : null,
-                              }
-                              : row
-                    )
-               );
-               handleCloseModal();
+               const result = await response.json();
+               if (response.ok) {
+                    setRows((prev) =>
+                         prev.map((row) =>
+                              row._id === activeQuestion._id
+                                   ? {
+                                        ...activeQuestion,
+                                        answerDateTime:
+                                             activeQuestion.answer?.trim().length > 0
+                                                  ? new Date()
+                                                  : null,
+                                   }
+                                   : row
+                         )
+                    );
+                    handleCloseModal();
+                    Swal.fire({
+                         title: 'Success',
+                         text: result.message || 'Question updated successfully',
+                         icon: 'success',
+                         confirmButtonText: 'OK',
+                    });
+                    return;
+               }
+
                Swal.fire({
-                    title: 'Success',
-                    text: result.message || 'Question updated successfully',
-                    icon: 'success',
+                    title: 'Error',
+                    text: result.error || 'Failed to update question',
+                    icon: 'error',
                     confirmButtonText: 'OK',
                });
-               return;
+          } catch (error) {
+               Swal.fire({
+                    title: 'Error',
+                    text: 'Failed to update question',
+                    icon: 'error',
+                    confirmButtonText: 'OK',
+               });
+          } finally {
+               setIsSaving(false);
           }
-
-          Swal.fire({
-               title: 'Error',
-               text: result.error || 'Failed to update question',
-               icon: 'error',
-               confirmButtonText: 'OK',
-          });
      };
 
      const handleDelete = async (id: string) => {
@@ -294,11 +308,19 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
                          </Stack>
                     </DialogContent>
                     <DialogActions sx={{ px: 3, py: 2 }}>
-                         <Button onClick={handleCloseModal} variant="text">
-                              Cancel
+                         <Button onClick={handleCloseModal} variant="text" disabled={isSaving}>
+                              {isSaving ? (
+                                   <CircularProgress size={18} />
+                              ) : (
+                                   'Cancel'
+                              )}
                          </Button>
-                         <Button onClick={handleSave} variant="contained">
-                              Save
+                         <Button onClick={handleSave} variant="contained" disabled={isSaving}>
+                              {isSaving ? (
+                                   <CircularProgress size={18} color="inherit" />
+                              ) : (
+                                   'Save'
+                              )}
                          </Button>
                     </DialogActions>
                </Dialog>
