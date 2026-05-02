@@ -16,6 +16,7 @@ import {
      TableCell,
      TableHead,
      TableRow,
+     TablePagination,
      TextField,
      Typography,
 } from '@mui/material';
@@ -39,8 +40,24 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
      const [rows, setRows] = useState<QuestionItem[]>(questions);
      const [isModalOpen, setIsModalOpen] = useState(false);
      const [activeQuestion, setActiveQuestion] = useState<QuestionItem | null>(null);
+     const [page, setPage] = useState(0);
+     const [rowsPerPage, setRowsPerPage] = useState(10);
 
      const hasRows = useMemo(() => rows.length > 0, [rows.length]);
+     const pagedRows = useMemo(() => {
+          const startIndex = page * rowsPerPage;
+          return rows.slice(startIndex, startIndex + rowsPerPage);
+     }, [rows, page, rowsPerPage]);
+
+     const handlePageChange = (event: any, newPage: number) => {
+          setPage(newPage);
+     };
+
+     const handleRowsPerPageChange = (event: any) => {
+          const nextRowsPerPage = parseInt(event.target.value, 10) || 10;
+          setRowsPerPage(nextRowsPerPage);
+          setPage(0);
+     };
 
      const handleOpenModal = (question: QuestionItem) => {
           setActiveQuestion({ ...question });
@@ -177,7 +194,7 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
                                    </TableHead>
                                    <TableBody>
                                         {hasRows ? (
-                                             rows.map((question) => (
+                                             pagedRows.map((question) => (
                                                   <TableRow key={question._id}>
                                                        <TableCell>{question.fullName}</TableCell>
                                                        <TableCell>{question.email}</TableCell>
@@ -221,6 +238,18 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
                                         )}
                                    </TableBody>
                               </Table>
+                              <TablePagination
+                                   component="div"
+                                   count={rows.length}
+                                   onPageChange={handlePageChange}
+                                   onRowsPerPageChange={handleRowsPerPageChange}
+                                   page={page}
+                                   rowsPerPage={rowsPerPage}
+                                   rowsPerPageOptions={[5, 10, 25]}
+                                   showFirstButton
+                                   showLastButton
+                                   labelRowsPerPage={'Broj po stranici'}
+                              />
                          </Stack>
                     </Container>
                </Box>
