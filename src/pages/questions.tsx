@@ -216,7 +216,7 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
                                                                       variant="contained"
                                                                       onClick={() => handleOpenModal(question)}
                                                                  >
-                                                                      Answer
+                                                                      Edit Answer
                                                                  </Button>
                                                                  <Button
                                                                       variant="outlined"
