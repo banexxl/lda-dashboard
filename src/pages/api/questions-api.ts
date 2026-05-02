@@ -51,7 +51,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                         const host = process.env.EMAIL_SERVER_HOST;
                                         const user = process.env.EMAIL_SERVER_USER;
                                         const pass = process.env.EMAIL_SERVER_PASSWORD;
-                                        const port = Number(process.env.EMAIL_SERVER_PORT || 465);
+                                        const port = 587;
 
                                         if (!host || !user || !pass) {
                                              throw new Error('Missing email server configuration');
@@ -60,17 +60,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                         const transporter = nodemailer.createTransport({
                                              host,
                                              port,
-                                             secure: port === 465,
+                                             secure: false,
                                              auth: { user, pass },
                                         });
 
-                                        console.log('email: sending notification to', updatedQuestion.email);
-                                        const emailResponse = await Promise.race([
-                                             transporter.sendMail({
-                                                  from: 'LDA Subotica - Postavi Pitanje <noreply@lda-subotica.org>',
-                                                  to: updatedQuestion.email,
-                                                  subject: 'Your question has been answered',
-                                                  html: `
+                                        console.log('email: sending notification via', host, 'to', updatedQuestion.email);
+                                        const emailResponse = await transporter.sendMail({
+                                             from: 'LDA Subotica - Postavi Pitanje <noreply@lda-subotica.org>',
+                                             to: updatedQuestion.email,
+                                             subject: 'Your question has been answered',
+                                             html: `
                                                        <p>Hello ${updatedQuestion.fullName || ''},</p>
                                                        <p>Your question has been answered. You can view and ask more questions here:</p>
                                                        <p>
@@ -81,11 +80,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                                                        </p>
                                                        <p>Thank you.</p>
                                                   `,
-                                             }),
-                                             new Promise((_, reject) =>
-                                                  setTimeout(() => reject(new Error('Email send timed out')), 10000)
-                                             )
-                                        ]);
+                                        })
                                         console.log('email: sent', emailResponse);
                                    } catch (error: any) {
                                         console.error('email: failed', error);
