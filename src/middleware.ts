@@ -5,14 +5,12 @@ import { getToken } from 'next-auth/jwt';
 
 export async function middleware(req: NextRequest) {
      const { pathname } = req.nextUrl;
-     console.log('MIDDLEWARE HIT:', pathname);
      let token = null;
      try {
           token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
      } catch (error) {
           token = null;
      }
-     console.log('token', token);
 
      // ✅ Always allow NextAuth endpoints
      if (pathname.startsWith('/api/auth')) {
