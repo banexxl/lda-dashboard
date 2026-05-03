@@ -18,6 +18,8 @@ import {
      TableHead,
      TableRow,
      TablePagination,
+     Tabs,
+     Tab,
      TextField,
      Typography,
 } from '@mui/material';
@@ -44,12 +46,18 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
      const [isSaving, setIsSaving] = useState(false);
      const [page, setPage] = useState(0);
      const [rowsPerPage, setRowsPerPage] = useState(10);
+     const [tabValue, setTabValue] = useState(0);
 
-     const hasRows = useMemo(() => rows.length > 0, [rows.length]);
+     const filteredRows = useMemo(() => {
+          const targetArchived = tabValue === 0 ? 0 : 1;
+          return rows.filter((row) => (row.archived ?? 0) === targetArchived);
+     }, [rows, tabValue]);
+
+     const hasRows = useMemo(() => filteredRows.length > 0, [filteredRows.length]);
      const pagedRows = useMemo(() => {
           const startIndex = page * rowsPerPage;
-          return rows.slice(startIndex, startIndex + rowsPerPage);
-     }, [rows, page, rowsPerPage]);
+          return filteredRows.slice(startIndex, startIndex + rowsPerPage);
+     }, [filteredRows, page, rowsPerPage]);
 
      const handlePageChange = (event: any, newPage: number) => {
           setPage(newPage);
@@ -58,6 +66,11 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
      const handleRowsPerPageChange = (event: any) => {
           const nextRowsPerPage = parseInt(event.target.value, 10) || 10;
           setRowsPerPage(nextRowsPerPage);
+          setPage(0);
+     };
+
+     const handleTabChange = (event: any, newValue: number) => {
+          setTabValue(newValue);
           setPage(0);
      };
 
@@ -142,11 +155,11 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
 
      const handleDelete = async (id: string) => {
           const confirmation = await Swal.fire({
-               title: 'Delete question?',
-               text: 'This action cannot be undone.',
+               title: 'Archive question?',
+               text: 'You can restore it from the Archived tab later.',
                icon: 'warning',
                showCancelButton: true,
-               confirmButtonText: 'Delete',
+               confirmButtonText: 'Archive',
                cancelButtonText: 'Cancel',
           });
 
@@ -160,10 +173,14 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
 
           const result = await response.json();
           if (response.ok) {
-               setRows((prev) => prev.filter((row) => row._id !== id));
+               setRows((prev) =>
+                    prev.map((row) =>
+                         row._id === id ? { ...row, archived: 1 } : row
+                    )
+               );
                Swal.fire({
-                    title: 'Deleted',
-                    text: result.message || 'Question deleted successfully',
+                    title: 'Archived',
+                    text: result.message || 'Question archived successfully',
                     icon: 'success',
                     confirmButtonText: 'OK',
                });
@@ -172,7 +189,7 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
 
           Swal.fire({
                title: 'Error',
-               text: result.error || 'Failed to delete question',
+               text: result.error || 'Failed to archive question',
                icon: 'error',
                confirmButtonText: 'OK',
           });
@@ -194,6 +211,10 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
 
                               {error && <Typography color="error.main">{error}</Typography>}
 
+                              <Tabs value={tabValue} onChange={handleTabChange} sx={{ mb: 2 }}>
+                                   <Tab label="Active" />
+                                   <Tab label="Archived" />
+                              </Tabs>
                               <Table>
                                    <TableHead>
                                         <TableRow>
@@ -254,7 +275,7 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
                               </Table>
                               <TablePagination
                                    component="div"
-                                   count={rows.length}
+                                   count={filteredRows.length}
                                    onPageChange={handlePageChange}
                                    onRowsPerPageChange={handleRowsPerPageChange}
                                    page={page}

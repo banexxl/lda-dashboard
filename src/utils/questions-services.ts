@@ -8,18 +8,20 @@ export type QuestionItem = {
      answer: string;
      questionDateTime: Date;
      answerDateTime: Date | null;
+     archived?: number;
 };
 
 export const QuestionsServices = () => {
      const client = new MongoClient(process.env.MONGODB_URI!);
 
-     const getAllQuestions = async () => {
+     const getAllQuestions = async (archived?: number) => {
           try {
                await client.connect();
                const database = client.db('LDA_DB');
                const collection = database.collection('Q&A');
+               const filter = typeof archived === 'number' ? { archived } : {};
                const questions = await collection
-                    .find({})
+                    .find(filter)
                     .sort({ questionDateTime: -1 })
                     .toArray();
                return questions;
@@ -59,15 +61,18 @@ export const QuestionsServices = () => {
           }
      };
 
-     const deleteQuestion = async (id: string) => {
+     const archiveQuestion = async (id: string) => {
           try {
                await client.connect();
                const database = client.db('LDA_DB');
                const collection = database.collection('Q&A');
-               const result = await collection.deleteOne({ _id: new ObjectId(id) });
-               return result.deletedCount > 0;
+               const result = await collection.updateOne(
+                    { _id: new ObjectId(id) },
+                    { $set: { archived: 1 } }
+               );
+               return result.modifiedCount > 0;
           } catch (error: any) {
-               console.error('Error while deleting question:', error);
+               console.error('Error while archiving question:', error);
                return false;
           } finally {
                await client.close();
@@ -77,6 +82,6 @@ export const QuestionsServices = () => {
      return {
           getAllQuestions,
           updateQuestion,
-          deleteQuestion,
+          archiveQuestion,
      };
 };

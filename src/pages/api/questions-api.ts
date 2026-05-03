@@ -104,13 +104,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                          return res.status(400).json({ error: 'Missing question id for deletion' });
                     }
 
-                    const deleted = await questionsServices.deleteQuestion(id);
+                    const archived = await questionsServices.archiveQuestion(id);
 
-                    if (deleted) {
-                         return res.status(200).json({ message: 'Question deleted successfully' });
+                    if (archived) {
+                         return res.status(200).json({ message: 'Question archived successfully' });
                     }
 
-                    return res.status(500).json({ error: 'Failed to delete question' });
+                    return res.status(500).json({ error: 'Failed to archive question' });
                }
                default:
                     return res.status(405).json({ error: 'Method Not Allowed' });
