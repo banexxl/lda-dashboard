@@ -45,7 +45,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                     });
 
                     if (updated) {
-                         if (answerText) {
+                         const archivedFlag = updatedQuestion?.archived ?? 0;
+                         if (answerText && archivedFlag === 0) {
                               const sendNotification = async () => {
                                    try {
                                         const host = process.env.EMAIL_SERVER_HOST;
