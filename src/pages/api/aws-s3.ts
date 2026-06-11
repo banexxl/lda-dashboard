@@ -1,11 +1,15 @@
 import { projectActivitiesServices } from '@/utils/project-activity-services';
-import aws from 'aws-sdk';
+import { Upload } from '@aws-sdk/lib-storage';
+import { DeleteObjectCommandInput, PutObjectCommandInput, S3 } from '@aws-sdk/client-s3';
 import moment from 'moment';
 
-const s3 = new aws.S3({
-     accessKeyId: process.env.AWS_S3_ACCESS_KEY_ID,
-     secretAccessKey: process.env.AWS_S3_SECRET_KEY,
-     region: process.env.AWS_REGION,
+const s3 = new S3({
+     credentials: {
+          accessKeyId: process.env.AWS_S3_ACCESS_KEY_ID!,
+          secretAccessKey: process.env.AWS_S3_SECRET_KEY!,
+     },
+
+     region: process.env.AWS_REGION!,
 });
 
 export const config = {
@@ -76,7 +80,7 @@ export default async (req: any, res: any) => {
                // Adjust key to desired structure
                const key = `${year}/${month}/${day}/${title}/${fileName.split('.')[0]}.${extension}`;
 
-               const params: aws.S3.PutObjectRequest = {
+               const params: PutObjectCommandInput = {
                     Bucket: process.env.AWS_S3_BUCKET_NAME!,
                     Key: key,
                     Body: decodedFile,
@@ -84,7 +88,10 @@ export default async (req: any, res: any) => {
                     ContentType: contentType, // Use dynamic content type
                };
 
-               const uploadedFile = await s3.upload(params).promise();
+               const uploadedFile = await new Upload({
+                    client: s3,
+                    params,
+               }).done();
                return res.status(200).json({ imageUrl: uploadedFile.Location });
           } catch (error) {
                console.error('Error uploading file:', error);
@@ -100,7 +107,7 @@ export default async (req: any, res: any) => {
                     return res.status(400).json({ error: 'Missing key' });
                }
 
-               const params: aws.S3.DeleteObjectRequest = {
+               const params: DeleteObjectCommandInput = {
                     Bucket: process.env.AWS_S3_BUCKET_NAME!,
                     Key: awsUrl
                };
@@ -108,7 +115,7 @@ export default async (req: any, res: any) => {
                await s3.deleteObject(params, function (err, data) {
                     if (err) console.log(err, err.stack);
                     else console.log(data);
-               }).promise();
+               });
 
                return res.status(200).json({ message: 'Image deleted successfully' });
           } catch (error) {
@@ -149,7 +156,7 @@ export default async (req: any, res: any) => {
                const day = date.getDate().toString().padStart(2, '0');
                const key = `${year}/${month}/${day}/${title}/${fileName.split('.')[0]}.${extension}`;
 
-               const params: aws.S3.PutObjectRequest = {
+               const params: PutObjectCommandInput = {
                     Bucket: process.env.AWS_S3_BUCKET_NAME!,
                     Key: key,
                     Body: fileBuffer, // Upload decoded buffer
@@ -157,7 +164,10 @@ export default async (req: any, res: any) => {
                     ContentType: contentType,
                };
 
-               const uploadedFile = await s3.upload(params).promise()
+               const uploadedFile = await new Upload({
+                    client: s3,
+                    params,
+               }).done()
                await projectActivitiesServices().addPublicationToPublicationsDB(title, uploadedFile.Location)
 
                return res.status(200).json({ imageUrl: uploadedFile.Location });
