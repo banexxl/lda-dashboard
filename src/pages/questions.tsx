@@ -246,7 +246,7 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
                                                        <TableCell>{formatDate(question.questionDateTime)}</TableCell>
                                                        <TableCell>{formatDate(question.answerDateTime)}</TableCell>
                                                        {
-                                                            question.archived === 0 && (
+                                                            question.archived === 0 ? (
                                                                  <TableCell>
                                                                       <Stack direction="row" spacing={1} alignItems="center">
                                                                            <Button
@@ -264,7 +264,12 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
                                                                            </Button>
                                                                       </Stack>
                                                                  </TableCell>
-                                                            )}
+                                                            )
+                                                                 :
+                                                                 <Typography color="error" sx={{ fontStyle: 'italic' }}>
+                                                                      Archived
+                                                                 </Typography>
+                                                       }
                                                   </TableRow>
                                              ))
                                         ) : (
