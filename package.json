@@ -26,7 +26,6 @@
     "@mui/x-date-pickers": "^7.2.0",
     "@untitled-ui/icons-react": "^0.1.1",
     "aws-sdk": "^2.1599.0",
-    "bcrypt": "^5.1.1",
     "date-fns": "2.29.3",
     "dayjs": "^1.11.10",
     "formik": "^2.2.9",
