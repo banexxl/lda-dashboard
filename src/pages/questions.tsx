@@ -266,9 +266,11 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
                                                                  </TableCell>
                                                             )
                                                                  :
-                                                                 <Typography color="error" sx={{ fontStyle: 'italic' }}>
-                                                                      Archived
-                                                                 </Typography>
+                                                                 <TableCell align="center">
+                                                                      <Typography color="error" sx={{ fontStyle: 'italic', textAlign: 'center' }}>
+                                                                           Archived
+                                                                      </Typography>
+                                                                 </TableCell>
                                                        }
                                                   </TableRow>
                                              ))
