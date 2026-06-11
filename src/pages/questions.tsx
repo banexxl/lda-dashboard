@@ -54,6 +54,7 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
      }, [rows, tabValue]);
 
      const hasRows = useMemo(() => filteredRows.length > 0, [filteredRows.length]);
+
      const pagedRows = useMemo(() => {
           const startIndex = page * rowsPerPage;
           return filteredRows.slice(startIndex, startIndex + rowsPerPage);
