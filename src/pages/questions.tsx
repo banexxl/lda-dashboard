@@ -245,23 +245,26 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
                                                        </TableCell>
                                                        <TableCell>{formatDate(question.questionDateTime)}</TableCell>
                                                        <TableCell>{formatDate(question.answerDateTime)}</TableCell>
-                                                       <TableCell>
-                                                            <Stack direction="row" spacing={1} alignItems="center">
-                                                                 <Button
-                                                                      variant="contained"
-                                                                      onClick={() => handleOpenModal(question)}
-                                                                 >
-                                                                      Answer
-                                                                 </Button>
-                                                                 <Button
-                                                                      variant="outlined"
-                                                                      color="error"
-                                                                      onClick={() => handleDelete(question._id)}
-                                                                 >
-                                                                      Delete
-                                                                 </Button>
-                                                            </Stack>
-                                                       </TableCell>
+                                                       {
+                                                            question.archived === 0 && (
+                                                                 <TableCell>
+                                                                      <Stack direction="row" spacing={1} alignItems="center">
+                                                                           <Button
+                                                                                variant="contained"
+                                                                                onClick={() => handleOpenModal(question)}
+                                                                           >
+                                                                                Answer
+                                                                           </Button>
+                                                                           <Button
+                                                                                variant="outlined"
+                                                                                color="error"
+                                                                                onClick={() => handleDelete(question._id)}
+                                                                           >
+                                                                                Delete
+                                                                           </Button>
+                                                                      </Stack>
+                                                                 </TableCell>
+                                                            )}
                                                   </TableRow>
                                              ))
                                         ) : (
@@ -345,7 +348,7 @@ const QuestionsPage = ({ questions, error }: QuestionsPageProps) => {
                          </Button>
                     </DialogActions>
                </Dialog>
-          </SessionProvider>
+          </SessionProvider >
      );
 };
 
