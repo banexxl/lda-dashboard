@@ -1,9 +1,12 @@
+'use client';
+
 import {
      Box, Card, Table, TableBody, TableCell, TableHead, TableRow, Typography
 } from '@mui/material';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { Scrollbar } from 'src/components/scrollbar';
 import { SeverityPill } from 'src/components/severity-pill';
+import { CATEGORY_LABELS } from '@/types/content-enums';
 import { Activity, ActivityStatusProps } from './activity-type';
 
 const statusLabels: Record<ActivityStatusProps, string> = {
@@ -16,17 +19,6 @@ const statusColors: Record<ActivityStatusProps, 'success' | 'warning' | 'info'> 
      'completed': 'success',
      'in-progress': 'warning',
      'to-do': 'info',
-}
-
-const categoryLabels: Record<string, string> = {
-     'other': 'Ostalo',
-     'eu-integrations': 'EU integracije',
-     'intercultural-dialogue': 'Interkulturalni dijalog',
-     'migrations': 'Migracije',
-     'youth': 'Mladi',
-     'culture': 'Kultura',
-     'economy': 'Ekonomija',
-     'democracy': 'Demokratija',
 }
 
 export const ActivityTable = ({ items }: { items: Activity[] }) => {
@@ -50,14 +42,14 @@ export const ActivityTable = ({ items }: { items: Activity[] }) => {
                                    {items.length > 0 ? items.map((activity) => (
                                         <TableRow
                                              hover
-                                             key={activity._id}
-                                             onClick={() => router.push(`/activities/${activity._id}`)}
+                                             key={activity.id}
+                                             onClick={() => router.push(`/activities/${activity.id}`)}
                                              sx={{ cursor: 'pointer' }}
                                         >
                                              <TableCell>
                                                   <Typography variant="subtitle2">{activity.title}</Typography>
                                              </TableCell>
-                                             <TableCell>{categoryLabels[activity.category] || activity.category}</TableCell>
+                                             <TableCell>{CATEGORY_LABELS[activity.category] || activity.category}</TableCell>
                                              <TableCell>
                                                   <SeverityPill color={statusColors[activity.status]}>
                                                        {statusLabels[activity.status] || activity.status}
@@ -65,7 +57,7 @@ export const ActivityTable = ({ items }: { items: Activity[] }) => {
                                              </TableCell>
                                              <TableCell>{activity.author}</TableCell>
                                              <TableCell>
-                                                  {activity.publishedDate ? new Date(activity.publishedDate).toLocaleDateString() : '-'}
+                                                  {activity.published_date ? new Date(activity.published_date).toLocaleDateString() : '-'}
                                              </TableCell>
                                         </TableRow>
                                    )) : (

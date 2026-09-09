@@ -1,99 +1,82 @@
-import { MongoClient, ObjectId } from "mongodb"
-
+import { createAdminClient } from '@/utils/supabase/admin';
 
 export const projectActivitiesServices = () => {
 
      const getProjectActivityById = async (id: string) => {
-          const client = new MongoClient(process.env.MONGODB_URI!);
-
-          try {
-               await client.connect();
-               const database = client.db('LDA_DB');
-               const activity = await database.collection('Projects').findOne({ _id: new ObjectId(id) });
-               return activity;
-          } catch (error: any) {
+          const supabase = createAdminClient();
+          const { data, error } = await supabase.from('project_activities').select('*').eq('id', id).maybeSingle();
+          if (error) {
                console.error('Error while fetching project activity:', error);
                return null;
-          } finally {
-               await client.close();
           }
+          return data;
      }
 
      const getAllProjectActivities = async () => {
-          const client = new MongoClient(process.env.MONGODB_URI!);
-
-          try {
-               await client.connect();
-               const database = client.db('LDA_DB');
-               const collection = database.collection('Projects').find({}).toArray();
-
-               return collection;
-          } catch (error: any) {
-               console.error('Error while fetching count:', error);
-               return -1; // Return -1 or handle the error accordingly
+          const supabase = createAdminClient();
+          const { data, error } = await supabase.from('project_activities').select('*').order('created_at', { ascending: false });
+          if (error) {
+               console.error('Error while fetching project activities:', error);
+               return -1;
           }
+          return data;
      }
 
      const getProjectActivitiesByPage = async (page: any, limit: any) => {
+          const parsedLimit = parseInt(limit, 10);
+          if (isNaN(parsedLimit) || parsedLimit <= 0) return [];
 
-          const client = new MongoClient(process.env.MONGODB_URI!);
-          await client.connect();
-          const database = client.db('LDA_DB');
-          const parsedLimit = parseInt(limit, 10); // Parse limit as an integer
+          const supabase = createAdminClient();
+          const from = page * parsedLimit;
+          const to = from + parsedLimit - 1;
+          const { data, error } = await supabase
+               .from('project_activities')
+               .select('*')
+               .order('created_at', { ascending: false })
+               .range(from, to);
 
-          if (isNaN(parsedLimit) || parsedLimit <= 0) {
-               // Handle the case when the parsed limit is not a valid positive integer
-               return [];
-          }
-
-          try {
-               const skip = page * parsedLimit;
-               const data = await database.collection('Projects')
-                    .find({})
-                    .skip(skip)
-                    .limit(parsedLimit)
-                    .toArray();
-               return data;
-          } catch (error: any) {
-               return { message: error.message };
-          }
+          if (error) return { message: error.message };
+          return data;
      };
 
      const getProjectActivitiesCount = async () => {
-
-          const client = new MongoClient(process.env.MONGODB_URI!);
-          await client.connect();
-          const database = client.db('LDA_DB');
-
-          try {
-               const collection = database.collection('Projects');
-
-               // Use countDocuments to get the count of all documents in the collection
-               const count = await collection.countDocuments();
-               return count;
-          } catch (error: any) {
-               console.error('Error while fetching count:', error);
-               return -1; // Return -1 or handle the error accordingly
+          const supabase = createAdminClient();
+          const { count, error } = await supabase.from('project_activities').select('*', { count: 'exact', head: true });
+          if (error) {
+               console.error('Error while fetching project activities count:', error);
+               return -1;
           }
+          return count ?? 0;
      }
 
-     const addPublicationToPublicationsDB = async (title: string, uploadedFile: any) => {
+     const addProjectActivity = async (projectActivity: any) => {
+          const supabase = createAdminClient();
+          const { data, error } = await supabase.from('project_activities').insert(projectActivity).select().single();
+          if (error) {
+               console.error('Error while adding project activity:', error);
+               return null;
+          }
+          return data;
+     }
 
-          const client = new MongoClient(process.env.MONGODB_URI!);
-          await client.connect();
-          const database = client.db('LDA_DB');
-          const publicationsCollection = database.collection('Publications');
+     const updateProjectActivity = async (id: string, updatedFields: any) => {
+          const supabase = createAdminClient();
+          const { error } = await supabase.from('project_activities').update(updatedFields).eq('id', id);
+          if (error) {
+               console.error('Error while updating project activity:', error);
+               return false;
+          }
+          return true;
+     }
 
-          const publicationData = {
-               publicationTitle: title,
-               publicationURL: uploadedFile,
-               publicationImageURL: '',
-               publicationUploadedDateTime: new Date(),
-          };
-
-          const result = await publicationsCollection.insertOne(publicationData);
-
-          await client.close();
+     const deleteProjectActivity = async (id: string) => {
+          const supabase = createAdminClient();
+          const { error } = await supabase.from('project_activities').delete().eq('id', id);
+          if (error) {
+               console.error('Error while deleting project activity:', error);
+               return false;
+          }
+          return true;
      }
 
      return {
@@ -101,6 +84,8 @@ export const projectActivitiesServices = () => {
           getProjectActivitiesByPage,
           getProjectActivitiesCount,
           getAllProjectActivities,
-          addPublicationToPublicationsDB
+          addProjectActivity,
+          updateProjectActivity,
+          deleteProjectActivity,
      }
 }

@@ -1,22 +1,23 @@
 import * as yup from 'yup';
+import { CATEGORY_VALUES, Category, STATUS_VALUES, Status } from '@/types/content-enums';
 
-export type ActivityCategory = 'economy' | 'democracy' | 'eu-integrations' | 'culture' | 'intercultural-dialogue' | 'migrations' | 'youth' | 'other'
-export const activityCategoryProps: ActivityCategory[] = ['economy', 'democracy', 'eu-integrations', 'culture', 'intercultural-dialogue', 'migrations', 'youth', 'other']
+export type ActivityCategory = Category;
+export const activityCategoryProps = CATEGORY_VALUES;
 
-export type ActivityStatusProps = 'completed' | 'in-progress' | 'to-do'
-export const activityStatusProps: ActivityStatusProps[] = ['completed', 'in-progress', 'to-do'];
+export type ActivityStatusProps = Status;
+export const activityStatusProps = STATUS_VALUES;
 
 export const ActivitySchema = yup.object().shape({
-     _id: yup.string().optional(),
-     activityURL: yup.string().required('Activity URL is required'),
+     id: yup.string().optional(),
+     activity_url: yup.string().required('Activity URL is required'),
      title: yup.string().required('Title is required'),
      gallery: yup.array(),
-     coverURL: yup.string(),
+     cover_url: yup.string(),
      links: yup.array(),
-     publishedDate: yup.date().required('Published date is required'),
+     published_date: yup.date().required('Published date is required'),
      category: yup.string().required('Category is required'),
      favorited: yup.boolean(),
-     favoritedNumber: yup.number(),
+     favorited_number: yup.number(),
      descriptions: yup
           .array()
           .of(yup.string())
@@ -24,7 +25,7 @@ export const ActivitySchema = yup.object().shape({
                'descriptions-or-quill',
                'Bar jedan pasus ili sadržaj iz editora je obavezan',
                function (value) {
-                    const quill = (this.parent as any)?.quillEditorData
+                    const quill = (this.parent as any)?.quill_editor_data
                     const hasParagraph = Array.isArray(value) && value.some((v) => (typeof v === 'string' ? v.trim().length > 0 : false))
                     const hasHtml = typeof quill === 'string' && quill.trim().length > 0
                     return hasParagraph || hasHtml
@@ -33,46 +34,46 @@ export const ActivitySchema = yup.object().shape({
      author: yup.string().required('Author is required'),
      status: yup.mixed().oneOf(activityStatusProps, 'Status must be one of: completed, in-progress, to-do').required('Status is required'),
      list: yup.array(),
-     listTitle: yup.string(),
+     list_title: yup.string(),
 });
 
 
 
 export type Activity = {
-     _id?: string;
-     activityURL: string;
+     id?: string;
+     activity_url: string;
      title: string;
-     publishedDate: Date;
+     published_date: Date;
      locale?: string;
      status: ActivityStatusProps;
      author: string;
      links: string[];
      list: string[];
-     listTitle: string;
+     list_title: string;
      category: ActivityCategory;
      favorited?: boolean;
-     favoritedNumber?: number;
+     favorited_number?: number;
      descriptions: string[];
-     quillEditorData?: string;
+     quill_editor_data?: string;
      gallery: string[];
-     coverURL: string;
+     cover_url: string;
 };
 
 export const initialActivity: Activity = {
-     activityURL: '',
+     activity_url: '',
      title: '',
      gallery: [],
-     coverURL: '',
+     cover_url: '',
      links: [],
-     publishedDate: new Date(),
+     published_date: new Date(),
      category: 'youth',
      favorited: true,
-     favoritedNumber: 150,
+     favorited_number: 150,
      descriptions: [],
-     quillEditorData: '',
+     quill_editor_data: '',
      author: '',
      status: 'to-do',
      list: [],
-     listTitle: '',
+     list_title: '',
      locale: 'sr',
 };

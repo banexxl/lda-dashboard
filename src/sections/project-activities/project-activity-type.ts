@@ -1,64 +1,54 @@
 import * as yup from 'yup';
+import { CATEGORY_VALUES, Category, Locale, Status } from '@/types/content-enums';
 
-export type Locale = 'sr' | 'en'
-
-export type ProjectCategory = 'economy'
-     | 'democracy'
-     | 'eu-integrations'
-     | 'culture'
-     | 'intercultural-dialogue'
-     | 'migrations'
-     | 'youth'
-     | 'other'
-
-export type ProjectStatus = 'completed' | 'in-progress' | 'to-do'
-
-export const projectCategory: ProjectCategory[] = ['economy', 'democracy', 'eu-integrations', 'culture', 'intercultural-dialogue', 'migrations', 'youth', 'other'];
+export type ProjectCategory = Category;
+export type ProjectStatus = Status;
+export const projectCategory = CATEGORY_VALUES;
 
 export type ProjectActivity = {
-     _id?: string;
-     projectSummaryURL: string;
-     projectURL: string;
+     id?: string;
+     project_summary_id: string | null;
+     project_url: string;
      links: string[];
      title: string;
-     subTitle: string,
+     sub_title: string,
      paragraphs: string[];
-     quillEditorData?: string;
-     contentHtml?: string;
-     hasTranslation: boolean;
+     quill_editor_data?: string;
+     content_html?: string;
+     has_translation: boolean;
      title_eng: string;
-     subTitle_eng: string,
+     sub_title_eng: string,
      paragraphs_eng: string[];
-     contentHtmlEng?: string;
+     content_html_eng?: string;
      category: ProjectCategory;
      status: ProjectStatus;
      locations: string[];
      published: Date;
      favorited?: boolean;
-     favoritedNumber?: number;
+     favorited_number?: number;
      organizers: string[];
-     subOrganizers: string[];
+     sub_organizers: string[];
      applicants: string[];
      donators: string[];
      publications: string[];
      gallery: string[];
-     showProjectDetails: boolean;
-     showList: boolean;
-     showListOnBottom: boolean;
-     listTitle: string;
+     show_project_details: boolean;
+     show_list: boolean;
+     show_list_on_bottom: boolean;
+     list_title: string;
      list: string[];
      locale: Locale
 };
 
 export const ProjectActivitySchema = yup.object().shape({
      title: yup.string().required('Naslov je obavezan'),
-     subTitle: yup.string(),
-     projectURL: yup.string().required('URL projektne aktivnost je obavezan'),
-     projectSummaryURL: yup.string().required('URL glavnog projekta je obavezan'),
+     sub_title: yup.string(),
+     project_url: yup.string().required('URL projektne aktivnost je obavezan'),
+     project_summary_id: yup.string().required('Glavni projekat je obavezan'),
      status: yup.string().required('Status je obavezan'),
      locale: yup.string().required('Jezik je obavezan'),
      list: yup.array().of(yup.string()),
-     listTitle: yup.string(),
+     list_title: yup.string(),
      links: yup.array().of(yup.string()),
      paragraphs: yup
           .array()
@@ -67,7 +57,7 @@ export const ProjectActivitySchema = yup.object().shape({
                'paragraphs-or-quill',
                'Bar jedan pasus ili sadržaj iz editora je obavezan',
                function (value) {
-                    const contentHtml = (this.parent as any)?.quillEditorData
+                    const contentHtml = (this.parent as any)?.quill_editor_data
                     const hasParagraph = Array.isArray(value) && value.some((v) => (typeof v === 'string' ? v.trim().length > 0 : false))
                     const hasHtml = typeof contentHtml === 'string' && contentHtml.trim().length > 0
                     return hasParagraph || hasHtml
@@ -76,43 +66,43 @@ export const ProjectActivitySchema = yup.object().shape({
      locations: yup.array().min(1, 'Bar jedna lokacija je obavezna').of(yup.string().required('Bar jedna lokacija je obavezan')),
      applicants: yup.array().of(yup.string()),
      organizers: yup.array().of(yup.string()),
-     subOrganizers: yup.array().of(yup.string()),
+     sub_organizers: yup.array().of(yup.string()),
      donators: yup.array().of(yup.string()),
      category: yup.string().required('Kategorija je obavezna'),
      published: yup.date().typeError('Datum mora biti u odgovarajućem formatu!').required('Datum za objavu je obavezan!'),
-     showProjectDetails: yup.boolean(),
-     showList: yup.boolean(),
-     showListOnBottom: yup.boolean(),
+     show_project_details: yup.boolean(),
+     show_list: yup.boolean(),
+     show_list_on_bottom: yup.boolean(),
 });
 
 export const projectActivityInitialValues: ProjectActivity = {
      title_eng: '',
-     subTitle_eng: '',
+     sub_title_eng: '',
      paragraphs_eng: [],
-     contentHtmlEng: '',
-     hasTranslation: false,
+     content_html_eng: '',
+     has_translation: false,
      title: '',
-     subTitle: '',
-     projectSummaryURL: '',
-     projectURL: '',
+     sub_title: '',
+     project_summary_id: null,
+     project_url: '',
      category: 'other',
      status: 'to-do',
      published: new Date(),
      applicants: [],
      organizers: [],
-     subOrganizers: [],
+     sub_organizers: [],
      donators: [],
      paragraphs: [],
-     quillEditorData: '',
-     contentHtml: '',
+     quill_editor_data: '',
+     content_html: '',
      links: [],
      publications: [],
      locations: [],
      gallery: [],
-     showProjectDetails: false,
-     showList: false,
-     showListOnBottom: false,
-     listTitle: '',
+     show_project_details: false,
+     show_list: false,
+     show_list_on_bottom: false,
+     list_title: '',
      list: [],
      locale: 'sr'
 };

@@ -23,7 +23,6 @@ import { AccountPopover } from './account-popover';
 import Swal from 'sweetalert2';
 import PlusIcon from '@heroicons/react/24/solid/GlobeAltIcon';
 import { useState } from 'react';
-import { useRouter } from 'next/router';
 
 const SIDE_NAV_WIDTH = 280;
 const TOP_NAV_HEIGHT = 64;
@@ -32,8 +31,6 @@ export const TopNav = (props: any) => {
      const { onNavOpen } = props;
      const lgUp = useMediaQuery((theme: any) => theme.breakpoints.up('lg'));
      const accountPopover = usePopover();
-     const router = useRouter();
-     // const auth = useSession()
      const [loading, setLoading] = useState(false)
 
      const handleRebuild = async () => {

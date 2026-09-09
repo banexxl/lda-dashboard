@@ -1,144 +1,109 @@
-import { MongoClient } from 'mongodb';
-import { ObjectId } from 'mongodb';
+import { createAdminClient } from '@/utils/supabase/admin';
 
 export const PublicationsServices = () => {
-     const client = new MongoClient(process.env.MONGODB_URI!);
-
      const getPublicationById = async (id: string) => {
-          try {
-               await client.connect();
-               const database = client.db('LDA_DB');
-               const publication = await database.collection('Publications').findOne({ _id: new ObjectId(id) });
-               return publication;
-          } catch (error: any) {
+          const supabase = createAdminClient();
+          const { data, error } = await supabase.from('publications').select('*').eq('id', id).maybeSingle();
+          if (error) {
                console.error('Error while fetching publication:', error);
                return null;
-          } finally {
-               await client.close();
           }
+          return data;
      };
 
      const getAllPublications = async () => {
-          try {
-               await client.connect();
-               const database = client.db('LDA_DB');
-               const collection = database.collection('Publications');
-               const publications = await collection.find({}).toArray();
-               return publications;
-          } catch (error: any) {
+          const supabase = createAdminClient();
+          const { data, error } = await supabase
+               .from('publications')
+               .select('*')
+               .order('publication_uploaded_date_time', { ascending: false });
+          if (error) {
                console.error('Error while fetching publications:', error);
-               return -1; // Handle error accordingly
-          } finally {
-               await client.close();
+               return -1;
           }
+          return data;
      };
 
      const getPublicationsByPage = async (page: number, limit: number) => {
-          try {
-               await client.connect();
-               const database = client.db('LDA_DB');
-               const parsedLimit = parseInt(limit.toString(), 10);
+          const parsedLimit = parseInt(limit.toString(), 10);
+          if (isNaN(parsedLimit) || parsedLimit <= 0) return [];
 
-               if (isNaN(parsedLimit) || parsedLimit <= 0) {
-                    return [];
-               }
+          const supabase = createAdminClient();
+          const from = page * parsedLimit;
+          const to = from + parsedLimit - 1;
+          const { data, error } = await supabase
+               .from('publications')
+               .select('*')
+               .order('publication_uploaded_date_time', { ascending: false })
+               .range(from, to);
 
-               const skip = page * parsedLimit;
-
-               const publications = await database
-                    .collection('Publications')
-                    .find({})
-                    .sort({ publicationUploadedDateTime: -1 }) // Sort by last updated first
-                    .skip(skip)
-                    .limit(parsedLimit)
-                    .toArray();
-
-               return publications;
-          } catch (error: any) {
+          if (error) {
                console.error('Error while fetching publications by page:', error);
                return { message: error.message };
-          } finally {
-               await client.close();
           }
+          return data;
      };
 
      const getPublicationsCount = async () => {
-          try {
-               await client.connect();
-               const database = client.db('LDA_DB');
-               const count = await database.collection('Publications').countDocuments();
-               return count;
-          } catch (error: any) {
+          const supabase = createAdminClient();
+          const { count, error } = await supabase
+               .from('publications')
+               .select('*', { count: 'exact', head: true });
+          if (error) {
                console.error('Error while fetching publications count:', error);
-               return -1; // Handle error accordingly
-          } finally {
-               await client.close();
+               return -1;
           }
+          return count ?? 0;
      };
 
      const updatePublication = async (id: string, updatedPublication: any) => {
-          try {
-               await client.connect();
-               const database = client.db('LDA_DB');
-               const collection = database.collection('Publications');
-               const result = await collection.updateOne(
-                    { _id: new ObjectId(id) },
-                    {
-                         $set: {
-                              publicationTitle: updatedPublication.publicationTitle,
-                              publicationURL: updatedPublication.publicationURL,
-                              publicationImageURL: updatedPublication.publicationImageURL,
-                              publicationUploadedDateTime: updatedPublication.publicationUploadedDateTime,
-                         },
-                    }
-               );
+          const supabase = createAdminClient();
+          const { error } = await supabase
+               .from('publications')
+               .update({
+                    publication_title: updatedPublication.publication_title,
+                    publication_url: updatedPublication.publication_url,
+                    publication_image_url: updatedPublication.publication_image_url,
+                    publication_uploaded_date_time: updatedPublication.publication_uploaded_date_time,
+               })
+               .eq('id', id);
 
-               return result.modifiedCount > 0; // Return true if update was successful
-          } catch (error: any) {
+          if (error) {
                console.error('Error while updating publication:', error);
-               return false; // Return false if the update fails
-          } finally {
-               await client.close();
+               return false;
           }
+          return true;
      };
 
      const deletePublication = async (id: string) => {
-          try {
-               await client.connect();
-               const database = client.db('LDA_DB');
-               const collection = database.collection('Publications');
-               const result = await collection.deleteOne({ _id: new ObjectId(id) });
-               return result.deletedCount > 0;
-          } catch (error: any) {
+          const supabase = createAdminClient();
+          const { error } = await supabase.from('publications').delete().eq('id', id);
+          if (error) {
                console.error('Error while deleting publication:', error);
                return false;
-          } finally {
-               await client.close();
           }
+          return true;
      };
 
      const addPublication = async (publication: any) => {
-          try {
-               await client.connect();
-               const database = client.db('LDA_DB');
-               const collection = database.collection('Publications');
+          const supabase = createAdminClient();
+          const { data, error } = await supabase
+               .from('publications')
+               .insert({
+                    publication_title: publication.publication_title,
+                    publication_url: publication.publication_url,
+                    publication_image_url: publication.publication_image_url,
+                    publication_uploaded_date_time: publication.publication_uploaded_date_time,
+               })
+               .select()
+               .single();
 
-               // Insert the publication into the collection
-               const result = await collection.insertOne(publication);
-
-               // Fetch the full publication object using the inserted _id
-               const newPublication = await collection.findOne({ _id: result.insertedId });
-
-               // Return the full publication object
-               return newPublication;  // This will include the inserted _id and other fields
-          } catch (error: any) {
+          if (error) {
                console.error('Error while adding publication:', error);
                return null;
-          } finally {
-               await client.close();
           }
+          return data;
      };
-
 
      return {
           getPublicationById,
@@ -147,16 +112,14 @@ export const PublicationsServices = () => {
           getPublicationsCount,
           updatePublication,
           deletePublication,
-          addPublication
+          addPublication,
      };
 };
 
-
 export type Publication = {
-     _id: string;
-     publicationTitle: string;
-     publicationURL: string;
-     publicationImageURL: string;
-     publicationUploadedDateTime: Date;
+     id: string;
+     publication_title: string;
+     publication_url: string;
+     publication_image_url: string;
+     publication_uploaded_date_time: string;
 };
-

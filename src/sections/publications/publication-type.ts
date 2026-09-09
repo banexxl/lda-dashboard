@@ -4,15 +4,15 @@ import { Publication } from '@/utils/publication-services';
 export type { Publication };
 
 export const PublicationSchema = yup.object().shape({
-     publicationTitle: yup.string().required('Naslov je obavezan'),
-     publicationURL: yup.string().required('Dokument je obavezan'),
-     publicationImageURL: yup.string().required('Slika je obavezna'),
+     publication_title: yup.string().required('Naslov je obavezan'),
+     publication_url: yup.string().required('Dokument je obavezan'),
+     publication_image_url: yup.string().required('Slika je obavezna'),
 });
 
 export const initialPublication: Publication = {
-     _id: '',
-     publicationTitle: '',
-     publicationURL: '',
-     publicationImageURL: '',
-     publicationUploadedDateTime: new Date(),
+     id: '',
+     publication_title: '',
+     publication_url: '',
+     publication_image_url: '',
+     publication_uploaded_date_time: new Date().toISOString(),
 };

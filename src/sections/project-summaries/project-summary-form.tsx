@@ -1,10 +1,12 @@
+'use client';
+
 import React, { useState } from 'react';
 import {
-     TextField, Typography, Button, Box, Grid, MenuItem, FormControl, InputLabel, Select, Divider,
+     TextField, Typography, Button, Box, MenuItem, FormControl, InputLabel, Select, Divider,
      useTheme, Stack, Input, ImageListItem, ImageList, Tooltip
 } from '@mui/material'
 import { Form, Formik } from 'formik';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2'
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
@@ -13,19 +15,8 @@ import ArticleIcon from '@mui/icons-material/Article';
 import { ProjectSummary, ProjectSummarySchema, initialProjectSummary } from './project-summary-type';
 import { DateField } from '@mui/x-date-pickers/DateField';
 import { sanitizeString } from '@/utils/url-creator';
-import { projectCategory } from '../project-activities/project-activity-type';
+import { CATEGORY_LABELS, CATEGORY_VALUES } from '@/types/content-enums';
 import { getThumbnail, extractFileName } from '@/utils/file-helpers';
-
-const categoryLabels: Record<string, string> = {
-     'other': 'Ostalo',
-     'eu-integrations': 'EU integracije',
-     'intercultural-dialogue': 'Interkulturalni dijalog',
-     'migrations': 'Migracije',
-     'youth': 'Mladi',
-     'culture': 'Kultura',
-     'economy': 'Ekonomija',
-     'democracy': 'Demokratija',
-}
 
 const arrayFieldLabels: Record<string, string> = {
      organizers: 'Organizatori projekta',
@@ -95,7 +86,7 @@ export const ProjectSummaryForm = ({ mode, initialValues }: ProjectSummaryFormPr
                const response = await fetch('/api/project-summaries-api', {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(startingValues._id),
+                    body: JSON.stringify(startingValues.id),
                })
                if (response.ok) {
                     Swal.fire({ icon: 'success', title: 'Sve OK!', text: 'Projekat obrisan!' })
@@ -124,7 +115,7 @@ export const ProjectSummaryForm = ({ mode, initialValues }: ProjectSummaryFormPr
           if (!confirmDelete.isConfirmed) return
           setLoading(true)
           try {
-               const response = await fetch('/api/aws-s3', {
+               const response = await fetch('/api/storage', {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(url)
@@ -163,7 +154,7 @@ export const ProjectSummaryForm = ({ mode, initialValues }: ProjectSummaryFormPr
                                                   .replace(/[^a-zA-Z0-9čćžšđČĆŽŠĐ\s]/g, '')
                                                   .replace(/\s+/g, ' ');
                                              formik.setFieldValue('title', sanitizedValue)
-                                             formik.setFieldValue('projectSummaryURL', sanitizeString(sanitizedValue))
+                                             formik.setFieldValue('project_summary_url', sanitizeString(sanitizedValue))
                                         }}
                                         error={formik.touched.title && !!formik.errors.title}
                                         helperText={formik.touched.title && formik.errors.title}
@@ -173,29 +164,29 @@ export const ProjectSummaryForm = ({ mode, initialValues }: ProjectSummaryFormPr
                                         InputLabelProps={{ shrink: true }}
                                         disabled
                                         label="URL projekta"
-                                        value={formik.values.projectSummaryURL}
+                                        value={formik.values.project_summary_url}
                                    />
 
                                    <DateField
                                         InputLabelProps={{ shrink: true }}
                                         label="Početak projekta"
-                                        value={formik.values.projectStartDateTime}
-                                        onChange={(value) => formik.setFieldValue('projectStartDateTime', value)}
-                                        onBlur={() => formik.setFieldTouched('projectStartDateTime', true)}
-                                        helperText={formik.touched.projectStartDateTime && formik.errors.projectStartDateTime ? String(formik.errors.projectStartDateTime) : null}
-                                        FormHelperTextProps={{ sx: { color: formik.touched.projectStartDateTime && formik.errors.projectStartDateTime ? 'red' : 'inherit' } }}
-                                        sx={{ '& .MuiFormHelperText-root': { color: formik.touched.projectStartDateTime && formik.errors.projectStartDateTime ? 'red' : 'inherit' } }}
+                                        value={formik.values.project_start_date_time}
+                                        onChange={(value) => formik.setFieldValue('project_start_date_time', value)}
+                                        onBlur={() => formik.setFieldTouched('project_start_date_time', true)}
+                                        helperText={formik.touched.project_start_date_time && formik.errors.project_start_date_time ? String(formik.errors.project_start_date_time) : null}
+                                        FormHelperTextProps={{ sx: { color: formik.touched.project_start_date_time && formik.errors.project_start_date_time ? 'red' : 'inherit' } }}
+                                        sx={{ '& .MuiFormHelperText-root': { color: formik.touched.project_start_date_time && formik.errors.project_start_date_time ? 'red' : 'inherit' } }}
                                    />
 
                                    <DateField
                                         InputLabelProps={{ shrink: true }}
                                         label="Kraj projekta"
-                                        value={formik.values.projectEndDateTime}
-                                        onChange={(value) => formik.setFieldValue('projectEndDateTime', value)}
-                                        onBlur={() => formik.setFieldTouched('projectEndDateTime', true)}
-                                        helperText={formik.touched.projectEndDateTime && formik.errors.projectEndDateTime ? String(formik.errors.projectEndDateTime) : null}
-                                        FormHelperTextProps={{ sx: { color: formik.touched.projectEndDateTime && formik.errors.projectEndDateTime ? 'red' : 'inherit' } }}
-                                        sx={{ '& .MuiFormHelperText-root': { color: formik.touched.projectEndDateTime && formik.errors.projectEndDateTime ? 'red' : 'inherit' } }}
+                                        value={formik.values.project_end_date_time}
+                                        onChange={(value) => formik.setFieldValue('project_end_date_time', value)}
+                                        onBlur={() => formik.setFieldTouched('project_end_date_time', true)}
+                                        helperText={formik.touched.project_end_date_time && formik.errors.project_end_date_time ? String(formik.errors.project_end_date_time) : null}
+                                        FormHelperTextProps={{ sx: { color: formik.touched.project_end_date_time && formik.errors.project_end_date_time ? 'red' : 'inherit' } }}
+                                        sx={{ '& .MuiFormHelperText-root': { color: formik.touched.project_end_date_time && formik.errors.project_end_date_time ? 'red' : 'inherit' } }}
                                    />
 
                                    <FormControl fullWidth>
@@ -223,8 +214,8 @@ export const ProjectSummaryForm = ({ mode, initialValues }: ProjectSummaryFormPr
                                              onChange={(e) => formik.setFieldValue('category', e.target.value)}
                                              error={formik.touched.category && !!formik.errors.category}
                                         >
-                                             {projectCategory.map((category) => (
-                                                  <MenuItem value={category} key={category}>{categoryLabels[category]}</MenuItem>
+                                             {CATEGORY_VALUES.map((category) => (
+                                                  <MenuItem value={category} key={category}>{CATEGORY_LABELS[category]}</MenuItem>
                                              ))}
                                         </Select>
                                    </FormControl>
@@ -269,15 +260,15 @@ export const ProjectSummaryForm = ({ mode, initialValues }: ProjectSummaryFormPr
                                         <Typography sx={{ margin: '10px' }}>Glavna slika projekta:</Typography>
                                    </Tooltip>
                                    <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', marginBottom: '30px' }}>
-                                        {formik.values.projectSummaryCoverURL && (
+                                        {formik.values.project_summary_cover_url && (
                                              <ImageListItem sx={{ width: '200px', height: '300px', paddingBottom: '10px' }}>
                                                   <img
-                                                       src={`${formik.values.projectSummaryCoverURL}?w=164&h=164&fit=crop&auto=format`}
+                                                       src={`${formik.values.project_summary_cover_url}?w=164&h=164&fit=crop&auto=format`}
                                                        alt="cover"
                                                        loading="lazy"
                                                        style={{ cursor: 'pointer' }}
-                                                       onClick={() => confirmThenDeleteAsset(formik.values.projectSummaryCoverURL, () => {
-                                                            formik.setFieldValue('projectSummaryCoverURL', '')
+                                                       onClick={() => confirmThenDeleteAsset(formik.values.project_summary_cover_url, () => {
+                                                            formik.setFieldValue('project_summary_cover_url', '')
                                                        })}
                                                   />
                                              </ImageListItem>
@@ -300,7 +291,7 @@ export const ProjectSummaryForm = ({ mode, initialValues }: ProjectSummaryFormPr
                                                                  reader.onloadend = () => resolve(reader.result as string);
                                                                  reader.onerror = (error) => reject(error);
                                                             });
-                                                            const response = await fetch('/api/aws-s3', {
+                                                            const response = await fetch('/api/storage', {
                                                                  method: 'POST',
                                                                  headers: { 'Content-Type': 'application/json' },
                                                                  body: JSON.stringify({
@@ -312,7 +303,7 @@ export const ProjectSummaryForm = ({ mode, initialValues }: ProjectSummaryFormPr
                                                             });
                                                             if (response.ok) {
                                                                  const result = await response.json();
-                                                                 formik.setFieldValue('projectSummaryCoverURL', result.imageUrl)
+                                                                 formik.setFieldValue('project_summary_cover_url', result.imageUrl)
                                                             } else {
                                                                  Swal.fire({ title: 'Greška', text: 'Neuspešan upload slike!', icon: 'error' })
                                                             }
@@ -365,7 +356,7 @@ export const ProjectSummaryForm = ({ mode, initialValues }: ProjectSummaryFormPr
                                                                  reader.onloadend = () => resolve(reader.result as string);
                                                                  reader.onerror = (error) => reject(error);
                                                             });
-                                                            const response = await fetch('/api/aws-s3', {
+                                                            const response = await fetch('/api/storage', {
                                                                  method: 'POST',
                                                                  headers: { 'Content-Type': 'application/json' },
                                                                  body: JSON.stringify({
@@ -444,7 +435,7 @@ export const ProjectSummaryForm = ({ mode, initialValues }: ProjectSummaryFormPr
                                                                  reader.onloadend = () => resolve(reader.result as string);
                                                                  reader.onerror = (error) => reject(error);
                                                             });
-                                                            const response = await fetch('/api/aws-s3', {
+                                                            const response = await fetch('/api/storage', {
                                                                  method: 'PUT',
                                                                  headers: { 'Content-Type': 'application/json' },
                                                                  body: JSON.stringify({

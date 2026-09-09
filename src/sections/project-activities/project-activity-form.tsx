@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import { FieldArray, Form, Formik } from 'formik';
 import {
@@ -5,7 +7,7 @@ import {
      Divider, Checkbox, useTheme, Switch, FormControlLabel, Stack, Input, ImageList, ImageListItem,
      Dialog, DialogTitle, DialogContent, DialogActions, CircularProgress, Tooltip
 } from '@mui/material'
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2'
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddBoxIcon from '@mui/icons-material/AddBox';
@@ -18,26 +20,16 @@ import { DateField } from '@mui/x-date-pickers/DateField';
 import { sanitizeString } from '@/utils/url-creator';
 import { ProjectSummary } from '../project-summaries/project-summary-type';
 import { getThumbnail, extractFileName } from '@/utils/file-helpers';
+import { CATEGORY_LABELS } from '@/types/content-enums';
 import moment from 'moment';
 import QuillEditor from '@/components/quill-editor'
 
-const categoryLabels: Record<string, string> = {
-     'other': 'Ostalo',
-     'eu-integrations': 'EU integracije',
-     'intercultural-dialogue': 'Interkulturalni dijalog',
-     'migrations': 'Migracije',
-     'youth': 'Mladi',
-     'culture': 'Kultura',
-     'economy': 'Ekonomija',
-     'democracy': 'Demokratija',
-}
-
 type PublicationItem = {
-     _id: string;
-     publicationTitle: string;
-     publicationURL: string;
-     publicationImageURL?: string;
-     publicationUploadedDateTime?: string | Date;
+     id: string;
+     publication_title: string;
+     publication_url: string;
+     publication_image_url?: string;
+     publication_uploaded_date_time?: string | Date;
 }
 
 const paragraphsToHtml = (paras: string[]) => (paras && paras.length ? paras.map((p) => `<p>${p}</p>`).join('') : '')
@@ -53,26 +45,26 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
      const router = useRouter();
      const theme = useTheme()
      const [loading, setLoading] = useState(false)
-     const [listEnabled, setListEnabled] = useState<boolean>(!!initialValues?.showList)
+     const [listEnabled, setListEnabled] = useState<boolean>(!!initialValues?.show_list)
 
      const startingValues = initialValues || projectActivityInitialValues
 
      const [useRichText, setUseRichText] = useState<boolean>(() => {
-          const savedHtml = startingValues.quillEditorData
+          const savedHtml = startingValues.quill_editor_data
           return typeof savedHtml === 'string' && savedHtml.trim().length > 0
      })
      const [editorHtml, setEditorHtml] = useState<string>(() => {
-          const savedHtml = startingValues.quillEditorData
+          const savedHtml = startingValues.quill_editor_data
           if (typeof savedHtml === 'string' && savedHtml.trim().length > 0) return savedHtml
           return paragraphsToHtml(startingValues.paragraphs || [])
      })
 
      const [useRichTextEng, setUseRichTextEng] = useState<boolean>(() => {
-          const savedHtml = startingValues.contentHtmlEng
+          const savedHtml = startingValues.content_html_eng
           return typeof savedHtml === 'string' && savedHtml.trim().length > 0
      })
      const [editorHtmlEng, setEditorHtmlEng] = useState<string>(() => {
-          const savedHtml = startingValues.contentHtmlEng
+          const savedHtml = startingValues.content_html_eng
           if (typeof savedHtml === 'string' && savedHtml.trim().length > 0) return savedHtml
           return paragraphsToHtml(startingValues.paragraphs_eng || [])
      })
@@ -111,26 +103,23 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                          ...values,
-                         quillEditorData: useRichText ? editorHtml : '',
-                         contentHtmlEng: useRichTextEng ? editorHtmlEng : '',
+                         quill_editor_data: useRichText ? editorHtml : '',
+                         content_html_eng: useRichTextEng ? editorHtmlEng : '',
                     }),
                });
 
-               if (mode === 'create' && response.ok) {
-                    const selectedSummary = projectSummaries.find((summary) => summary.projectSummaryURL === values.projectSummaryURL.replace('/pregled-projekta/', ''))
-                    if (selectedSummary?._id) {
-                         await fetch('/api/project-summaries-api', {
-                              method: 'PUT',
-                              headers: { 'Content-Type': 'application/json' },
-                              body: JSON.stringify({
-                                   _id: selectedSummary._id,
-                                   projectSummaryDescription: (values.paragraphs || [])[0] || '',
-                                   projectSummarySubtitleURL: '/projektna-aktivnost/' + values.projectURL,
-                                   projectSummaryDateTime: moment(values.published).format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
-                                   projectSummarySubtitle: values.title,
-                              }),
-                         });
-                    }
+               if (mode === 'create' && response.ok && values.project_summary_id) {
+                    await fetch('/api/project-summaries-api', {
+                         method: 'PUT',
+                         headers: { 'Content-Type': 'application/json' },
+                         body: JSON.stringify({
+                              id: values.project_summary_id,
+                              project_summary_description: (values.paragraphs || [])[0] || '',
+                              project_summary_subtitle_url: '/projektna-aktivnost/' + values.project_url,
+                              project_summary_date_time: moment(values.published).format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
+                              project_summary_subtitle: values.title,
+                         }),
+                    });
                }
 
                if (response.ok) {
@@ -171,7 +160,7 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
                const response = await fetch('/api/project-activities-api', {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(startingValues._id),
+                    body: JSON.stringify(startingValues.id),
                })
                if (response.ok) {
                     Swal.fire({ icon: 'success', title: 'Sve OK!', text: 'Projektna aktivnost obrisana!' })
@@ -199,7 +188,7 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
           if (!confirmDelete.isConfirmed) return
           setLoading(true)
           try {
-               const response = await fetch('/api/aws-s3', {
+               const response = await fetch('/api/storage', {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(url)
@@ -237,7 +226,7 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
                                                                  .replace(/[^a-zA-Z0-9čćžšđČĆŽŠĐ\s]/g, '')
                                                                  .replace(/\s+/g, ' ');
                                                             formik.setFieldValue('title', sanitizedValue)
-                                                            formik.setFieldValue('projectURL', sanitizeString(sanitizedValue))
+                                                            formik.setFieldValue('project_url', sanitizeString(sanitizedValue))
                                                        }}
                                                        error={formik.touched.title && !!formik.errors.title}
                                                        helperText={formik.touched.title && formik.errors.title}
@@ -250,7 +239,7 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
                                                        disabled
                                                        label="URL projektne aktivnosti"
                                                        rows={4}
-                                                       value={formik.values.projectURL}
+                                                       value={formik.values.project_url}
                                                        fullWidth
                                                   />
                                              </Grid>
@@ -261,20 +250,17 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
                                                        <Select
                                                             label="Glavni projekat"
                                                             labelId="project-summary-label"
-                                                            name='projectSummaryURL'
+                                                            name='project_summary_id'
                                                             id="project-summary"
-                                                            value={formik.values.subTitle}
+                                                            value={formik.values.project_summary_id || ''}
                                                             onChange={(e) => {
-                                                                 const selectedSummary = projectSummaries.find((summary: any) => summary.title === e.target.value);
-                                                                 if (!selectedSummary) return
-                                                                 formik.setFieldValue('projectSummaryURL', '/pregled-projekta/' + selectedSummary.projectSummaryURL);
-                                                                 formik.setFieldValue('subTitle', selectedSummary?.title);
+                                                                 formik.setFieldValue('project_summary_id', e.target.value);
                                                             }}
-                                                            error={formik.touched.projectSummaryURL && !!formik.errors.projectSummaryURL}
+                                                            error={formik.touched.project_summary_id && !!formik.errors.project_summary_id}
                                                             sx={{ borderColor: 'white' }}
                                                        >
-                                                            {projectSummaries.map((summary: any) => (
-                                                                 <MenuItem value={summary.title} key={summary.title}>{summary.title}</MenuItem>
+                                                            {projectSummaries.map((summary) => (
+                                                                 <MenuItem value={summary.id} key={summary.id}>{summary.title}</MenuItem>
                                                             ))}
                                                        </Select>
                                                   </FormControl>
@@ -285,7 +271,7 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
                                                        disabled
                                                        fullWidth
                                                        label="URL glavnog projekta"
-                                                       value={formik.values.projectSummaryURL}
+                                                       value={projectSummaries.find((summary) => summary.id === formik.values.project_summary_id)?.project_summary_url || ''}
                                                   />
                                              </Grid>
 
@@ -301,7 +287,7 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
                                                             sx={{ borderColor: 'white' }}
                                                        >
                                                             {projectCategory.map((category) => (
-                                                                 <MenuItem value={category} key={category}>{categoryLabels[category]}</MenuItem>
+                                                                 <MenuItem value={category} key={category}>{CATEGORY_LABELS[category]}</MenuItem>
                                                             ))}
                                                        </Select>
                                                   </FormControl>
@@ -351,10 +337,10 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
                                                   <FormControl sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
                                                        <Typography id="showProjectDetails">Prikazi detalje glavnog projekta</Typography>
                                                        <Checkbox
-                                                            name="showProjectDetails"
-                                                            defaultChecked={formik.values.showProjectDetails}
+                                                            name="show_project_details"
+                                                            defaultChecked={formik.values.show_project_details}
                                                             sx={{ width: '10px', height: '10px' }}
-                                                            onChange={(e) => formik.setFieldValue('showProjectDetails', e.target.checked)}
+                                                            onChange={(e) => formik.setFieldValue('show_project_details', e.target.checked)}
                                                        />
                                                   </FormControl>
                                              </Grid>
@@ -366,12 +352,12 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
                                                        <FormControl sx={{ display: 'flex', flexDirection: 'column', width: '400px', height: '50px' }}>
                                                             <Typography id="showList">Prikaži listu</Typography>
                                                             <Checkbox
-                                                                 name="showList"
-                                                                 defaultChecked={formik.values.showList}
+                                                                 name="show_list"
+                                                                 defaultChecked={formik.values.show_list}
                                                                  sx={{ width: '10px', height: '10px' }}
                                                                  onChange={(e) => {
                                                                       setListEnabled(e.target.checked)
-                                                                      formik.setFieldValue('showList', e.target.checked)
+                                                                      formik.setFieldValue('show_list', e.target.checked)
                                                                  }}
                                                             />
                                                        </FormControl>
@@ -379,10 +365,10 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
                                                        <FormControl sx={{ display: 'flex', flexDirection: 'column', width: '400px', height: '50px' }}>
                                                             <Typography id="showListOnBottom">Prikaži listu na dnu</Typography>
                                                             <Checkbox
-                                                                 name="showListOnBottom"
-                                                                 defaultChecked={formik.values.showListOnBottom}
+                                                                 name="show_list_on_bottom"
+                                                                 defaultChecked={formik.values.show_list_on_bottom}
                                                                  sx={{ width: '10px', height: '10px' }}
-                                                                 onChange={(e) => formik.setFieldValue('showListOnBottom', e.target.checked)}
+                                                                 onChange={(e) => formik.setFieldValue('show_list_on_bottom', e.target.checked)}
                                                             />
                                                        </FormControl>
                                                   </Box>
@@ -391,10 +377,10 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
                                                   <TextField
                                                        InputLabelProps={{ shrink: true }}
                                                        label="Tekst liste"
-                                                       defaultValue={formik.values.listTitle}
+                                                       defaultValue={formik.values.list_title}
                                                        disabled={loading || !listEnabled}
                                                        fullWidth
-                                                       onBlur={(e: any) => formik.setFieldValue('listTitle', e.target.value)}
+                                                       onBlur={(e: any) => formik.setFieldValue('list_title', e.target.value)}
                                                   />
                                              </Grid>
 
@@ -498,14 +484,14 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
                                                   <FormControl sx={{ display: 'flex', flexDirection: 'column', width: '400px', height: '50px' }}>
                                                        <Typography id="hasTranslation">Prikazi Prevod</Typography>
                                                        <Checkbox
-                                                            name="hasTranslation"
-                                                            defaultChecked={formik.values.hasTranslation}
+                                                            name="has_translation"
+                                                            defaultChecked={formik.values.has_translation}
                                                             sx={{ width: '10px', height: '10px' }}
-                                                            onChange={(e) => formik.setFieldValue('hasTranslation', e.target.checked)}
+                                                            onChange={(e) => formik.setFieldValue('has_translation', e.target.checked)}
                                                        />
                                                   </FormControl>
                                              </Grid>
-                                             <Grid item md={6} xs={12} display={formik.values.hasTranslation ? 'block' : 'none'} sx={{ width: '80%' }}>
+                                             <Grid item md={6} xs={12} display={formik.values.has_translation ? 'block' : 'none'} sx={{ width: '80%' }}>
                                                   <Grid item md={6} xs={12}>
                                                        <TextField
                                                             defaultValue={formik.values.title_eng}
@@ -516,10 +502,10 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
                                                   </Grid>
                                                   <Grid item md={6} xs={12}>
                                                        <TextField
-                                                            defaultValue={formik.values.subTitle_eng}
+                                                            defaultValue={formik.values.sub_title_eng}
                                                             fullWidth
                                                             label="Prevod Podnaslova Projekta"
-                                                            onBlur={(e: any) => formik.setFieldValue('subTitle_eng', e.target.value)}
+                                                            onBlur={(e: any) => formik.setFieldValue('sub_title_eng', e.target.value)}
                                                        />
                                                   </Grid>
                                                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: 2, pr: 2 }}>
@@ -580,7 +566,7 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
 
                                              <Grid item xs={12} md={8}><Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} /></Grid>
 
-                                             {(['links', 'locations', 'applicants', 'organizers', 'subOrganizers', 'donators'] as const).map((field) => (
+                                             {(['links', 'locations', 'applicants', 'organizers', 'sub_organizers', 'donators'] as const).map((field) => (
                                                   <Grid item md={8} xs={12} key={field}>
                                                        <TextField
                                                             InputLabelProps={{ shrink: true }}
@@ -651,7 +637,7 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
                                                                            reader.onloadend = () => resolve(reader.result as string);
                                                                            reader.onerror = (error) => reject(error);
                                                                       });
-                                                                      const response = await fetch('/api/aws-s3', {
+                                                                      const response = await fetch('/api/storage', {
                                                                            method: 'PUT',
                                                                            headers: { 'Content-Type': 'application/json' },
                                                                            body: JSON.stringify({
@@ -701,22 +687,22 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
                                                             {!publicationsCatalogLoading && !publicationsCatalogError && publicationsCatalog.length > 0 && (
                                                                  <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 2 }}>
                                                                       {publicationsCatalog.map((publication) => (
-                                                                           <Box key={publication._id} sx={{ border: '1px solid #e0e0e0', borderRadius: 2, p: 2, display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
-                                                                                {getThumbnail(publication.publicationURL) === 'pdf' ? (
+                                                                           <Box key={publication.id} sx={{ border: '1px solid #e0e0e0', borderRadius: 2, p: 2, display: 'flex', flexDirection: 'column', gap: 1, alignItems: 'center' }}>
+                                                                                {getThumbnail(publication.publication_url) === 'pdf' ? (
                                                                                      <PictureAsPdfIcon sx={{ color: theme.palette.primary.dark, width: 48, height: 48 }} />
                                                                                 ) : (
                                                                                      <ArticleIcon sx={{ color: theme.palette.primary.dark, width: 48, height: 48 }} />
                                                                                 )}
                                                                                 <Typography sx={{ textAlign: 'center', whiteSpace: 'normal', wordBreak: 'break-word', maxWidth: '160px' }}>
-                                                                                     {publication.publicationTitle || extractFileName(publication.publicationURL)}
+                                                                                     {publication.publication_title || extractFileName(publication.publication_url)}
                                                                                 </Typography>
                                                                                 <Button
                                                                                      size="small"
                                                                                      variant="outlined"
                                                                                      onClick={() => {
                                                                                           const existing = formik.values.publications || []
-                                                                                          if (!existing.includes(publication.publicationURL)) {
-                                                                                               formik.setFieldValue('publications', [...existing, publication.publicationURL])
+                                                                                          if (!existing.includes(publication.publication_url)) {
+                                                                                               formik.setFieldValue('publications', [...existing, publication.publication_url])
                                                                                           }
                                                                                           setIsPublicationModalOpen(false)
                                                                                      }}
@@ -778,7 +764,7 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
                                                                                      reader.onloadend = () => resolve(reader.result as string);
                                                                                      reader.onerror = (error) => reject(error);
                                                                                 });
-                                                                                const response = await fetch('/api/aws-s3', {
+                                                                                const response = await fetch('/api/storage', {
                                                                                      method: 'POST',
                                                                                      headers: { 'Content-Type': 'application/json' },
                                                                                      body: JSON.stringify({
@@ -838,7 +824,7 @@ const fieldLabels: Record<string, string> = {
      locations: 'Lokacije',
      applicants: 'Aplikanti',
      organizers: 'Organizatori',
-     subOrganizers: 'Pod Organizatori',
+     sub_organizers: 'Pod Organizatori',
      donators: 'Donatori',
 }
 

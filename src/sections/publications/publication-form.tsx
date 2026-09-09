@@ -1,6 +1,8 @@
+'use client';
+
 import React, { useEffect, useState } from 'react';
 import { Box, Button, TextField, Typography, Stack } from '@mui/material';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2';
 import { Publication, initialPublication } from './publication-type';
 
@@ -45,7 +47,7 @@ export const PublicationForm = ({ mode, initialValues }: PublicationFormProps) =
           const extension = fileName.split('.').pop() || '';
           const fileDataUrl = await readFileAsDataUrl(file);
 
-          const response = await fetch('/api/aws-s3', {
+          const response = await fetch('/api/storage', {
                method: 'POST',
                headers: { 'Content-Type': 'application/json' },
                body: JSON.stringify({ file: fileDataUrl, title, extension, fileName }),
@@ -60,7 +62,7 @@ export const PublicationForm = ({ mode, initialValues }: PublicationFormProps) =
           return result.imageUrl as string;
      };
 
-     const isSaveDisabled = !publication.publicationTitle || !publication.publicationURL || !publication.publicationImageURL;
+     const isSaveDisabled = !publication.publication_title || !publication.publication_url || !publication.publication_image_url;
 
      const handleSubmit = async () => {
           if (isSaveDisabled) {
@@ -79,7 +81,7 @@ export const PublicationForm = ({ mode, initialValues }: PublicationFormProps) =
                     : await fetch('/api/publications-api', {
                          method: 'PUT',
                          headers: { 'Content-Type': 'application/json' },
-                         body: JSON.stringify({ id: publication._id, updatedPublication: publication }),
+                         body: JSON.stringify({ id: publication.id, updatedPublication: publication }),
                     });
 
                if (response.ok) {
@@ -116,7 +118,7 @@ export const PublicationForm = ({ mode, initialValues }: PublicationFormProps) =
      const handleDelete = async () => {
           setLoading(true)
           try {
-               const response = await fetch(`/api/publications-api?deleteId=${publication._id}`, { method: 'DELETE' });
+               const response = await fetch(`/api/publications-api?deleteId=${publication.id}`, { method: 'DELETE' });
                if (response.ok) {
                     Swal.fire({ icon: 'success', title: 'Sve OK!', text: 'Publikacija obrisana!' })
                     router.push('/publications')
@@ -136,9 +138,9 @@ export const PublicationForm = ({ mode, initialValues }: PublicationFormProps) =
                     label="Naslov"
                     fullWidth
                     required
-                    value={publication.publicationTitle}
+                    value={publication.publication_title}
                     disabled={loading}
-                    onChange={(e) => setPublication((prev) => ({ ...prev, publicationTitle: e.target.value }))}
+                    onChange={(e) => setPublication((prev) => ({ ...prev, publication_title: e.target.value }))}
                />
 
                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -164,11 +166,11 @@ export const PublicationForm = ({ mode, initialValues }: PublicationFormProps) =
                                    }
                                    setDocumentUploadError('');
                                    setDocumentFile(selectedFile);
-                                   setPublication((prev) => ({ ...prev, publicationTitle: prev.publicationTitle || normalizedTitle }));
+                                   setPublication((prev) => ({ ...prev, publication_title: prev.publication_title || normalizedTitle }));
                                    try {
                                         setIsUploadingDocument(true);
-                                        const documentUrl = await uploadFile(selectedFile, publication.publicationTitle || normalizedTitle);
-                                        setPublication((prev) => ({ ...prev, publicationURL: documentUrl }));
+                                        const documentUrl = await uploadFile(selectedFile, publication.publication_title || normalizedTitle);
+                                        setPublication((prev) => ({ ...prev, publication_url: documentUrl }));
                                    } catch (error: any) {
                                         setDocumentUploadError(error?.message || 'Upload dokumenta neuspešan.');
                                    } finally {
@@ -185,8 +187,8 @@ export const PublicationForm = ({ mode, initialValues }: PublicationFormProps) =
                     <Typography variant="caption">
                          {isUploadingDocument ? 'Uploadovanje dokumenta...' : 'Dokument se automatski uploaduje nakon izbora.'}
                     </Typography>
-                    {publication.publicationURL && !isUploadingDocument && (
-                         <Button href={publication.publicationURL} target="_blank" rel="noopener noreferrer" variant="text" sx={{ justifyContent: 'flex-start', px: 0 }}>
+                    {publication.publication_url && !isUploadingDocument && (
+                         <Button href={publication.publication_url} target="_blank" rel="noopener noreferrer" variant="text" sx={{ justifyContent: 'flex-start', px: 0 }}>
                               Otvori dokument
                          </Button>
                     )}
@@ -216,8 +218,8 @@ export const PublicationForm = ({ mode, initialValues }: PublicationFormProps) =
                                    setImageFile(selectedFile);
                                    try {
                                         setIsUploadingImage(true);
-                                        const imageUrl = await uploadFile(selectedFile, publication.publicationTitle || selectedFile.name);
-                                        setPublication((prev) => ({ ...prev, publicationImageURL: imageUrl }));
+                                        const imageUrl = await uploadFile(selectedFile, publication.publication_title || selectedFile.name);
+                                        setPublication((prev) => ({ ...prev, publication_image_url: imageUrl }));
                                    } catch (error: any) {
                                         setImageUploadError(error?.message || 'Upload slike neuspešan.');
                                    } finally {
@@ -231,8 +233,8 @@ export const PublicationForm = ({ mode, initialValues }: PublicationFormProps) =
                               Izabrano: {imageFile.name} ({(imageFile.size / 1024 / 1024).toFixed(2)} MB)
                          </Typography>
                     )}
-                    {(imagePreviewUrl || publication.publicationImageURL) && (
-                         <Box component="img" src={imagePreviewUrl || publication.publicationImageURL} alt="Preview" sx={{ maxWidth: 220, borderRadius: 1, border: '1px solid #ddd' }} />
+                    {(imagePreviewUrl || publication.publication_image_url) && (
+                         <Box component="img" src={imagePreviewUrl || publication.publication_image_url} alt="Preview" sx={{ maxWidth: 220, borderRadius: 1, border: '1px solid #ddd' }} />
                     )}
                     <Typography variant="caption">
                          {isUploadingImage ? 'Uploadovanje slike...' : 'Slika se automatski uploaduje nakon izbora.'}

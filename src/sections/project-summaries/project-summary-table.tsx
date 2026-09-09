@@ -1,32 +1,18 @@
+'use client';
+
 import {
      Box, Card, Table, TableBody, TableCell, TableHead, TableRow, Typography
 } from '@mui/material';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { Scrollbar } from 'src/components/scrollbar';
 import { SeverityPill } from 'src/components/severity-pill';
+import { CATEGORY_LABELS, STATUS_LABELS } from '@/types/content-enums';
 import { ProjectSummary } from './project-summary-type';
-
-const statusLabels: Record<string, string> = {
-     'completed': 'Zavrsen',
-     'in-progress': 'U toku',
-     'to-do': 'U planu',
-}
 
 const statusColors: Record<string, 'success' | 'warning' | 'info'> = {
      'completed': 'success',
      'in-progress': 'warning',
      'to-do': 'info',
-}
-
-const categoryLabels: Record<string, string> = {
-     'other': 'Ostalo',
-     'eu-integrations': 'EU integracije',
-     'intercultural-dialogue': 'Interkulturalni dijalog',
-     'migrations': 'Migracije',
-     'youth': 'Mladi',
-     'culture': 'Kultura',
-     'economy': 'Ekonomija',
-     'democracy': 'Demokratija',
 }
 
 export const ProjectSummaryTable = ({ items }: { items: ProjectSummary[] }) => {
@@ -50,24 +36,24 @@ export const ProjectSummaryTable = ({ items }: { items: ProjectSummary[] }) => {
                                    {items.length > 0 ? items.map((project) => (
                                         <TableRow
                                              hover
-                                             key={project._id}
-                                             onClick={() => router.push(`/project-summaries/${project._id}`)}
+                                             key={project.id}
+                                             onClick={() => router.push(`/project-summaries/${project.id}`)}
                                              sx={{ cursor: 'pointer' }}
                                         >
                                              <TableCell>
                                                   <Typography variant="subtitle2">{project.title}</Typography>
                                              </TableCell>
-                                             <TableCell>{categoryLabels[project.category] || project.category}</TableCell>
+                                             <TableCell>{CATEGORY_LABELS[project.category] || project.category}</TableCell>
                                              <TableCell>
                                                   <SeverityPill color={statusColors[project.status] || 'info'}>
-                                                       {statusLabels[project.status] || project.status}
+                                                       {STATUS_LABELS[project.status] || project.status}
                                                   </SeverityPill>
                                              </TableCell>
                                              <TableCell>
-                                                  {project.projectStartDateTime ? new Date(project.projectStartDateTime).toLocaleDateString() : '-'}
+                                                  {project.project_start_date_time ? new Date(project.project_start_date_time).toLocaleDateString() : '-'}
                                              </TableCell>
                                              <TableCell>
-                                                  {project.projectEndDateTime ? new Date(project.projectEndDateTime).toLocaleDateString() : '-'}
+                                                  {project.project_end_date_time ? new Date(project.project_end_date_time).toLocaleDateString() : '-'}
                                              </TableCell>
                                         </TableRow>
                                    )) : (

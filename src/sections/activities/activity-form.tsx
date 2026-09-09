@@ -1,10 +1,12 @@
+'use client';
+
 import React, { useState } from 'react';
 import { FieldArray, Form, Formik } from 'formik';
 import {
      TextField, Typography, Button, Box, Grid, MenuItem, IconButton, FormControl, InputLabel,
      Select, Divider, useTheme, Switch, FormControlLabel, Input, ImageListItem, ImageList, Stack
 } from '@mui/material'
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import Swal from 'sweetalert2'
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddBoxIcon from '@mui/icons-material/AddBox';
@@ -18,8 +20,6 @@ import { Activity, ActivityCategory, activityCategoryProps, ActivitySchema, acti
 import { DateField } from '@mui/x-date-pickers/DateField';
 import { sanitizeString } from '@/utils/url-creator';
 import QuillEditor from '@/components/quill-editor'
-
-const locales = [{ value: 'en', name: 'Engleski' }, { value: 'sr', name: 'Srpski' }]
 
 const categoryLabels: Record<ActivityCategory, string> = {
      'other': 'Ostalo',
@@ -52,11 +52,11 @@ export const ActivityForm = ({ mode, initialValues }: ActivityFormProps) => {
      const startingValues = initialValues || initialActivity
 
      const [useRichText, setUseRichText] = useState<boolean>(() => {
-          const savedHtml = startingValues.quillEditorData
+          const savedHtml = startingValues.quill_editor_data
           return typeof savedHtml === 'string' && savedHtml.trim().length > 0
      })
      const [editorHtml, setEditorHtml] = useState<string>(() => {
-          const savedHtml = startingValues.quillEditorData
+          const savedHtml = startingValues.quill_editor_data
           if (typeof savedHtml === 'string' && savedHtml.trim().length > 0) return savedHtml
           return (startingValues.descriptions || []).map((p: string) => `<p>${p}</p>`).join('')
      })
@@ -69,7 +69,7 @@ export const ActivityForm = ({ mode, initialValues }: ActivityFormProps) => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                          ...values,
-                         quillEditorData: useRichText ? editorHtml : '',
+                         quill_editor_data: useRichText ? editorHtml : '',
                     }),
                });
 
@@ -113,7 +113,7 @@ export const ActivityForm = ({ mode, initialValues }: ActivityFormProps) => {
                const response = await fetch('/api/activities-api', {
                     method: 'DELETE',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(startingValues._id),
+                    body: JSON.stringify(startingValues.id),
                })
 
                if (response.ok) {
@@ -150,7 +150,7 @@ export const ActivityForm = ({ mode, initialValues }: ActivityFormProps) => {
                                         defaultValue={formik.values.title}
                                         onBlur={(e: any) => {
                                              formik.setFieldValue('title', e.target.value)
-                                             formik.setFieldValue('activityURL', sanitizeString(e.target.value))
+                                             formik.setFieldValue('activity_url', sanitizeString(e.target.value))
                                         }}
                                         error={formik.touched.title && !!formik.errors.title}
                                         helperText={formik.touched.title && formik.errors.title}
@@ -160,8 +160,8 @@ export const ActivityForm = ({ mode, initialValues }: ActivityFormProps) => {
                                         InputLabelProps={{ shrink: true }}
                                         disabled
                                         label="URL aktivnosti"
-                                        name="activityURL"
-                                        value={formik.values.activityURL}
+                                        name="activity_url"
+                                        value={formik.values.activity_url}
                                    />
 
                                    <LocalizationProvider dateAdapter={AdapterDayjs}>
@@ -170,10 +170,10 @@ export const ActivityForm = ({ mode, initialValues }: ActivityFormProps) => {
                                              format='MM/DD/YYYY'
                                              label="Objavljeno"
                                              disabled={loading}
-                                             defaultValue={dayjs(formik.values.publishedDate)}
+                                             defaultValue={dayjs(formik.values.published_date)}
                                              onBlur={(e: any) => {
                                                   const date = moment(e.target.value).format('MM/DD/YYYY');
-                                                  formik.setFieldValue('publishedDate', date)
+                                                  formik.setFieldValue('published_date', date)
                                              }}
                                         />
                                    </LocalizationProvider>
@@ -244,10 +244,10 @@ export const ActivityForm = ({ mode, initialValues }: ActivityFormProps) => {
                                    {/* -------------------------------Cover image-------------------------- */}
                                    <Typography sx={{ margin: '10px' }}>Glavna slika aktivnosti:</Typography>
                                    <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', marginBottom: '30px' }}>
-                                        {formik.values.coverURL && (
+                                        {formik.values.cover_url && (
                                              <ImageListItem sx={{ width: '200px', height: '300px', paddingBottom: '10px' }}>
                                                   <img
-                                                       src={`${formik.values.coverURL}?w=164&h=164&fit=crop&auto=format`}
+                                                       src={`${formik.values.cover_url}?w=164&h=164&fit=crop&auto=format`}
                                                        alt="cover"
                                                        loading="lazy"
                                                        style={{ cursor: 'pointer' }}
@@ -265,13 +265,13 @@ export const ActivityForm = ({ mode, initialValues }: ActivityFormProps) => {
                                                             const url = e.target.currentSrc.split('?')[0]
                                                             setLoading(true)
                                                             try {
-                                                                 const response = await fetch('/api/aws-s3', {
+                                                                 const response = await fetch('/api/storage', {
                                                                       method: 'DELETE',
                                                                       headers: { 'Content-Type': 'application/json' },
                                                                       body: JSON.stringify(url)
                                                                  });
                                                                  if (response.ok) {
-                                                                      formik.setFieldValue('coverURL', '')
+                                                                      formik.setFieldValue('cover_url', '')
                                                                  }
                                                             } finally {
                                                                  setLoading(false)
@@ -298,7 +298,7 @@ export const ActivityForm = ({ mode, initialValues }: ActivityFormProps) => {
                                                                  reader.onloadend = () => resolve(reader.result as string);
                                                                  reader.onerror = (error) => reject(error);
                                                             });
-                                                            const response = await fetch('/api/aws-s3', {
+                                                            const response = await fetch('/api/storage', {
                                                                  method: 'POST',
                                                                  headers: { 'Content-Type': 'application/json' },
                                                                  body: JSON.stringify({
@@ -310,7 +310,7 @@ export const ActivityForm = ({ mode, initialValues }: ActivityFormProps) => {
                                                             });
                                                             if (response.ok) {
                                                                  const result = await response.json();
-                                                                 formik.setFieldValue('coverURL', result.imageUrl)
+                                                                 formik.setFieldValue('cover_url', result.imageUrl)
                                                             } else {
                                                                  Swal.fire({ title: 'Greška', text: 'Neuspešan upload slike!', icon: 'error' })
                                                             }
@@ -366,9 +366,9 @@ export const ActivityForm = ({ mode, initialValues }: ActivityFormProps) => {
                                         fullWidth
                                         disabled={loading}
                                         label="Naslov liste"
-                                        name="listTitle"
-                                        defaultValue={formik.values.listTitle}
-                                        onBlur={(e) => formik.setFieldValue('listTitle', e.target.value)}
+                                        name="list_title"
+                                        defaultValue={formik.values.list_title}
+                                        onBlur={(e) => formik.setFieldValue('list_title', e.target.value)}
                                    />
 
                                    <Grid item md={6} xs={12}>
@@ -496,7 +496,7 @@ export const ActivityForm = ({ mode, initialValues }: ActivityFormProps) => {
                                                                       const url = e.target.currentSrc.split('?')[0]
                                                                       setLoading(true)
                                                                       try {
-                                                                           const response = await fetch('/api/aws-s3', {
+                                                                           const response = await fetch('/api/storage', {
                                                                                 method: 'DELETE',
                                                                                 headers: { 'Content-Type': 'application/json' },
                                                                                 body: JSON.stringify(url)
@@ -533,7 +533,7 @@ export const ActivityForm = ({ mode, initialValues }: ActivityFormProps) => {
                                                                       reader.onloadend = () => resolve(reader.result as string);
                                                                       reader.onerror = (error) => reject(error);
                                                                  });
-                                                                 const response = await fetch('/api/aws-s3', {
+                                                                 const response = await fetch('/api/storage', {
                                                                       method: 'POST',
                                                                       headers: { 'Content-Type': 'application/json' },
                                                                       body: JSON.stringify({

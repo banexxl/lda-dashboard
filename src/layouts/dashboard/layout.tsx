@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { styled } from '@mui/material/styles';
-import { withAuthGuard } from '@/hooks/use-auth-guard';
 import { SideNav } from './side-nav';
 import { TopNav } from './top-nav';
 
@@ -25,7 +24,7 @@ const LayoutContainer = styled('div')({
      width: '100%'
 });
 
-export const Layout = withAuthGuard((props: any) => {
+export const Layout = (props: any) => {
 
      const { children } = props;
      const pathname = usePathname();
@@ -62,4 +61,4 @@ export const Layout = withAuthGuard((props: any) => {
                </LayoutRoot>
           </>
      );
-});
+};

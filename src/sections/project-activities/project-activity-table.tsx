@@ -1,9 +1,12 @@
+'use client';
+
 import {
      Box, Card, Table, TableBody, TableCell, TableHead, TableRow, Typography
 } from '@mui/material';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { Scrollbar } from 'src/components/scrollbar';
 import { SeverityPill } from 'src/components/severity-pill';
+import { CATEGORY_LABELS } from '@/types/content-enums';
 import { ProjectActivity, ProjectStatus } from './project-activity-type';
 import { ProjectSummary } from '../project-summaries/project-summary-type';
 
@@ -19,17 +22,6 @@ const statusColors: Record<ProjectStatus, 'success' | 'warning' | 'info'> = {
      'to-do': 'info',
 }
 
-const categoryLabels: Record<string, string> = {
-     'other': 'Ostalo',
-     'eu-integrations': 'EU integracije',
-     'intercultural-dialogue': 'Interkulturalni dijalog',
-     'migrations': 'Migracije',
-     'youth': 'Mladi',
-     'culture': 'Kultura',
-     'economy': 'Ekonomija',
-     'democracy': 'Demokratija',
-}
-
 type ProjectActivityTableProps = {
      items: ProjectActivity[];
      projectSummaries: ProjectSummary[];
@@ -38,9 +30,8 @@ type ProjectActivityTableProps = {
 export const ProjectActivityTable = ({ items, projectSummaries }: ProjectActivityTableProps) => {
      const router = useRouter();
 
-     const getParentTitle = (projectSummaryURL: string) => {
-          const cleanUrl = (projectSummaryURL || '').replace('/pregled-projekta/', '')
-          const parent = projectSummaries.find((summary) => summary.projectSummaryURL === cleanUrl)
+     const getParentTitle = (projectSummaryId: string | null) => {
+          const parent = projectSummaries.find((summary) => summary.id === projectSummaryId)
           return parent?.title || '-'
      }
 
@@ -62,15 +53,15 @@ export const ProjectActivityTable = ({ items, projectSummaries }: ProjectActivit
                                    {items.length > 0 ? items.map((activity) => (
                                         <TableRow
                                              hover
-                                             key={activity._id}
-                                             onClick={() => router.push(`/project-activities/${activity._id}`)}
+                                             key={activity.id}
+                                             onClick={() => router.push(`/project-activities/${activity.id}`)}
                                              sx={{ cursor: 'pointer' }}
                                         >
                                              <TableCell>
                                                   <Typography variant="subtitle2">{activity.title}</Typography>
                                              </TableCell>
-                                             <TableCell>{getParentTitle(activity.projectSummaryURL)}</TableCell>
-                                             <TableCell>{categoryLabels[activity.category] || activity.category}</TableCell>
+                                             <TableCell>{getParentTitle(activity.project_summary_id)}</TableCell>
+                                             <TableCell>{CATEGORY_LABELS[activity.category] || activity.category}</TableCell>
                                              <TableCell>
                                                   <SeverityPill color={statusColors[activity.status]}>
                                                        {statusLabels[activity.status] || activity.status}

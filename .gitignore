@@ -17,6 +17,7 @@ out
 .DS_Store
 .eslintcache
 .idea
+*.tsbuildinfo
 /.env
 /.env.local
 /.env.development.local

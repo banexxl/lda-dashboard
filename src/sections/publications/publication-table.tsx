@@ -1,5 +1,7 @@
+'use client';
+
 import { Box, Card, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { Scrollbar } from 'src/components/scrollbar';
 import { Publication } from './publication-type';
 
@@ -23,28 +25,28 @@ export const PublicationTable = ({ items }: { items: Publication[] }) => {
                                    {items.length > 0 ? items.map((publication) => (
                                         <TableRow
                                              hover
-                                             key={publication._id}
-                                             onClick={() => router.push(`/publications/${publication._id}`)}
+                                             key={publication.id}
+                                             onClick={() => router.push(`/publications/${publication.id}`)}
                                              sx={{ cursor: 'pointer' }}
                                         >
                                              <TableCell>
-                                                  <Typography variant="subtitle2">{publication.publicationTitle}</Typography>
+                                                  <Typography variant="subtitle2">{publication.publication_title}</Typography>
                                              </TableCell>
                                              <TableCell>
-                                                  {publication.publicationImageURL && (
-                                                       <Box component="img" src={publication.publicationImageURL} alt={publication.publicationTitle} sx={{ maxWidth: 60, maxHeight: 60, borderRadius: 1 }} />
+                                                  {publication.publication_image_url && (
+                                                       <Box component="img" src={publication.publication_image_url} alt={publication.publication_title} sx={{ maxWidth: 60, maxHeight: 60, borderRadius: 1 }} />
                                                   )}
                                              </TableCell>
                                              <TableCell>
-                                                  {publication.publicationURL && (
-                                                       <a href={publication.publicationURL} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
+                                                  {publication.publication_url && (
+                                                       <a href={publication.publication_url} target="_blank" rel="noopener noreferrer" onClick={(e) => e.stopPropagation()}>
                                                             Otvori
                                                        </a>
                                                   )}
                                              </TableCell>
                                              <TableCell>
-                                                  {publication.publicationUploadedDateTime && !isNaN(new Date(publication.publicationUploadedDateTime).getTime())
-                                                       ? new Date(publication.publicationUploadedDateTime).toLocaleDateString()
+                                                  {publication.publication_uploaded_date_time && !isNaN(new Date(publication.publication_uploaded_date_time).getTime())
+                                                       ? new Date(publication.publication_uploaded_date_time).toLocaleDateString()
                                                        : '-'}
                                              </TableCell>
                                         </TableRow>

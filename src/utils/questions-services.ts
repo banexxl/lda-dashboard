@@ -1,96 +1,71 @@
-import { MongoClient, ObjectId } from 'mongodb';
+import { createAdminClient } from '@/utils/supabase/admin';
 
 export type QuestionItem = {
-     _id: string;
-     fullName: string;
+     id: string;
+     full_name: string;
      email: string;
      question: string;
      answer: string;
-     questionDateTime: Date;
-     answerDateTime: Date | null;
-     archived?: number;
+     question_date_time: string;
+     answer_date_time: string | null;
+     archived?: boolean;
 };
 
 export const QuestionsServices = () => {
-     const client = new MongoClient(process.env.MONGODB_URI!);
 
      const getQuestionById = async (id: string) => {
-          try {
-               await client.connect();
-               const database = client.db('LDA_DB');
-               const question = await database.collection('Q&A').findOne({ _id: new ObjectId(id) });
-               return question;
-          } catch (error: any) {
+          const supabase = createAdminClient();
+          const { data, error } = await supabase.from('questions').select('*').eq('id', id).maybeSingle();
+          if (error) {
                console.error('Error while fetching question:', error);
                return null;
-          } finally {
-               await client.close();
           }
+          return data;
      };
 
-     const getAllQuestions = async (archived?: number) => {
-          try {
-               await client.connect();
-               const database = client.db('LDA_DB');
-               const collection = database.collection('Q&A');
-               const filter = typeof archived === 'number' ? { archived } : {};
-               const questions = await collection
-                    .find(filter)
-                    .sort({ questionDateTime: -1 })
-                    .toArray();
-               return questions;
-          } catch (error: any) {
+     const getAllQuestions = async (archived?: boolean) => {
+          const supabase = createAdminClient();
+          let query = supabase.from('questions').select('*').order('question_date_time', { ascending: false });
+          if (typeof archived === 'boolean') {
+               query = query.eq('archived', archived);
+          }
+          const { data, error } = await query;
+          if (error) {
                console.error('Error while fetching questions:', error);
                return [];
-          } finally {
-               await client.close();
           }
+          return data;
      };
 
      const updateQuestion = async (id: string, updatedQuestion: any) => {
-          try {
-               await client.connect();
-               const database = client.db('LDA_DB');
-               const collection = database.collection('Q&A');
-               const result = await collection.updateOne(
-                    { _id: new ObjectId(id) },
-                    {
-                         $set: {
-                              fullName: updatedQuestion.fullName,
-                              email: updatedQuestion.email,
-                              question: updatedQuestion.question,
-                              answer: updatedQuestion.answer,
-                              questionDateTime: updatedQuestion.questionDateTime,
-                              answerDateTime: updatedQuestion.answerDateTime,
-                         },
-                    }
-               );
+          const supabase = createAdminClient();
+          const { error } = await supabase
+               .from('questions')
+               .update({
+                    full_name: updatedQuestion.full_name,
+                    email: updatedQuestion.email,
+                    question: updatedQuestion.question,
+                    answer: updatedQuestion.answer,
+                    question_date_time: updatedQuestion.question_date_time,
+                    answer_date_time: updatedQuestion.answer_date_time,
+               })
+               .eq('id', id);
 
-               return result.modifiedCount > 0;
-          } catch (error: any) {
+          if (error) {
                console.error('Error while updating question:', error);
                return false;
-          } finally {
-               await client.close();
           }
+          return true;
      };
 
      const archiveQuestion = async (id: string) => {
-          try {
-               await client.connect();
-               const database = client.db('LDA_DB');
-               const collection = database.collection('Q&A');
-               const result = await collection.updateOne(
-                    { _id: new ObjectId(id) },
-                    { $set: { archived: 1 } }
-               );
-               return result.modifiedCount > 0;
-          } catch (error: any) {
+          const supabase = createAdminClient();
+          const { error } = await supabase.from('questions').update({ archived: true }).eq('id', id);
+          if (error) {
                console.error('Error while archiving question:', error);
                return false;
-          } finally {
-               await client.close();
           }
+          return true;
      };
 
      return {

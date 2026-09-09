@@ -4,20 +4,22 @@ import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import PropTypes from 'prop-types';
 import { Box, Divider, MenuItem, MenuList, Popover, Typography } from '@mui/material';
-import { useSession, signOut } from 'next-auth/react';
+import { useAuth } from '@/hooks/use-auth';
+import { createClient } from '@/utils/supabase/client';
 
 export const AccountPopover = (props: any) => {
      const { anchorEl, onClose, open } = props;
      const router = useRouter();
-     const auth = useSession()
+     const auth = useAuth();
 
      const handleSignOut = useCallback(
-          () => {
+          async () => {
                onClose?.();
-               signOut()
+               const supabase = createClient();
+               await supabase.auth.signOut();
                router.push('/auth/login');
           },
-          [onClose, auth, router]
+          [onClose, router]
      );
 
      return (
@@ -44,14 +46,14 @@ export const AccountPopover = (props: any) => {
                          color="text.secondary"
                          variant="body2"
                     >
-                         {auth.data?.user?.name}
+                         {auth.user?.user_metadata?.full_name || auth.user?.user_metadata?.name}
 
                     </Typography>
                     <Typography
                          color="text.secondary"
                          variant="body2"
                     >
-                         {auth.data?.user?.email}
+                         {auth.user?.email}
                     </Typography>
 
                </Box>
