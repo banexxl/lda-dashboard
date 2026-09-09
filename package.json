@@ -24,6 +24,7 @@
     "@heroicons/react": "2.0.16",
     "@mui/icons-material": "^5.14.9",
     "@mui/material": "^5.14.9",
+    "@mui/system": "^5.18.0",
     "@mui/x-date-pickers": "^7.2.0",
     "@untitled-ui/icons-react": "^0.1.1",
     "date-fns": "2.29.3",
@@ -33,13 +34,10 @@
     "mongodb": "^5.0.0",
     "next": "^15.5.22",
     "next-auth": "^4.24.14",
-<<<<<<< HEAD
-    "nodemailer": "^9.0.3",
-=======
     "nodemailer": "^9.0.1",
->>>>>>> origin/dependabot/npm_and_yarn/npm_and_yarn-8ef348f35d
     "nprogress": "0.2.0",
     "prop-types": "15.8.1",
+    "quill": "^2.0.3",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-quilljs": "^2.0.5",

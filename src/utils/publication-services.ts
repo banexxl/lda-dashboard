@@ -4,6 +4,20 @@ import { ObjectId } from 'mongodb';
 export const PublicationsServices = () => {
      const client = new MongoClient(process.env.MONGODB_URI!);
 
+     const getPublicationById = async (id: string) => {
+          try {
+               await client.connect();
+               const database = client.db('LDA_DB');
+               const publication = await database.collection('Publications').findOne({ _id: new ObjectId(id) });
+               return publication;
+          } catch (error: any) {
+               console.error('Error while fetching publication:', error);
+               return null;
+          } finally {
+               await client.close();
+          }
+     };
+
      const getAllPublications = async () => {
           try {
                await client.connect();
@@ -127,6 +141,7 @@ export const PublicationsServices = () => {
 
 
      return {
+          getPublicationById,
           getAllPublications,
           getPublicationsByPage,
           getPublicationsCount,

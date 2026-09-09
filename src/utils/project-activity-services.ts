@@ -1,7 +1,23 @@
-import { MongoClient } from "mongodb"
+import { MongoClient, ObjectId } from "mongodb"
 
 
 export const projectActivitiesServices = () => {
+
+     const getProjectActivityById = async (id: string) => {
+          const client = new MongoClient(process.env.MONGODB_URI!);
+
+          try {
+               await client.connect();
+               const database = client.db('LDA_DB');
+               const activity = await database.collection('Projects').findOne({ _id: new ObjectId(id) });
+               return activity;
+          } catch (error: any) {
+               console.error('Error while fetching project activity:', error);
+               return null;
+          } finally {
+               await client.close();
+          }
+     }
 
      const getAllProjectActivities = async () => {
           const client = new MongoClient(process.env.MONGODB_URI!);
@@ -81,6 +97,7 @@ export const projectActivitiesServices = () => {
      }
 
      return {
+          getProjectActivityById,
           getProjectActivitiesByPage,
           getProjectActivitiesCount,
           getAllProjectActivities,

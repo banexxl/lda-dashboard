@@ -14,6 +14,20 @@ export type QuestionItem = {
 export const QuestionsServices = () => {
      const client = new MongoClient(process.env.MONGODB_URI!);
 
+     const getQuestionById = async (id: string) => {
+          try {
+               await client.connect();
+               const database = client.db('LDA_DB');
+               const question = await database.collection('Q&A').findOne({ _id: new ObjectId(id) });
+               return question;
+          } catch (error: any) {
+               console.error('Error while fetching question:', error);
+               return null;
+          } finally {
+               await client.close();
+          }
+     };
+
      const getAllQuestions = async (archived?: number) => {
           try {
                await client.connect();
@@ -80,6 +94,7 @@ export const QuestionsServices = () => {
      };
 
      return {
+          getQuestionById,
           getAllQuestions,
           updateQuestion,
           archiveQuestion,

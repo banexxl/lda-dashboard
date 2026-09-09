@@ -13,6 +13,8 @@ export type ProjectCategory = 'economy'
 
 export type ProjectStatus = 'completed' | 'in-progress' | 'to-do'
 
+export const projectCategory: ProjectCategory[] = ['economy', 'democracy', 'eu-integrations', 'culture', 'intercultural-dialogue', 'migrations', 'youth', 'other'];
+
 export type ProjectActivity = {
      _id?: string;
      projectSummaryURL: string;

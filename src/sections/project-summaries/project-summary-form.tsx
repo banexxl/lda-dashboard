@@ -1,94 +1,166 @@
 import React, { useState } from 'react';
-import { TextField, Typography, Button, Box, Grid, MenuItem, IconButton, FormControl, InputLabel, Select, Divider, FormHelperText, useTheme } from '@mui/material'
+import {
+     TextField, Typography, Button, Box, Grid, MenuItem, FormControl, InputLabel, Select, Divider,
+     useTheme, Stack, Input, ImageListItem, ImageList, Tooltip
+} from '@mui/material'
 import { Form, Formik } from 'formik';
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/router';
 import Swal from 'sweetalert2'
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import ArticleIcon from '@mui/icons-material/Article';
 
-import { ProjectSummarySchema, initialProjectSummary } from './project-summary-type';
+import { ProjectSummary, ProjectSummarySchema, initialProjectSummary } from './project-summary-type';
 import { DateField } from '@mui/x-date-pickers/DateField';
 import { sanitizeString } from '@/utils/url-creator';
-import { projectCategory } from '../project-activities/project-activity-table';
+import { projectCategory } from '../project-activities/project-activity-type';
+import { getThumbnail, extractFileName } from '@/utils/file-helpers';
 
-export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) => {
+const categoryLabels: Record<string, string> = {
+     'other': 'Ostalo',
+     'eu-integrations': 'EU integracije',
+     'intercultural-dialogue': 'Interkulturalni dijalog',
+     'migrations': 'Migracije',
+     'youth': 'Mladi',
+     'culture': 'Kultura',
+     'economy': 'Ekonomija',
+     'democracy': 'Demokratija',
+}
+
+const arrayFieldLabels: Record<string, string> = {
+     organizers: 'Organizatori projekta',
+     locations: 'Lokacije projekta',
+     applicants: 'Aplikanti projekta',
+     donators: 'Donatori projekta',
+     links: 'Linkovi',
+}
+
+type ProjectSummaryFormProps = {
+     mode: 'create' | 'edit';
+     initialValues?: ProjectSummary;
+};
+
+export const ProjectSummaryForm = ({ mode, initialValues }: ProjectSummaryFormProps) => {
 
      const router = useRouter();
      const [loading, setLoading] = useState<any>(false)
      const theme = useTheme()
 
-     const handleSubmit = async (values: any) => {
+     const startingValues = initialValues || initialProjectSummary
 
+     const handleSubmit = async (values: ProjectSummary) => {
+          setLoading(true)
           try {
-               const responseValues: any = await fetch('/api/project-summaries-api', {
-                    method: 'POST',
-                    headers: {
-                         'Content-Type': 'application/json',
-                         'Access-Control-Allow-Origin': '*',
-                         'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS' // Set the content type to JSON
-                    },
+               const response = await fetch('/api/project-summaries-api', {
+                    method: mode === 'create' ? 'POST' : 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(values),
                });
 
-               if (responseValues.ok) {
-
-                    onSubmitSuccess();
-
+               if (response.ok) {
                     Swal.fire({
                          icon: 'success',
-                         title: 'Jeeej',
-                         text: 'Projekat ubačen uspešno',
+                         title: 'Sve OK!',
+                         text: mode === 'create' ? 'Projekat ubačen uspešno' : 'Projekat izmenjen :)',
                     })
-                    router.refresh()
+                    router.push('/project-summaries')
                } else {
-
-                    onSubmitFail()
-
-                    Swal.fire({
-                         icon: 'error',
-                         title: 'Oops...',
-                         text: 'Nešto ne valja :(',
-                    })
+                    Swal.fire({ icon: 'error', title: 'Oops...', text: 'Nešto ne valja :(' })
                }
-
           } catch (err) {
-               onSubmitFail()
-               Swal.fire({
-                    icon: 'error',
-                    title: 'Oops...',
-                    text: 'Nešto ne valja :(',
-               })
+               Swal.fire({ icon: 'error', title: 'Oops...', text: 'Nešto ne valja :(' })
+          } finally {
+               setLoading(false)
           }
+     }
 
+     const handleDeleteClick = () => {
+          Swal.fire({
+               title: 'Da li ste sigurni?',
+               text: "Ako želite da obrišete i slike iz baze, prvo ih obrišite iz projekta!",
+               icon: 'warning',
+               showCancelButton: true,
+               confirmButtonColor: '#3085d6',
+               cancelButtonColor: '#d33',
+               confirmButtonText: 'Da, obriši projekat, a ostavi slike u bazi!',
+               cancelButtonText: 'Ne!'
+          }).then((result) => {
+               if (result.isConfirmed) handleDelete()
+          })
+     }
+
+     const handleDelete = async () => {
+          setLoading(true)
+          try {
+               const response = await fetch('/api/project-summaries-api', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(startingValues._id),
+               })
+               if (response.ok) {
+                    Swal.fire({ icon: 'success', title: 'Sve OK!', text: 'Projekat obrisan!' })
+                    router.push('/project-summaries')
+               } else {
+                    Swal.fire({ icon: 'error', title: 'Greška', text: 'Projekat nije obrisan :(' })
+               }
+          } catch (err) {
+               Swal.fire({ icon: 'error', title: 'Greška', text: 'Projekat nije obrisan :(' })
+          } finally {
+               setLoading(false)
+          }
+     }
+
+     const confirmThenDeleteAsset = async (url: string, onDeleted: () => void) => {
+          const confirmDelete = await Swal.fire({
+               title: 'Da li ste sigurni da želite da obrišete sliku?',
+               text: "Možete obrisati samo sliku koju ste uploadovali!",
+               icon: 'warning',
+               showCancelButton: true,
+               confirmButtonColor: '#3085d6',
+               cancelButtonColor: '#d33',
+               confirmButtonText: 'Da, obriši!',
+               cancelButtonText: 'Odustani!'
+          })
+          if (!confirmDelete.isConfirmed) return
+          setLoading(true)
+          try {
+               const response = await fetch('/api/aws-s3', {
+                    method: 'DELETE',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(url)
+               });
+               if (response.ok) {
+                    onDeleted()
+                    Swal.fire({ title: 'OK', text: 'Uspešno brisanje!', icon: 'success', confirmButtonColor: '#3085d6', confirmButtonText: 'OK' })
+               } else {
+                    Swal.fire({ title: 'Greška', text: 'Neuspešno brisanje!', icon: 'error', confirmButtonColor: '#3085d6', confirmButtonText: 'OK' })
+               }
+          } finally {
+               setLoading(false)
+          }
      }
 
      return (
-          <Box >
+          <Box>
                <Formik
-
-                    initialValues={initialProjectSummary}
-                    onSubmit={(values) => {
-                         handleSubmit(values)
-                    }}
+                    initialValues={startingValues}
+                    onSubmit={handleSubmit}
                     validationSchema={ProjectSummarySchema}>
                     {
                          (formik) => (
                               <Form style={{ display: 'flex', flexDirection: 'column', gap: '15px', opacity: loading ? .5 : 1 }}>
 
-
-                                   {/* <Typography>
-                                        {`${JSON.stringify(formik.errors)}`}
-                                   </Typography> */}
                                    <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
-
 
                                    <TextField
                                         InputLabelProps={{ shrink: true }}
                                         label="Naslov projekta"
                                         name="title"
-                                        // value={formik.values.title}
                                         disabled={loading}
+                                        defaultValue={formik.values.title}
                                         onBlur={(e: any) => {
                                              const sanitizedValue = e.target.value
-                                                  .replace(/[^a-zA-Z0-9čćžšđČĆŽŠĐ\s]/g, '') // Keep alphanumeric, Serbian Latinic letters and spaces
+                                                  .replace(/[^a-zA-Z0-9čćžšđČĆŽŠĐ\s]/g, '')
                                                   .replace(/\s+/g, ' ');
                                              formik.setFieldValue('title', sanitizedValue)
                                              formik.setFieldValue('projectSummaryURL', sanitizeString(sanitizedValue))
@@ -101,75 +173,44 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                         InputLabelProps={{ shrink: true }}
                                         disabled
                                         label="URL projekta"
-                                        name="projectSummaryURL"
-                                        rows={4}
                                         value={formik.values.projectSummaryURL}
                                    />
-
 
                                    <DateField
                                         InputLabelProps={{ shrink: true }}
                                         label="Početak projekta"
-                                        name="projectStartDateTime"
                                         value={formik.values.projectStartDateTime}
                                         onChange={(value) => formik.setFieldValue('projectStartDateTime', value)}
                                         onBlur={() => formik.setFieldTouched('projectStartDateTime', true)}
-                                        helperText={
-                                             formik.touched.projectStartDateTime && formik.errors.projectStartDateTime ? String(formik.errors.projectStartDateTime) : null
-                                        }
-                                        FormHelperTextProps={{
-                                             sx: {
-                                                  color: formik.touched.projectStartDateTime && formik.errors.projectStartDateTime ? 'red' : 'inherit',
-                                             },
-                                        }}
-                                        // You can use the sx prop directly if available
-                                        sx={{
-                                             '& .MuiFormHelperText-root': {
-                                                  color: formik.touched.projectStartDateTime && formik.errors.projectStartDateTime ? 'red' : 'inherit',
-                                             },
-                                        }}
+                                        helperText={formik.touched.projectStartDateTime && formik.errors.projectStartDateTime ? String(formik.errors.projectStartDateTime) : null}
+                                        FormHelperTextProps={{ sx: { color: formik.touched.projectStartDateTime && formik.errors.projectStartDateTime ? 'red' : 'inherit' } }}
+                                        sx={{ '& .MuiFormHelperText-root': { color: formik.touched.projectStartDateTime && formik.errors.projectStartDateTime ? 'red' : 'inherit' } }}
                                    />
 
                                    <DateField
                                         InputLabelProps={{ shrink: true }}
                                         label="Kraj projekta"
-                                        name="projectEndDateTime"
                                         value={formik.values.projectEndDateTime}
                                         onChange={(value) => formik.setFieldValue('projectEndDateTime', value)}
                                         onBlur={() => formik.setFieldTouched('projectEndDateTime', true)}
-                                        helperText={
-                                             formik.touched.projectEndDateTime && formik.errors.projectEndDateTime ? String(formik.errors.projectEndDateTime) : null
-                                        }
-                                        FormHelperTextProps={{
-                                             sx: {
-                                                  color: formik.touched.projectEndDateTime && formik.errors.projectEndDateTime ? 'red' : 'inherit',
-                                             },
-                                        }}
-                                        // You can use the sx prop directly if available
-                                        sx={{
-                                             '& .MuiFormHelperText-root': {
-                                                  color: formik.touched.projectEndDateTime && formik.errors.projectEndDateTime ? 'red' : 'inherit',
-                                             },
-                                        }}
+                                        helperText={formik.touched.projectEndDateTime && formik.errors.projectEndDateTime ? String(formik.errors.projectEndDateTime) : null}
+                                        FormHelperTextProps={{ sx: { color: formik.touched.projectEndDateTime && formik.errors.projectEndDateTime ? 'red' : 'inherit' } }}
+                                        sx={{ '& .MuiFormHelperText-root': { color: formik.touched.projectEndDateTime && formik.errors.projectEndDateTime ? 'red' : 'inherit' } }}
                                    />
 
-
                                    <FormControl fullWidth>
-                                        <TextField
-                                             select
-                                             label="Status projekta"
+                                        <InputLabel id="project-summary-status" sx={{ backgroundColor: 'white' }}>Status</InputLabel>
+                                        <Select
+                                             labelId="project-summary-status"
+                                             label="Status"
                                              name='status'
-                                             id="demo-simple-select"
                                              value={formik.values.status}
                                              onChange={formik.handleChange}
                                              error={formik.touched.status && !!formik.errors.status}
-                                             sx={{ borderColor: 'white' }}
                                         >
-                                             <MenuItem value={''}>Ponisti</MenuItem>
                                              <MenuItem value={'in-progress'}>U toku</MenuItem>
                                              <MenuItem value={'completed'}>Zavrsen</MenuItem>
-                                             <MenuItem value={'todo'}>U planu</MenuItem>
-                                        </TextField>
+                                        </Select>
                                    </FormControl>
 
                                    <FormControl fullWidth>
@@ -178,161 +219,271 @@ export const AddProjectSummaryForm = ({ onSubmitSuccess, onSubmitFail }: any) =>
                                              label="Kategorija"
                                              labelId="project-summary-category"
                                              name='category'
-                                             id="project-summary-category-id"
                                              value={formik.values.category}
-                                             onChange={(e) => {
-                                                  formik.setFieldValue('category', e.target.value)
-                                             }}
+                                             onChange={(e) => formik.setFieldValue('category', e.target.value)}
                                              error={formik.touched.category && !!formik.errors.category}
-                                             sx={{ borderColor: 'white' }}
                                         >
-                                             {
-                                                  projectCategory.map((category: any) => (
-                                                       <MenuItem
-                                                            value={category}
-                                                            key={category}
-                                                       >
-                                                            {
-                                                                 category == 'other' ? 'Ostalo' :
-                                                                      category == 'eu-integrations' ? 'EU integracije' :
-                                                                           category == 'intercultural-dialogue' ? 'Interkulturalni dijalog' :
-                                                                                category == 'migrations' ? 'Migracije' :
-                                                                                     category == 'youth' ? 'Mladi' :
-                                                                                          category == 'culture' ? 'Kultura' :
-                                                                                               category == 'economy' ? 'Ekonomija' :
-                                                                                                    category == 'democracy' ? 'Demokratija' : ''
-                                                            }
-                                                       </MenuItem>
-                                                  ))
-                                             }
+                                             {projectCategory.map((category) => (
+                                                  <MenuItem value={category} key={category}>{categoryLabels[category]}</MenuItem>
+                                             ))}
                                         </Select>
                                    </FormControl>
 
                                    <FormControl fullWidth>
-                                        <TextField
-                                             select
-                                             label="Jezik"
-                                             id="demo-simple-select"
+                                        <InputLabel id="project-summary-locale" sx={{ backgroundColor: 'white' }}>Jezik</InputLabel>
+                                        <Select
+                                             labelId="project-summary-locale"
                                              value={'sr'}
-                                             name='locale'
+                                             label="Jezik"
                                              disabled
-                                             onChange={formik.handleChange}
-                                             error={formik.touched.locale && !!formik.errors.locale}
+                                             name='locale'
                                         >
                                              <MenuItem value={'sr'}>sr</MenuItem>
                                              <MenuItem value={'en'}>en</MenuItem>
-                                        </TextField>
+                                        </Select>
                                    </FormControl>
 
                                    <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
 
-                                   <TextField
-                                        InputLabelProps={{ shrink: true }}
-                                        fullWidth
-                                        label="Organizatori (odvojeni zarezom)"
-                                        name="organizers"
-                                        onBlur={(e) => {
-                                             const { value } = e.target;
-                                             const organizersArray = value.split(',').map((organizer) => organizer.trim());
-                                             formik.setFieldValue('organizers', organizersArray);
-                                             formik.handleBlur(e);
-                                        }}
-                                        error={formik.touched.organizers && !!formik.errors.organizers}
-                                        helperText={formik.touched.organizers && formik.errors.organizers}
-                                   />
-
-                                   <TextField
-                                        InputLabelProps={{ shrink: true }}
-                                        fullWidth
-                                        label="Lokacije (odvojeni zarezom)"
-                                        name="locations"
-                                        onBlur={(e) => {
-                                             const { value } = e.target;
-                                             const locations = value.split(',').map((locations) => locations.trim());
-                                             formik.setFieldValue('locations', locations);
-                                             formik.handleBlur(e);
-                                        }}
-                                        error={formik.touched.locations && !!formik.errors.locations}
-                                        helperText={formik.touched.locations && formik.errors.locations}
-                                   />
-
-                                   <TextField
-                                        InputLabelProps={{ shrink: true }}
-                                        fullWidth
-                                        label="Aplikanti (odvojeni zarezom)"
-                                        name="applicants"
-                                        onBlur={(e) => {
-                                             const { value } = e.target;
-                                             const applicants = value.split(',').map((applicant) => applicant.trim());
-                                             formik.setFieldValue('applicants', applicants);
-                                             formik.handleBlur(e);
-                                        }}
-                                        error={formik.touched.applicants && !!formik.errors.applicants}
-                                        helperText={formik.touched.applicants && formik.errors.applicants}
-                                   />
-
-                                   <TextField
-                                        InputLabelProps={{ shrink: true }}
-                                        fullWidth
-                                        label="Donatori (odvojeni zarezom)"
-                                        name="donators"
-                                        onBlur={(e) => {
-                                             const { value } = e.target;
-                                             const donators = value.split(',').map((donator) => donator.trim());
-                                             formik.setFieldValue('donators', donators);
-                                             formik.handleBlur(e);
-                                        }}
-                                        error={formik.touched.donators && !!formik.errors.donators}
-                                        helperText={formik.touched.donators && formik.errors.donators}
-                                   />
-
-                                   {/* <TextField
-                                        InputLabelProps={{ shrink: true }}
-                                        fullWidth
-                                        label="Publikacije (odvojeni zarezom)"
-                                        name="publications"
-                                        onBlur={(e) => {
-                                             const { value } = e.target;
-                                             const publications = value.split(',').map((publication) => publication.trim());
-                                             formik.setFieldValue('publications', publications);
-                                             formik.handleBlur(e);
-                                        }}
-                                        error={formik.touched.publications && !!formik.errors.publications}
-                                        helperText={formik.touched.publications && formik.errors.publications}
-                                   /> */}
-
-                                   <TextField
-                                        InputLabelProps={{ shrink: true }}
-                                        fullWidth
-                                        label="Linkovi (odvojeni zarezom)"
-                                        name="links"
-                                        onBlur={(e) => {
-                                             const { value } = e.target;
-                                             const links = value.split(',').map((link) => link.trim());
-                                             formik.setFieldValue('links', links);
-                                             formik.handleBlur(e);
-                                        }}
-                                        error={formik.touched.links && !!formik.errors.links}
-                                        helperText={formik.touched.links && formik.errors.links}
-                                   />
-                                   <Divider />
-                                   <Box sx={{ display: 'flex', width: '100%', justifyContent: 'space-between' }}>
-                                        <Button
-                                             variant="contained"
-                                             color="primary"
-                                             onClick={() => onSubmitFail()}
+                                   {(['organizers', 'locations', 'applicants', 'donators', 'links'] as const).map((field) => (
+                                        <TextField
+                                             key={field}
+                                             InputLabelProps={{ shrink: true }}
+                                             fullWidth
+                                             label={`${arrayFieldLabels[field]} (odvojeni zarezom)`}
                                              disabled={loading}
-                                        >
-                                             Odustani
-                                        </Button>
-                                        <Button type="submit"
-                                             variant="contained"
-                                             color="primary"
-                                             disabled={Object.keys(formik.errors).length != 0 && loading}
-                                        >
-                                             Dodaj projekat
+                                             defaultValue={(formik.values[field] || []).join(', ')}
+                                             onBlur={(e) => {
+                                                  const values = e.target.value.split(',').map((v) => v.trim()).filter(Boolean);
+                                                  formik.setFieldValue(field, values);
+                                             }}
+                                             error={!!(formik.touched as any)[field] && !!(formik.errors as any)[field]}
+                                             helperText={(formik.touched as any)[field] && (formik.errors as any)[field]}
+                                        />
+                                   ))}
+
+                                   <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
+
+                                   {/* -------------------------------Cover image-------------------------- */}
+                                   <Tooltip placement='bottom-start' title={'Ovde se dodaje slika koja predstavlja naslovnu sliku projekta. Može biti samo jedna.'}>
+                                        <Typography sx={{ margin: '10px' }}>Glavna slika projekta:</Typography>
+                                   </Tooltip>
+                                   <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', marginBottom: '30px' }}>
+                                        {formik.values.projectSummaryCoverURL && (
+                                             <ImageListItem sx={{ width: '200px', height: '300px', paddingBottom: '10px' }}>
+                                                  <img
+                                                       src={`${formik.values.projectSummaryCoverURL}?w=164&h=164&fit=crop&auto=format`}
+                                                       alt="cover"
+                                                       loading="lazy"
+                                                       style={{ cursor: 'pointer' }}
+                                                       onClick={() => confirmThenDeleteAsset(formik.values.projectSummaryCoverURL, () => {
+                                                            formik.setFieldValue('projectSummaryCoverURL', '')
+                                                       })}
+                                                  />
+                                             </ImageListItem>
+                                        )}
+                                        <Button component="label" variant="contained" startIcon={<CloudUploadIcon />} sx={{ maxWidth: '150px' }} disabled={loading}>
+                                             Učitaj sliku
+                                             <Input
+                                                  type="file"
+                                                  inputProps={{ accept: 'image/*' }}
+                                                  sx={{ clip: 'rect(0 0 0 0)', clipPath: 'inset(50%)', height: 1, overflow: 'hidden', position: 'absolute', bottom: 0, left: 0, whiteSpace: 'nowrap', width: 1 }}
+                                                  onChange={async (e: any) => {
+                                                       const selectedFile = e.target.files[0];
+                                                       if (!selectedFile) return;
+                                                       setLoading(true)
+                                                       try {
+                                                            const fileExtension = selectedFile.name.split('.').pop();
+                                                            const reader = new FileReader();
+                                                            reader.readAsDataURL(selectedFile);
+                                                            const base64Data: string = await new Promise((resolve, reject) => {
+                                                                 reader.onloadend = () => resolve(reader.result as string);
+                                                                 reader.onerror = (error) => reject(error);
+                                                            });
+                                                            const response = await fetch('/api/aws-s3', {
+                                                                 method: 'POST',
+                                                                 headers: { 'Content-Type': 'application/json' },
+                                                                 body: JSON.stringify({
+                                                                      file: base64Data,
+                                                                      title: formik.values.title || 'projekat',
+                                                                      extension: fileExtension,
+                                                                      fileName: selectedFile.name,
+                                                                 }),
+                                                            });
+                                                            if (response.ok) {
+                                                                 const result = await response.json();
+                                                                 formik.setFieldValue('projectSummaryCoverURL', result.imageUrl)
+                                                            } else {
+                                                                 Swal.fire({ title: 'Greška', text: 'Neuspešan upload slike!', icon: 'error' })
+                                                            }
+                                                       } finally {
+                                                            setLoading(false)
+                                                       }
+                                                  }}
+                                             />
                                         </Button>
                                    </Box>
+
+                                   <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
+
+                                   {/* -------------------------------Gallery-------------------------- */}
+                                   <Typography sx={{ margin: '10px' }}>Slike:</Typography>
+                                   <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', marginBottom: '30px', width: '100%' }}>
+                                        {formik.values.gallery && formik.values.gallery.length > 0 && (
+                                             <ImageList sx={{ width: '90%', height: 450 }} cols={4} rowHeight={164}>
+                                                  {formik.values.gallery.map((item: string, idx: number) => (
+                                                       <ImageListItem key={idx} sx={{ width: '200px', height: '300px' }}>
+                                                            <img
+                                                                 src={`${item}?w=164&h=164&fit=crop&auto=format`}
+                                                                 alt="gallery"
+                                                                 loading="lazy"
+                                                                 style={{ cursor: 'pointer', borderRadius: '10px' }}
+                                                                 onClick={() => confirmThenDeleteAsset(item, () => {
+                                                                      formik.setFieldValue('gallery', formik.values.gallery.filter((g: string) => g !== item))
+                                                                 })}
+                                                            />
+                                                       </ImageListItem>
+                                                  ))}
+                                             </ImageList>
+                                        )}
+
+                                        <Button component="label" variant="contained" startIcon={<CloudUploadIcon />} sx={{ maxWidth: '150px' }} disabled={loading}>
+                                             Učitaj sliku
+                                             <Input
+                                                  type="file"
+                                                  inputProps={{ accept: 'image/*' }}
+                                                  sx={{ clip: 'rect(0 0 0 0)', clipPath: 'inset(50%)', height: 1, overflow: 'hidden', position: 'absolute', bottom: 0, left: 0, whiteSpace: 'nowrap', width: 1 }}
+                                                  onChange={async (e: any) => {
+                                                       const selectedFile = e.target.files[0];
+                                                       if (!selectedFile) return;
+                                                       setLoading(true)
+                                                       try {
+                                                            const fileExtension = selectedFile.name.split('.').pop();
+                                                            const reader = new FileReader();
+                                                            reader.readAsDataURL(selectedFile);
+                                                            const base64Data: string = await new Promise((resolve, reject) => {
+                                                                 reader.onloadend = () => resolve(reader.result as string);
+                                                                 reader.onerror = (error) => reject(error);
+                                                            });
+                                                            const response = await fetch('/api/aws-s3', {
+                                                                 method: 'POST',
+                                                                 headers: { 'Content-Type': 'application/json' },
+                                                                 body: JSON.stringify({
+                                                                      file: base64Data,
+                                                                      title: formik.values.title || 'projekat',
+                                                                      extension: fileExtension,
+                                                                      fileName: selectedFile.name,
+                                                                 }),
+                                                            });
+                                                            if (response.ok) {
+                                                                 const result = await response.json();
+                                                                 formik.setFieldValue('gallery', [...formik.values.gallery, result.imageUrl])
+                                                            } else {
+                                                                 Swal.fire({ title: 'Greška', text: 'Neuspešan upload slike!', icon: 'error' })
+                                                            }
+                                                       } finally {
+                                                            setLoading(false)
+                                                       }
+                                                  }}
+                                             />
+                                        </Button>
+                                   </Box>
+
+                                   <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
+
+                                   {/* -------------------------------Publications-------------------------- */}
+                                   <Tooltip placement='bottom-start' title={'Ovde možemo samo da brišemo publikacije za sad. Ako želimo da pregledamo, moramo otići na lda-subotica.org'}>
+                                        <Typography sx={{ margin: '10px' }}>Publikacije:</Typography>
+                                   </Tooltip>
+                                   <Box sx={{ display: 'flex', flexDirection: 'column', paddingLeft: '30px', width: '90%', marginBottom: '20px' }}>
+                                        {formik.values.publications && formik.values.publications.length > 0 && (
+                                             <Box sx={{ width: '90%', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 3, alignItems: 'start' }}>
+                                                  {formik.values.publications.map((item: string, index: number) => (
+                                                       <Box
+                                                            key={index}
+                                                            sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100px', cursor: 'pointer' }}
+                                                            onClick={() => confirmThenDeleteAsset(item, () => {
+                                                                 formik.setFieldValue('publications', formik.values.publications.filter((p: string) => p !== item))
+                                                            })}
+                                                       >
+                                                            {getThumbnail(item) === 'pdf' ? (
+                                                                 <PictureAsPdfIcon sx={{ color: theme.palette.primary.dark, width: '50px', height: '50px' }} />
+                                                            ) : (
+                                                                 <ArticleIcon sx={{ color: theme.palette.primary.dark, width: '50px', height: '50px' }} />
+                                                            )}
+                                                            <Tooltip title={extractFileName(item)}>
+                                                                 <Typography sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100px' }}>
+                                                                      {extractFileName(item)}
+                                                                 </Typography>
+                                                            </Tooltip>
+                                                       </Box>
+                                                  ))}
+                                             </Box>
+                                        )}
+
+                                        <Button component="label" variant="contained" startIcon={<CloudUploadIcon />} sx={{ maxWidth: '150px', marginTop: '20px' }} disabled={loading}>
+                                             Učitaj dokument
+                                             <Input
+                                                  type="file"
+                                                  inputProps={{ accept: '.pdf, .docx, .doc' }}
+                                                  sx={{ clip: 'rect(0 0 0 0)', clipPath: 'inset(50%)', height: 1, overflow: 'hidden', position: 'absolute', bottom: 0, left: 0, whiteSpace: 'nowrap', width: 1 }}
+                                                  onChange={async (e: any) => {
+                                                       const selectedFile = e.target.files[0];
+                                                       if (!selectedFile) return;
+                                                       const validExtensions = ['pdf', 'docx', 'doc'];
+                                                       const fileExtension = selectedFile.name.split('.').pop().toLowerCase();
+                                                       if (!validExtensions.includes(fileExtension)) {
+                                                            Swal.fire({ title: 'Greška', text: 'Dozvoljeni su samo PDF i Word dokumenti!', icon: 'error' })
+                                                            return;
+                                                       }
+                                                       setLoading(true)
+                                                       try {
+                                                            const reader = new FileReader();
+                                                            reader.readAsDataURL(selectedFile);
+                                                            const base64Data: string = await new Promise((resolve, reject) => {
+                                                                 reader.onloadend = () => resolve(reader.result as string);
+                                                                 reader.onerror = (error) => reject(error);
+                                                            });
+                                                            const response = await fetch('/api/aws-s3', {
+                                                                 method: 'PUT',
+                                                                 headers: { 'Content-Type': 'application/json' },
+                                                                 body: JSON.stringify({
+                                                                      file: base64Data,
+                                                                      title: formik.values.title || 'projekat',
+                                                                      extension: fileExtension,
+                                                                      fileName: selectedFile.name,
+                                                                 }),
+                                                            });
+                                                            if (response.ok) {
+                                                                 const result = await response.json();
+                                                                 formik.setFieldValue('publications', [...formik.values.publications, result.imageUrl])
+                                                            } else {
+                                                                 Swal.fire({ title: 'Greška', text: 'Neuspešan upload publikacije!', icon: 'error' })
+                                                            }
+                                                       } finally {
+                                                            setLoading(false)
+                                                       }
+                                                  }}
+                                             />
+                                        </Button>
+                                   </Box>
+
+                                   <Divider sx={{ borderBottomWidth: 5, borderColor: theme.palette.primary.main }} />
+                                   <Stack direction="row" justifyContent="space-between" sx={{ p: 2 }}>
+                                        <Stack direction="row" spacing={2}>
+                                             <Button type="submit" variant="contained" disabled={loading}>
+                                                  {mode === 'create' ? 'Dodaj projekat' : 'Izmeni'}
+                                             </Button>
+                                             <Button color="inherit" onClick={() => router.push('/project-summaries')} disabled={loading}>
+                                                  Odustani
+                                             </Button>
+                                        </Stack>
+                                        {mode === 'edit' && (
+                                             <Button onClick={handleDeleteClick} color="error" disabled={loading}>
+                                                  Obriši projekat
+                                             </Button>
+                                        )}
+                                   </Stack>
                               </Form>
                          )
                     }

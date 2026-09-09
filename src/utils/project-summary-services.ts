@@ -1,6 +1,22 @@
-import { MongoClient } from "mongodb"
+import { MongoClient, ObjectId } from "mongodb"
 
 export const projectSummaryServices = () => {
+
+     const getProjectSummaryById = async (id: string) => {
+          const client = new MongoClient(process.env.MONGODB_URI!);
+
+          try {
+               await client.connect();
+               const database = client.db('LDA_DB');
+               const summary = await database.collection('ProjectSummaries').findOne({ _id: new ObjectId(id) });
+               return summary;
+          } catch (error: any) {
+               console.error('Error while fetching project summary:', error);
+               return null;
+          } finally {
+               await client.close();
+          }
+     }
 
      const getAllProjectSummaries = async () => {
           const client = new MongoClient(process.env.MONGODB_URI!);
@@ -62,6 +78,7 @@ export const projectSummaryServices = () => {
      }
 
      return {
+          getProjectSummaryById,
           getProjectsByPage,
           getProjectSummariesCount,
           getAllProjectSummaries
