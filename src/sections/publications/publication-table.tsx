@@ -2,14 +2,13 @@
 
 import { Box, Table, TableBody, TableCell, TableHead, TableRow, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import { Scrollbar } from 'src/components/scrollbar';
 import { Publication } from './publication-type';
 
 export const PublicationTable = ({ items }: { items: Publication[] }) => {
      const router = useRouter();
 
      return (
-          <Scrollbar>
+          <Box sx={{ overflowX: 'auto' }}>
                <Box sx={{ minWidth: 800 }}>
                     <Table>
                          <TableHead>
@@ -59,6 +58,6 @@ export const PublicationTable = ({ items }: { items: Publication[] }) => {
                          </TableBody>
                     </Table>
                </Box>
-          </Scrollbar>
+          </Box>
      );
 };

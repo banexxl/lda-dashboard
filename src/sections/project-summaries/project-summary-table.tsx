@@ -4,7 +4,6 @@ import {
      Box, Table, TableBody, TableCell, TableHead, TableRow, Typography
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
-import { Scrollbar } from 'src/components/scrollbar';
 import { SeverityPill } from 'src/components/severity-pill';
 import { CATEGORY_LABELS, STATUS_LABELS } from '@/types/content-enums';
 import { ProjectSummary } from './project-summary-type';
@@ -19,7 +18,7 @@ export const ProjectSummaryTable = ({ items }: { items: ProjectSummary[] }) => {
      const router = useRouter();
 
      return (
-          <Scrollbar>
+          <Box sx={{ overflowX: 'auto' }}>
                <Box sx={{ minWidth: 800 }}>
                     <Table>
                          <TableHead>
@@ -65,6 +64,6 @@ export const ProjectSummaryTable = ({ items }: { items: ProjectSummary[] }) => {
                          </TableBody>
                     </Table>
                </Box>
-          </Scrollbar>
+          </Box>
      );
 };
