@@ -47,7 +47,12 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
      const [loading, setLoading] = useState(false)
      const [listEnabled, setListEnabled] = useState<boolean>(!!initialValues?.show_list)
 
-     const startingValues = initialValues || projectActivityInitialValues
+     const startingValues = {
+          ...(initialValues || projectActivityInitialValues),
+          // Supabase returns timestamptz columns as ISO strings, not Date instances --
+          // DateField needs an actual Date to display an existing value when editing.
+          published: initialValues?.published ? new Date(initialValues.published) : (initialValues || projectActivityInitialValues).published,
+     }
 
      const [useRichText, setUseRichText] = useState<boolean>(() => {
           const savedHtml = startingValues.quill_editor_data

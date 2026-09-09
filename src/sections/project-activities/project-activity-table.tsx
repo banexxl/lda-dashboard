@@ -1,7 +1,7 @@
 'use client';
 
 import {
-     Box, Card, Table, TableBody, TableCell, TableHead, TableRow, Typography
+     Box, Table, TableBody, TableCell, TableHead, TableRow, Typography
 } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { Scrollbar } from 'src/components/scrollbar';
@@ -36,52 +36,50 @@ export const ProjectActivityTable = ({ items, projectSummaries }: ProjectActivit
      }
 
      return (
-          <Card>
-               <Scrollbar>
-                    <Box sx={{ minWidth: 800 }}>
-                         <Table>
-                              <TableHead>
-                                   <TableRow>
-                                        <TableCell>Naziv</TableCell>
-                                        <TableCell>Projekat</TableCell>
-                                        <TableCell>Kategorija</TableCell>
-                                        <TableCell>Status</TableCell>
-                                        <TableCell>Datum objave</TableCell>
+          <Scrollbar>
+               <Box sx={{ minWidth: 800 }}>
+                    <Table>
+                         <TableHead>
+                              <TableRow>
+                                   <TableCell>Naziv</TableCell>
+                                   <TableCell>Projekat</TableCell>
+                                   <TableCell>Kategorija</TableCell>
+                                   <TableCell>Status</TableCell>
+                                   <TableCell>Datum objave</TableCell>
+                              </TableRow>
+                         </TableHead>
+                         <TableBody>
+                              {items.length > 0 ? items.map((activity) => (
+                                   <TableRow
+                                        hover
+                                        key={activity.id}
+                                        onClick={() => router.push(`/project-activities/${activity.id}`)}
+                                        sx={{ cursor: 'pointer' }}
+                                   >
+                                        <TableCell>
+                                             <Typography variant="subtitle2">{activity.title}</Typography>
+                                        </TableCell>
+                                        <TableCell>{getParentTitle(activity.project_summary_id)}</TableCell>
+                                        <TableCell>{CATEGORY_LABELS[activity.category] || activity.category}</TableCell>
+                                        <TableCell>
+                                             <SeverityPill color={statusColors[activity.status]}>
+                                                  {statusLabels[activity.status] || activity.status}
+                                             </SeverityPill>
+                                        </TableCell>
+                                        <TableCell>
+                                             {activity.published ? new Date(activity.published).toLocaleDateString() : '-'}
+                                        </TableCell>
                                    </TableRow>
-                              </TableHead>
-                              <TableBody>
-                                   {items.length > 0 ? items.map((activity) => (
-                                        <TableRow
-                                             hover
-                                             key={activity.id}
-                                             onClick={() => router.push(`/project-activities/${activity.id}`)}
-                                             sx={{ cursor: 'pointer' }}
-                                        >
-                                             <TableCell>
-                                                  <Typography variant="subtitle2">{activity.title}</Typography>
-                                             </TableCell>
-                                             <TableCell>{getParentTitle(activity.project_summary_id)}</TableCell>
-                                             <TableCell>{CATEGORY_LABELS[activity.category] || activity.category}</TableCell>
-                                             <TableCell>
-                                                  <SeverityPill color={statusColors[activity.status]}>
-                                                       {statusLabels[activity.status] || activity.status}
-                                                  </SeverityPill>
-                                             </TableCell>
-                                             <TableCell>
-                                                  {activity.published ? new Date(activity.published).toLocaleDateString() : '-'}
-                                             </TableCell>
-                                        </TableRow>
-                                   )) : (
-                                        <TableRow>
-                                             <TableCell colSpan={5}>
-                                                  <Typography>Nema pronađenih projektnih aktivnosti.</Typography>
-                                             </TableCell>
-                                        </TableRow>
-                                   )}
-                              </TableBody>
-                         </Table>
-                    </Box>
-               </Scrollbar>
-          </Card>
+                              )) : (
+                                   <TableRow>
+                                        <TableCell colSpan={5}>
+                                             <Typography>Nema pronađenih projektnih aktivnosti.</Typography>
+                                        </TableCell>
+                                   </TableRow>
+                              )}
+                         </TableBody>
+                    </Table>
+               </Box>
+          </Scrollbar>
      );
 };

@@ -37,7 +37,13 @@ export const ProjectSummaryForm = ({ mode, initialValues }: ProjectSummaryFormPr
      const [loading, setLoading] = useState<any>(false)
      const theme = useTheme()
 
-     const startingValues = initialValues || initialProjectSummary
+     const startingValues = {
+          ...(initialValues || initialProjectSummary),
+          // Supabase returns timestamptz columns as ISO strings, not Date instances --
+          // DateField needs an actual Date to display an existing value when editing.
+          project_start_date_time: initialValues?.project_start_date_time ? new Date(initialValues.project_start_date_time) : (initialValues || initialProjectSummary).project_start_date_time,
+          project_end_date_time: initialValues?.project_end_date_time ? new Date(initialValues.project_end_date_time) : (initialValues || initialProjectSummary).project_end_date_time,
+     }
 
      const handleSubmit = async (values: ProjectSummary) => {
           setLoading(true)
