@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import crypto from 'node:crypto';
 import moment from 'moment';
 import { createAdminClient } from '@/utils/supabase/admin';
 import { PublicationsServices } from '@/utils/publication-services';
@@ -36,12 +37,33 @@ const decodeBase64File = (file: string, contentType: string) => {
      return Buffer.from(file.replace(base64Prefix, ''), 'base64');
 };
 
+// Supabase Storage keys are much stricter than S3's -- spaces, diacritics, and
+// punctuation (which S3 tolerated fine) get rejected as "Invalid key". Sanitize each
+// path segment to a safe slug; fall back to a short hash if a segment (e.g. an
+// all-Cyrillic title) sanitizes down to nothing.
+const DIACRITIC_MAP: Record<string, string> = {
+     č: 'c', ć: 'c', ž: 'z', š: 's', đ: 'd',
+     Č: 'C', Ć: 'C', Ž: 'Z', Š: 'S', Đ: 'D',
+};
+
+const sanitizeKeySegment = (segment: string): string => {
+     let s = segment.replace(/[čćžšđČĆŽŠĐ]/g, (ch) => DIACRITIC_MAP[ch] ?? ch);
+     s = s.normalize('NFKD').replace(/[̀-ͯ]/g, '');
+     s = s.replace(/[^A-Za-z0-9._-]+/g, '-').replace(/-+/g, '-').replace(/^-+|-+$/g, '');
+     if (!s) {
+          s = crypto.createHash('md5').update(segment).digest('hex').slice(0, 10);
+     }
+     return s;
+};
+
 const buildKey = (title: string, fileName: string, extension: string) => {
      const now = moment();
      const year = now.year().toString();
      const month = (now.month() + 1).toString().padStart(2, '0');
      const day = now.format('DD');
-     return `${year}/${month}/${day}/${title}/${fileName.split('.')[0]}.${extension}`;
+     const folder = sanitizeKeySegment(title);
+     const baseName = sanitizeKeySegment(fileName.split('.')[0]);
+     return `${year}/${month}/${day}/${folder}/${baseName}.${extension}`;
 };
 
 const extractStorageKey = (url: string): string | null => {

@@ -6,7 +6,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { Scrollbar } from 'src/components/scrollbar';
 import { SeverityPill } from 'src/components/severity-pill';
-import { CATEGORY_LABELS } from '@/types/content-enums';
+import { CATEGORY_LABELS, LEGACY_CATEGORY_LABELS } from '@/types/content-enums';
 import { Activity, ActivityStatusProps } from './activity-type';
 
 const statusLabels: Record<ActivityStatusProps, string> = {
@@ -49,7 +49,7 @@ export const ActivityTable = ({ items }: { items: Activity[] }) => {
                                              <TableCell>
                                                   <Typography variant="subtitle2">{activity.title}</Typography>
                                              </TableCell>
-                                             <TableCell>{CATEGORY_LABELS[activity.category] || activity.category}</TableCell>
+                                             <TableCell>{CATEGORY_LABELS[activity.category] || LEGACY_CATEGORY_LABELS[activity.category] || activity.category}</TableCell>
                                              <TableCell>
                                                   <SeverityPill color={statusColors[activity.status]}>
                                                        {statusLabels[activity.status] || activity.status}
