@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { FieldArray, Form, Formik } from 'formik';
 import {
      TextField, Typography, Button, Box, Grid, MenuItem, IconButton, FormControl, InputLabel, Select,
@@ -22,7 +22,7 @@ import { ProjectSummary } from '../project-summaries/project-summary-type';
 import { getThumbnail, extractFileName } from '@/utils/file-helpers';
 import { CATEGORY_LABELS } from '@/types/content-enums';
 import moment from 'moment';
-import QuillEditor from '@/components/quill-editor'
+import QuillEditor, { QuillEditorRef } from '@/components/quill-editor'
 
 type PublicationItem = {
      id: string;
@@ -63,6 +63,7 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
           if (typeof savedHtml === 'string' && savedHtml.trim().length > 0) return savedHtml
           return paragraphsToHtml(startingValues.paragraphs || [])
      })
+     const quillRef = useRef<QuillEditorRef>(null)
 
      const [useRichTextEng, setUseRichTextEng] = useState<boolean>(() => {
           const savedHtml = startingValues.content_html_eng
@@ -73,6 +74,7 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
           if (typeof savedHtml === 'string' && savedHtml.trim().length > 0) return savedHtml
           return paragraphsToHtml(startingValues.paragraphs_eng || [])
      })
+     const quillRefEng = useRef<QuillEditorRef>(null)
 
      const [isPublicationModalOpen, setIsPublicationModalOpen] = useState(false)
      const [publicationsCatalog, setPublicationsCatalog] = useState<PublicationItem[]>([])
@@ -103,13 +105,19 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
      const handleSubmit = async (values: ProjectActivity) => {
           setLoading(true)
           try {
+               // Quill only commits to React state on blur, which can lose the race against
+               // this submit when Save is clicked directly inside the editor -- read the live
+               // DOM content instead of relying on the (possibly stale) editorHtml state.
+               const finalQuillHtml = useRichText ? (quillRef.current?.getContents() ?? editorHtml) : ''
+               const finalQuillHtmlEng = useRichTextEng ? (quillRefEng.current?.getContents() ?? editorHtmlEng) : ''
+
                const response = await fetch('/api/project-activities-api', {
                     method: mode === 'create' ? 'POST' : 'PUT',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                          ...values,
-                         quill_editor_data: useRichText ? editorHtml : '',
-                         content_html_eng: useRichTextEng ? editorHtmlEng : '',
+                         quill_editor_data: finalQuillHtml,
+                         content_html_eng: finalQuillHtmlEng,
                     }),
                });
 
@@ -435,6 +443,7 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
                                                                            const checked = e.target.checked
                                                                            setUseRichText(checked)
                                                                            if (checked) setEditorHtml(editorHtml || paragraphsToHtml(formik.values.paragraphs || []))
+                                                                           else setEditorHtml('')
                                                                       }}
                                                                       disabled={loading}
                                                                  />
@@ -445,6 +454,7 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
 
                                                   {useRichText ? (
                                                        <QuillEditor
+                                                            ref={quillRef}
                                                             initialValue={editorHtml}
                                                             commitMode='onBlur'
                                                             onBlur={(html) => setEditorHtml(html || '')}
@@ -522,6 +532,7 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
                                                                            const checked = e.target.checked
                                                                            setUseRichTextEng(checked)
                                                                            if (checked) setEditorHtmlEng(editorHtmlEng || paragraphsToHtml(formik.values.paragraphs_eng || []))
+                                                                           else setEditorHtmlEng('')
                                                                       }}
                                                                       disabled={loading}
                                                                  />
@@ -533,6 +544,7 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
 
                                                   {useRichTextEng ? (
                                                        <QuillEditor
+                                                            ref={quillRefEng}
                                                             initialValue={editorHtmlEng}
                                                             commitMode="onBlur"
                                                             onBlur={(html) => setEditorHtmlEng(html || '')}
