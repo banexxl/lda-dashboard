@@ -21,7 +21,6 @@ import { sanitizeString } from '@/utils/url-creator';
 import { ProjectSummary } from '../project-summaries/project-summary-type';
 import { getThumbnail, extractFileName } from '@/utils/file-helpers';
 import { CATEGORY_LABELS } from '@/types/content-enums';
-import moment from 'moment';
 import QuillEditor, { QuillEditorRef } from '@/components/quill-editor'
 
 type PublicationItem = {
@@ -120,20 +119,6 @@ export const ProjectActivityForm = ({ mode, initialValues, projectSummaries }: P
                          content_html_eng: finalQuillHtmlEng,
                     }),
                });
-
-               if (mode === 'create' && response.ok && values.project_summary_id) {
-                    await fetch('/api/project-summaries-api', {
-                         method: 'PUT',
-                         headers: { 'Content-Type': 'application/json' },
-                         body: JSON.stringify({
-                              id: values.project_summary_id,
-                              project_summary_description: (values.paragraphs || [])[0] || '',
-                              project_summary_subtitle_url: '/projektna-aktivnost/' + values.project_url,
-                              project_summary_date_time: moment(values.published).format('YYYY-MM-DDTHH:mm:ss.SSSZ'),
-                              project_summary_subtitle: values.title,
-                         }),
-                    });
-               }
 
                if (response.ok) {
                     Swal.fire({

@@ -79,29 +79,6 @@ export const projectSummaryServices = () => {
           return true;
      }
 
-     // Adds a dated entry (used when a Project Activity is created under this summary).
-     // Replaces the old Mongo $push into mismatched parallel-array field names.
-     const addProjectSummaryEntry = async (projectSummaryId: string, entry: {
-          description?: string;
-          subtitle?: string;
-          subtitle_url?: string;
-          entry_date_time?: string;
-     }) => {
-          const supabase = createAdminClient();
-          const { error } = await supabase.from('project_summary_entries').insert({
-               project_summary_id: projectSummaryId,
-               description: entry.description,
-               subtitle: entry.subtitle,
-               subtitle_url: entry.subtitle_url,
-               entry_date_time: entry.entry_date_time,
-          });
-          if (error) {
-               console.error('Error while adding project summary entry:', error);
-               return false;
-          }
-          return true;
-     }
-
      return {
           getProjectSummaryById,
           getProjectsByPage,
@@ -110,6 +87,5 @@ export const projectSummaryServices = () => {
           addProjectSummary,
           updateProjectSummary,
           deleteProjectSummary,
-          addProjectSummaryEntry,
      }
 }
